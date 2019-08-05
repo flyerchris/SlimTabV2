@@ -3,7 +3,7 @@ import {utils} from "./utils"
 export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
-    private sectionWidth: number = 260; // 單位是 pixel
+    private sectionWidth: number = 300; // 單位是 pixel
     private sectionPerLine: number = 4;
     private lineAdditionLength: number = 50; // 每行第一小節前方會有文字，所以要給多一點空間
     private stringPadding: number = 16;
@@ -19,13 +19,21 @@ export class SLTab {
         this.notes = [
             [// 小節
                 [4, [3, -1, -1, 4, -1, -1], null],// 音符長度, [格數，索引值為弦的編號，從零開始算], user data
+                [8, [-1, 5, 2, -1, -1, -1], null],
+                [8, [-1, 5, 2, -1, -1, -1], null],
                 [4, [-1, 5, 2, -1, -1, -1], null],
-                [4, [-1, 5, 2, -1, -1, -1], null],
-                [4, [-1, 5, 2, -1, -1, -1], null]
+                [8, [-1, 5, 2, -1, -1, -1], null],
+                [16, [-1, 5, 2, -1, -1, -1], null],
+                [16, [-1, 5, 2, -1, -1, -1], null],
             ],
             [
-                [4, [-1, -1, -1, -1, -1, -1], null],
-                [4, [-1, -1, -1, -1, -1, -1], null],
+                [16, [-1, 5, 2, -1, -1, -1], null],
+                [8, [-1, 5, 2, -1, -1, -1], null],
+                [16, [-1, 5, 2, -1, -1, -1], null],
+                [4, [3, -1, -1, 4, -1, -1], null],
+                [16, [-1, 5, 2, -1, -1, -1], null],
+                [16, [-1, 5, 2, -1, -1, -1], null],
+                [8, [-1, 5, 2, -1, -1, -1], null],
             ],
             [
                 [4, [-1, -1, -1, -1, -1, -1], null],
@@ -62,7 +70,7 @@ export class SLTab {
         let page = document.createElement("div");
         page.setAttribute("style","background: #CCC; position: relative;");
         this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-        utils.setAttributes(this.svgElement,{width: "1200", height: "600"});
+        utils.setAttributes(this.svgElement,{width: "1400", height: "600"});
         this.drawAllLine();
         this.setNoteElementData(this.calNoteRawData());
         page.append(this.svgElement);
@@ -134,7 +142,7 @@ export class SLTab {
 
     private calNoteRawData(): [number, number, number, number[]][]{ // x, y , length, block of every chord
         let [x, y] = this.startPosition;
-        let beatLength = (this.sectionWidth - 20) / this.beatPerSection;
+        let beatLength = (this.sectionWidth - 40) / this.beatPerSection;
         let rawData: [number, number, number, number[]][] = [];
         for(let s = 0; s < this.notes.length; s++){ // section
             if(s % this.sectionPerLine == 0)x = this.startPosition[0];
@@ -156,7 +164,8 @@ export class SLTab {
         }
         for(let i = 0; i < data.length; i++){
             this.setElementPosition(this.noteElement[i], data[i][0], data[i][1]);
-            //this.setChordVisiable(this.noteElement, data[i][3]);
+            this.setNoteBar(this.noteElement[i], data[i][2]);
+            this.setChordVisiable(this.noteElement[i], data[i][0], data[i][1], data[i][3]);
         }
     }
     private setElementPosition(e:SVGElement, x:number, y:number){
@@ -166,6 +175,44 @@ export class SLTab {
         for(let i = 1 ; i <= 6; i++){
             utils.setAttributes(e.children[i].children[0], {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
             utils.setAttributes(e.children[i].children[1], {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
+        }
+    }
+    private setNoteBar(e:SVGElement, length: number){
+        let lf = length / this.lengthPerBeat;
+        if(lf > 1.9){
+            utils.setStyle(<HTMLElement>e.children[0].children[1],{display: "block"});
+        }else{
+            utils.setStyle(<HTMLElement>e.children[0].children[1],{display: "none"});
+        }
+        if(lf > 3.9){
+            utils.setStyle(<HTMLElement>e.children[0].children[2],{display: "block"});
+        }else{
+            utils.setStyle(<HTMLElement>e.children[0].children[2],{display: "none"});
+        }
+    }
+    private setChordVisiable(e:SVGElement, x: number, y: number, data: number[]){
+        for(let i = 1 ; i <= 6; i++){
+            e.children[i].children[1].innerHTML = `${data[i-1]}`;
+            if(data[i-1] == -1){
+                utils.setStyle(<HTMLElement>e.children[i].children[0],{display: "none"});
+                utils.setStyle(<HTMLElement>e.children[i].children[1],{display: "none"});
+            }else{
+                utils.setStyle(<HTMLElement>e.children[i].children[0],{display: "block"});
+                utils.setStyle(<HTMLElement>e.children[i].children[1],{display: "block"});
+            }
+        }
+        let hc: number = -1;
+        for(let i = 0 ; i < 6; i++){
+            if(data[i] != -1){
+                hc = i;
+                break;
+            }    
+        }
+        if(hc != -1){
+            utils.setAttributes(e.children[0].children[0],{x1: `${x}`, y1: `${40 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y + this.stringPadding * hc}`});
+            utils.setStyle(<HTMLElement>e.children[0].children[0],{display: "block"});
+        }else{
+            utils.setStyle(<HTMLElement>e.children[0].children[0],{display: "none"});
         }
     }
 }
