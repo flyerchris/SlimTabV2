@@ -3,22 +3,22 @@ import {utils} from "./utils"
 export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
-    private sectionWidth: number = 300; // 單位是 pixel
+    private sectionWidth: number = 300; // unit in pixel
     private sectionPerLine: number = 4;
-    private lineAdditionLength: number = 50; // 每行第一小節前方會有文字，所以要給多一點空間
+    private lineAdditionLength: number = 50; // space for the word "TAB" of begining of every line
     private stringPadding: number = 16;
     private linePerPage: number = 20;
     private notes: [number, number[], any][][];
     private noteElement: SVGElement[] = [];
     private svgElement: SVGElement;
     private startPosition: number[] = [90, 20]; // x, y
-    private lineInfo: [number, number, number] = [0, 20, 20]; // 總行數, 最後一行的 X, 最後一行的 Y
+    private lineInfo: [number, number, number] = [0, 20, 20]; // total line number, last line X, last line Y
 
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, sectionWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
         this.notes = [
-            [// 小節
-                [4, [3, -1, -1, 4, -1, -1], null],// 音符長度, [格數，索引值為弦的編號，從零開始算], user data
+            [// section
+                [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number, start from 0], user data
                 [8, [-1, 5, 2, -1, -1, -1], null],
                 [8, [-1, 5, 2, -1, -1, -1], null],
                 [4, [-1, 5, 2, -1, -1, -1], null],
