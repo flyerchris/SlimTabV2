@@ -1,6 +1,5 @@
-import { SLTab } from "./SlimTabV2"
-let nt = new SLTab();
-let data: [number, number[], any][][] = [
+let nt = new SlimTabV2.SLTab();
+let data = [
     [// section
         [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
         [8, [-1, 5, 2, -1, -1, -1], null],
@@ -22,4 +21,4 @@ let data: [number, number[], any][][] = [
 ];
 nt.setNoteData(data);
 nt.render(document.getElementById("slimtab"));
-//setInterval(function(){nt.addNote(-1,[16, [-1, -1, -1, 4, -1, 6], null],)}, 1000);
+setInterval(function(){nt.addNote(-1,[32, [-1, -1, -1, 4, -1, 6], null],)}, 1000);
