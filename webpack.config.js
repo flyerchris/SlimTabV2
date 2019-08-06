@@ -1,9 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: {
-        "demo": "./src/demo.ts",
-    },
+    entry: {demo: './src/demo.ts', LiCAP: './src/LiCAP.ts'},
     devtool: 'inline-source-map',
     module: {
         rules: [
