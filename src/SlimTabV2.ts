@@ -47,7 +47,7 @@ export class SLTab {
             let width = this.sectionWidth * this.sectionPerLine + this.linePadding*2 + 42*2;
             page.setAttribute("style",`position: relative; background: radial-gradient(#3E3E3E, #000) ; width: fit-content;`);
             this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-            utils.setAttributes(this.svgElement,{width: `${width}`, height: "1000"});
+            utils.setAttributes(this.svgElement,{width: `${width}`, height: "600"});
             page.append(this.svgElement);
             anchor.appendChild(page);
         }
@@ -109,12 +109,13 @@ export class SLTab {
         <line style="stroke:white;stroke-width:1" x1="${x}" y1="140" x2="${x}" y2="${y}"></line>
         <line style="stroke:white;stroke-width:2" x1="${x}" y1="138" x2="${x+10}" y2="138"></line>
         <line style="stroke:white;stroke-width:2" x1="${x}" y1="130" x2="${x+10}" y2="130"></line>
+        <line style="stroke:white;stroke-width:2"></line>
         </g>`;
         for(let i = 0; i < 6 ; i++){
             noteHtml += `
                 <g>
                 <ellipse cx='${x}' cy='${y + this.stringPadding * i}' rx='4' ry='6' fill='#444' stroke-width='0' stroke='black' style='cursor:pointer;'></ellipse>
-                <text x='${x }' y='${y + this.stringPadding * i + 4}' text-anchor="middle" style="font:bold 12px Sans-serif; fill:#fff">3</text>
+                <text x='${x }' y='${y + this.stringPadding * i + 4}' text-anchor="middle" style="font:12px Sans-serif; fill:#fff">3</text>
                 </g>
             `;
         }
@@ -161,6 +162,7 @@ export class SLTab {
         utils.setAttributes(e.children[0].children[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
         utils.setAttributes(e.children[0].children[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${25 + y + this.stringPadding * 5}`});
         utils.setAttributes(e.children[0].children[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${21 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.children[0].children[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${17 + y + this.stringPadding * 5}`});
         for(let i = 1 ; i <= 6; i++){
             utils.setAttributes(e.children[i].children[0], {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
             utils.setAttributes(e.children[i].children[1], {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
@@ -177,6 +179,11 @@ export class SLTab {
             utils.setStyle(<HTMLElement>e.children[0].children[2],{display: "block"});
         }else{
             utils.setStyle(<HTMLElement>e.children[0].children[2],{display: "none"});
+        }
+        if(lf > 7.9){
+            utils.setStyle(<HTMLElement>e.children[0].children[3],{display: "block"});
+        }else{
+            utils.setStyle(<HTMLElement>e.children[0].children[3],{display: "none"});
         }
     }
     private setChordVisiable(e:SVGElement, x: number, y: number, data: number[]){
