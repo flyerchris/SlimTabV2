@@ -10,3 +10,25 @@ export namespace utils {
         }
     }
 }
+
+class ArrayFunction {
+    private funcs: Array<Function> = [];
+    call(...args: any[]) {
+        this.funcs.forEach((func) => {
+            func(...args);
+        })
+    }
+
+    push(cbk: (...args: any[]) => void): void {
+        this.funcs.push(cbk);
+    }
+};
+
+export class Callbacks {
+    [key: string]: ArrayFunction;
+    constructor(eventType: Array<string>) {
+        eventType.forEach(element => {
+            this[element] = new ArrayFunction();
+        });
+    }
+}
