@@ -1,8 +1,6 @@
+import {Callbacks} from './utils';
 
-
-import {Callbacks, utils} from './utils';
-
-export interface LiCAP {
+export interface LiCAPDevice {
     /**
      * on
      * Event registeration(support multiple event registeration)
@@ -12,9 +10,7 @@ export interface LiCAP {
     on(ename: string, cbk: (...args: any[]) => void): void;
 }
 
-
-
-class LiCAPDevice implements LiCAP {
+class LiCAP implements LiCAPDevice {
     private device: WebMidi.MIDIInput;
     private callbacks: Callbacks;
 
@@ -39,7 +35,7 @@ class LiCAPDevice implements LiCAP {
      * isSupported
      * Check if LiCAP is supported by computer or not
      */
-    static isSupported(): boolean {
+    static isSupported(): boolean | string {
         return (navigator as any).requestMIDIAccess as boolean;
     }
 
@@ -47,16 +43,16 @@ class LiCAPDevice implements LiCAP {
      * enumerate
      * Enumerate available LiCAP devices
      */
-    static async enumerate(): Promise<Array<LiCAP>> {
-        let ret: Array<LiCAP> = [];
+    static async enumerate(): Promise<Array<LiCAPDevice>> {
+        let ret: Array<LiCAPDevice> = [];
 
-        if(LiCAPDevice.isSupported()) {
+        if(LiCAP.isSupported()) {
             let access = await navigator.requestMIDIAccess();
         
             for(let input of access.inputs.values()) {
                 console.log(input.name);
                 if(input.name.match(/LoopBe Internal MIDI/)) {
-                    ret.push(new LiCAPDevice(input));
+                    ret.push(new LiCAP(input));
                 }
             }
         }
@@ -80,11 +76,12 @@ class LiCAPDevice implements LiCAP {
 }
 
 
-if(LiCAPDevice.isSupported()) {
+if(LiCAP.isSupported()) {
     console.log("Your browser supports LiCAP");
 
-    LiCAPDevice.enumerate().then((devs) => {
+    LiCAP.enumerate().then((devs) => {
         if(devs.length > 0) {
+            
             devs[0].on("pick", 
                 (stringIdx, note, amp) => {
                     console.log(note);

@@ -20,9 +20,10 @@ export namespace utils {
     }
 }
 
+
 class ArrayFunction {
     private funcs: Array<Function> = [];
-    call(...args: any[]) {
+    callAll(...args: any[]) {
         this.funcs.forEach((func) => {
             func(...args);
         })
@@ -41,3 +42,4 @@ export class Callbacks {
         });
     }
 }
+

@@ -1,7 +1,10 @@
 const path = require('path');
 
 module.exports = {
-    entry: {SlimTABV2: './src/SlimTabV2.ts', LiCAP: './src/LiCAP.ts'},
+    entry: {
+        LiCAP: './src/LiCAP.ts',
+        SlimTabV2: './src/SlimTabV2.ts'
+    },
     devtool: 'inline-source-map',
     module: {
         rules: [
@@ -16,6 +19,7 @@ module.exports = {
         extensions: [ '.tsx', '.ts', '.js' ]
     },
     output: {
+        library: '[name]',
         filename: '[name].js',
         path: path.resolve(__dirname, 'dist')
     }
