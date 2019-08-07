@@ -1,6 +1,6 @@
 
 
-import {Callbacks} from './utils';
+import {Callbacks, utils} from './utils';
 
 export interface LiCAP {
     /**
@@ -12,6 +12,8 @@ export interface LiCAP {
     on(ename: string, cbk: (...args: any[]) => void): void;
 }
 
+
+
 class LiCAPDevice implements LiCAP {
     private device: WebMidi.MIDIInput;
     private callbacks: Callbacks;
@@ -22,9 +24,9 @@ class LiCAPDevice implements LiCAP {
      */
     private constructor(device: WebMidi.MIDIInput) {
         this.device = device;
-        this.callbacks = new Callbacks(["data"]);
+        this.callbacks = new Callbacks(["pick"]);
         
-        this.device.onmidimessage(this.onMessage.bind(this));
+        this.device.onmidimessage = this.onMessage.bind(this);
     }
 
     on(ename: string, cbk: (...args: any[]) => void): void {
@@ -50,9 +52,10 @@ class LiCAPDevice implements LiCAP {
 
         if(LiCAPDevice.isSupported()) {
             let access = await navigator.requestMIDIAccess();
-
+        
             for(let input of access.inputs.values()) {
-                if(input.name.match(/LiCAP Device/)) {
+                console.log(input.name);
+                if(input.name.match(/LoopBe Internal MIDI/)) {
                     ret.push(new LiCAPDevice(input));
                 }
             }
@@ -61,13 +64,33 @@ class LiCAPDevice implements LiCAP {
     }
 
     private onMessage(e: WebMidi.MIDIMessageEvent): void {
-        this.callbacks["data"].call(e.data);
+        // Simply parse the data
+        let stringIdx = e.data[0] & 0xF;
+        switch((e.data[0]>>4) & 0xF) {
+            case 8:
+                // note off
+                break;
+            case 9:
+                // note on
+                this.callbacks["pick"].call(stringIdx, e.data[1], e.data[2] / 255);
+                break;
+        }
+        
     }
 }
 
 
 if(LiCAPDevice.isSupported()) {
     console.log("Your browser supports LiCAP");
+
+    LiCAPDevice.enumerate().then((devs) => {
+        if(devs.length > 0) {
+            devs[0].on("pick", 
+                (stringIdx, note, amp) => {
+                    console.log(note);
+            });
+        }
+    })
 } else {
     console.log("Your browser does not support LiCAP");
 }
