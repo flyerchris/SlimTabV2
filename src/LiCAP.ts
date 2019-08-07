@@ -10,7 +10,7 @@ export interface LiCAPDevice {
     on(ename: string, cbk: (...args: any[]) => void): void;
 }
 
-class LiCAP implements LiCAPDevice {
+export class LiCAP implements LiCAPDevice {
     private device: WebMidi.MIDIInput;
     private callbacks: Callbacks;
 
@@ -51,8 +51,10 @@ class LiCAP implements LiCAPDevice {
         
             for(let input of access.inputs.values()) {
                 console.log(input.name);
-                if(input.name.match(/LoopBe Internal MIDI/)) {
+                if(input.name.match(/STM32 Virtual ComPort/)) {
                     ret.push(new LiCAP(input));
+                    console.log(`use ${input.name}`);
+                    break;
                 }
             }
         }
@@ -68,7 +70,7 @@ class LiCAP implements LiCAPDevice {
                 break;
             case 9:
                 // note on
-                this.callbacks["pick"].callAll(stringIdx, e.data[1], e.data[2] / 255);
+                this.callbacks["pick"].callAll(stringIdx, e.data[1], e.data[2] / 255, e.timeStamp);// string idex, note, amp, time stamp
                 break;
         }
         
@@ -76,18 +78,18 @@ class LiCAP implements LiCAPDevice {
 }
 
 
-if(LiCAP.isSupported()) {
-    console.log("Your browser supports LiCAP");
+// if(LiCAP.isSupported()) {
+//     console.log("Your browser supports LiCAP");
 
-    LiCAP.enumerate().then((devs) => {
-        if(devs.length > 0) {
+//     LiCAP.enumerate().then((devs) => {
+//         if(devs.length > 0) {
             
-            devs[0].on("pick", 
-                (stringIdx, note, amp) => {
-                    console.log(note);
-            });
-        }
-    })
-} else {
-    console.log("Your browser does not support LiCAP");
-}
+//             devs[0].on("pick", 
+//                 (stringIdx, note, amp, time) => {
+//                     console.log(stringIdx, note, time);
+//             });
+//         }
+//     })
+// } else {
+//     console.log("Your browser does not support LiCAP");
+// }

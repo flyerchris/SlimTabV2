@@ -11,7 +11,7 @@ let data = [
         [16, [-1, 5, 2, -1, -1, -1], null],
     ],
     [
-        [32, [-1, 5, 2, -1, -1, -1], null],
+        [16, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
         [16, [-1, 5, 2, -1, -1, -1], null],
         [4, [3, -1, -1, 4, -1, -1], null],
@@ -23,5 +23,12 @@ let data = [
 nt.setNoteData(data);
 nt.render(document.getElementById("slimtab"));
 
+let da = new DataAdapter.DataAdapter();
+LiCAP.LiCAP.enumerate().then((devs)=>{
+    if(devs.length > 0) {     
+        devs[0].on("pick", da.receiveData.bind(da));
+    }
+});
+da.setSendDataCallBack(nt.addNote.bind(nt));
 
 //setInterval(function(){nt.addNote(-1,[16, [-1, -1, -1, 4, -1, 6], null],)}, 1000);

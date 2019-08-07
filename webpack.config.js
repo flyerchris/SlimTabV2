@@ -3,7 +3,8 @@ const path = require('path');
 module.exports = {
     entry: {
         LiCAP: './src/LiCAP.ts',
-        SlimTabV2: './src/SlimTabV2.ts'
+        SlimTabV2: './src/SlimTabV2.ts',
+        DataAdapter: './src/DataAdapter.ts',
     },
     devtool: 'inline-source-map',
     module: {
