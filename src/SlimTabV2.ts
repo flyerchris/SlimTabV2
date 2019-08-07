@@ -74,6 +74,7 @@ export class SLTab {
             page.setAttribute("style",`position: relative; background: radial-gradient(#3E3E3E, #000) ; width: fit-content;`);
             this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
             utils.setAttributes(this.svgElement,{width: `${width}`, height: "600"});
+            this.svgElement.innerHTML = "<g></g><g></g>"; // lines, notes
             page.append(this.svgElement);
             anchor.appendChild(page);
         }
@@ -85,7 +86,7 @@ export class SLTab {
         if(ln > this.lineInfo[0]){
             for(let i = 0; i < ln - this.lineInfo[0]; i++){
                 let nl = this.drawLine(this.lineInfo[1], this.lineInfo[2]);
-                this.svgElement.appendChild(nl);
+                this.svgElement.children[0].appendChild(nl);
                 this.lineInfo[2] += this.stringPadding * 5 + this.lineDistance;
             }
         }
@@ -147,7 +148,7 @@ export class SLTab {
             `;
         }
         note.innerHTML = noteHtml;
-        this.svgElement.appendChild(note);
+        this.svgElement.children[1].appendChild(note);
         this.noteElement.push(note);
     }
     /**
