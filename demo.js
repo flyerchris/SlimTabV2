@@ -22,4 +22,6 @@ let data = [
 ];
 nt.setNoteData(data);
 nt.render(document.getElementById("slimtab"));
+
+
 //setInterval(function(){nt.addNote(-1,[16, [-1, -1, -1, 4, -1, 6], null],)}, 1000);

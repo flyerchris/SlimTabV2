@@ -68,7 +68,7 @@ class LiCAP implements LiCAPDevice {
                 break;
             case 9:
                 // note on
-                this.callbacks["pick"].call(stringIdx, e.data[1], e.data[2] / 255);
+                this.callbacks["pick"].callAll(stringIdx, e.data[1], e.data[2] / 255);
                 break;
         }
         
