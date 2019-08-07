@@ -1,30 +1,56 @@
 //Tablature
-import {utils} from "./utils";
+
+import {utils} from "./utils"
+ /**
+  * render pipeline: draw necessary lines (drawAllLine)
+  *                 => caculate each note position (calNoteRawData)
+  *                 => create enough svg element and reuse them (setAllNoteElementData)
+  *                 => set elements data  (setNoteElementData)
+  *                  
+  */
 
 export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
     private sectionWidth: number = 400; // unit in pixel
     private sectionPerLine: number = 2;
-    private stringPadding: number = 16;
+    private stringPadding: number = 16; // distance between each string
     private linePerPage: number = 20;
-    private lineMargin: number = 42;
-    private linePadding: number = 32;
+    private lineMargin: number = 42; // only for left and right
+    private linePadding: [number, number] = [32, 14];
+    private lineDistance: number = 90; // distance between each line
     private notes: [number, number[], any][][];
     private noteElement: SVGElement[] = [];
     private svgElement: SVGElement;
-    private startPosition: number[] = [this.lineMargin + this.linePadding + 20, 120 + 14]; // x, y
+    private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
 
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, sectionWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
     }
 
+    /**
+    notes data example :
+    [
+        [// section
+            [4, [3, -1, -1, 4, -1, -1], null], // note length, [block number, index is string number,], user data
+            [8, [-1, 5, 2, -1, -1, -1], null],
+        ],
+        [
+            [16, [-1, 5, 2, -1, -1, -1], null],
+        ],
+    ]
+    */
     setNoteData(data: [number, number[], any][][]) {
         this.notes = data;
     }
-
-    addNote(section: number, data: [number, number[], any]) { // if section == -1, note will be appended at last section
+    
+    /**
+     * add a note
+     * @param { number }                    section, if give -1, note will be appended at last section
+     * @param { [number, number[], any] }   data
+     */
+    addNote(section: number, data: [number, number[], any]) {
         if(section == -1){
             let nl = this.notes.length;
             let tl = this.lengthPerBeat / data[0];
@@ -43,12 +69,13 @@ export class SLTab {
     }
     
     render(anchor?: Element) {
-        if(!this.svgElement){
+        if(!this.svgElement){ // mount on an element
             let page = document.createElement("div");
-            let width = this.sectionWidth * this.sectionPerLine + this.linePadding*2 + 42*2;
+            let width = this.sectionWidth * this.sectionPerLine + this.linePadding[0]*2 + 42*2;
             page.setAttribute("style",`position: relative; background: radial-gradient(#3E3E3E, #000) ; width: fit-content;`);
             this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
             utils.setAttributes(this.svgElement,{width: `${width}`, height: "600"});
+            this.svgElement.innerHTML = "<g></g><g></g>"; // lines, notes
             page.append(this.svgElement);
             anchor.appendChild(page);
         }
@@ -59,19 +86,20 @@ export class SLTab {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
         if(ln > this.lineInfo[0]){
             for(let i = 0; i < ln - this.lineInfo[0]; i++){
-                this.drawLine(this.lineInfo[1], this.lineInfo[2]);
-                this.lineInfo[2] += this.stringPadding * 5 + 80;
+                let nl = this.drawLine(this.lineInfo[1], this.lineInfo[2]);
+                this.svgElement.children[0].appendChild(nl);
+                this.lineInfo[2] += this.stringPadding * 5 + this.lineDistance;
             }
         }
         this.lineInfo[0] = ln;
     }
-    private drawLine(x: number, y: number) {
+    private drawLine(x: number, y: number): SVGElement {
         let ng = document.createElementNS('http://www.w3.org/2000/svg',"g");
         let lineBack = document.createElementNS('http://www.w3.org/2000/svg',"rect");
-        utils.setAttributes(lineBack,{x: `${x}`, y:`${y}`,style: "fill: rgba(255, 255, 255, 0.09)", width:`${this.linePadding*2 + this.sectionWidth * this.sectionPerLine}`, height: `${14*2 + this.stringPadding * 5}`});
+        utils.setAttributes(lineBack,{x: `${x}`, y:`${y}`,style: "fill: rgba(255, 255, 255, 0.09)", width:`${this.linePadding[0]*2 + this.sectionWidth * this.sectionPerLine}`, height: `${this.linePadding[1]*2 + this.stringPadding * 5}`});
         ng.appendChild(lineBack);
-        x += this.linePadding;
-        y += 14;
+        x += this.linePadding[0];
+        y += this.linePadding[1];
         for(let i = 0; i < 6; i++){
             let l = this.sectionPerLine * this.sectionWidth;
             let newLine = document.createElementNS('http://www.w3.org/2000/svg',"line");
@@ -84,7 +112,7 @@ export class SLTab {
         for(let i = 1; i < this.sectionPerLine + 1; i++){
             ng.appendChild(this.drawBar(x + this.sectionWidth*i, y));
         }
-        this.svgElement.appendChild(ng);
+        return ng;
     }
     private drawLineTitle(x: number, y: number): SVGElement {
         let title = document.createElementNS('http://www.w3.org/2000/svg',"g");
@@ -121,18 +149,20 @@ export class SLTab {
             `;
         }
         note.innerHTML = noteHtml;
-        this.svgElement.appendChild(note);
+        this.svgElement.children[1].appendChild(note);
         this.noteElement.push(note);
     }
-
-    private calNoteRawData(): [number, number, number, number[]][]{ // x, y , length, block of every chord
+    /**
+     * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord]
+     */
+    private calNoteRawData(): [number, number, number, number[]][]{
         let [x, y] = this.startPosition;
         let beatLength = (this.sectionWidth - 20) / this.beatPerSection;
         let rawData: [number, number, number, number[]][] = [];
         for(let s = 0; s < this.notes.length; s++){ // section
             if(s % this.sectionPerLine == 0){
                 x = this.startPosition[0];
-                if(s != 0)y += this.stringPadding * 5 + 80;
+                if(s != 0)y += this.stringPadding * 5 + this.lineDistance;
             }
             let nx = x + this.sectionWidth;
             for(let i = 0; i < this.notes[s].length; i++){ // note
@@ -145,6 +175,11 @@ export class SLTab {
         }
         return rawData;
     }
+
+    /**
+     * receive data from calNoteRawData and set elements
+     * @param { [number, number, number, number[]][] } data 
+     */
     private setAllNoteElementData(data: [number, number, number, number[]][]){
         let ne = data.length - this.noteElement.length;
         for(let i = 0; i < ne; i++){
@@ -157,18 +192,25 @@ export class SLTab {
     private setNoteElementData(el:SVGElement, data: [number, number, number, number[]]){
         this.setElementPosition(el, data[0], data[1]);
         this.setNoteBar(el, data[2]);
-        this.setChordVisiable(el, data[0], data[1], data[3]);
+        this.setChordVisiable(el, data[1], data[3]);
     }
     private setElementPosition(e:SVGElement, x:number, y:number){
+        // set note bar's position and bar tail's length
         utils.setAttributes(e.children[0].children[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
         utils.setAttributes(e.children[0].children[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${25 + y + this.stringPadding * 5}`});
         utils.setAttributes(e.children[0].children[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${21 + y + this.stringPadding * 5}`});
         utils.setAttributes(e.children[0].children[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${17 + y + this.stringPadding * 5}`});
+        // set note word position
         for(let i = 1 ; i <= 6; i++){
             utils.setAttributes(e.children[i].children[0], {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
             utils.setAttributes(e.children[i].children[1], {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
         }
     }
+    /**
+     * set display of bar tail
+     * @param e 
+     * @param length 
+     */
     private setNoteBar(e:SVGElement, length: number){
         let lf = length / this.lengthPerBeat;
         if(lf > 1.9){
@@ -187,7 +229,7 @@ export class SLTab {
             utils.setStyle(<HTMLElement>e.children[0].children[3],{display: "none"});
         }
     }
-    private setChordVisiable(e:SVGElement, x: number, y: number, data: number[]){
+    private setChordVisiable(e:SVGElement, y: number, data: number[]){
         for(let i = 1 ; i <= 6; i++){
             e.children[i].children[1].innerHTML = `${data[i-1]}`;
             if(data[i-1] == -1){
@@ -198,6 +240,8 @@ export class SLTab {
                 utils.setStyle(<HTMLElement>e.children[i].children[1],{display: "block"});
             }
         }
+        
+        // note bar should reach the top word
         let hc: number = -1;
         for(let i = 0 ; i < 6; i++){
             if(data[i] != -1){
