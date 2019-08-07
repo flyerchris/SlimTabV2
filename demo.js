@@ -31,4 +31,4 @@ LiCAP.LiCAP.enumerate().then((devs)=>{
 });
 da.setSendDataCallBack(nt.addNote.bind(nt));
 
-//setInterval(function(){nt.addNote(-1,[16, [-1, -1, -1, 4, -1, 6], null],)}, 1000);
+setInterval(function(){nt.addNote(-1,[16, [-1, -1, -1, 4, -1, 6], null],)}, 1000);
