@@ -6,8 +6,7 @@ let data = [
         [8, [-1, 5, 2, -1, -1, -1], null],
         [4, [6, -1, -1, 3, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
-        [32, [-1, 5, 2, -1, -1, 9], null],
-        [32, [-1, -1, 2, 3, -1, 9], null],
+        [16, [-1, 5, 2, -1, -1, 9], null],
         [16, [-1, 5, 2, -1, -1, -1], null],
     ],
     [
@@ -31,4 +30,21 @@ LiCAP.LiCAP.enumerate().then((devs)=>{
 });
 da.setSendDataCallBack(nt.addNote.bind(nt));
 
+let beep = null;
+let bs = 0;
+let beepEle = document.getElementById("metronome");
+beepEle.onclick = function(event){
+    if(!beep){
+        beep = new Metronome.Metronome(100);
+    }
+    if(bs == 0){
+        beep.startTick();
+        beepEle.style.background = "#e99415";
+        bs = 1;
+    }else{
+        beep.stopTick();
+        beepEle.style.background = "";
+        bs = 0;
+    }
+}
 setInterval(function(){nt.addNote(-1,[16, [-1, -1, -1, 4, -1, 6], null],)}, 1000);
