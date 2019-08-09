@@ -4,6 +4,7 @@ export class DataAdapter{
     private noteRawData: [number, number[], any];
     private receiveInterval:number;
     private spb: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
+    private lengthPerBeat: number = 4;
     private sendData: Function;
     
     constructor(bpm?: number){
@@ -26,14 +27,14 @@ export class DataAdapter{
             notes[this.rawData[i][0]] = 3;
         }
         if(this.noteRawData){
-            //TODO: calculate note length by time
             let duration = this.rawData[0][2] - this.preTime;
-            if(duration > this.spb * 4){
+            if(duration > this.spb * this.lengthPerBeat){
                 this.noteRawData[0] = 1;
             }else{
                 let l2 = Math.log(this.spb / duration) / Math.log(2);
+                let l3 = Math.log(this.spb / (3 * duration)) / Math.log(2) + 1;
                 let bl = Math.pow(2, Math.ceil(l2 - 0.5));
-                this.noteRawData[0] = 4 * bl;
+                this.noteRawData[0] = this.lengthPerBeat * bl;
             }
             this.sendData(-1, this.noteRawData);
         }
