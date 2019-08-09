@@ -35,7 +35,7 @@ let bs = 0;
 let beepEle = document.getElementById("metronome");
 beepEle.onclick = function(event){
     if(!beep){
-        beep = new Metronome.Metronome(100);
+        beep = new Metronome.Metronome(120);
     }
     if(bs == 0){
         beep.startTick();
