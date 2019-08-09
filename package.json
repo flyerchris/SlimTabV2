@@ -18,10 +18,11 @@
   },
   "homepage": "https://github.com/flyerchris/SlimTabV2",
   "devDependencies": {
+    "@types/webaudioapi": "0.0.27",
+    "@types/webmidi": "^2.0.3",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
     "webpack": "^4.39.1",
-    "webpack-cli": "^3.3.6",
-    "@types/webmidi": "^2.0.3"
+    "webpack-cli": "^3.3.6"
   }
 }

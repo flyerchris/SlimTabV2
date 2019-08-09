@@ -5,6 +5,7 @@ module.exports = {
         LiCAP: './src/LiCAP.ts',
         SlimTabV2: './src/SlimTabV2.ts',
         DataAdapter: './src/DataAdapter.ts',
+        Metronome: './src/Metronome.ts'
     },
     devtool: 'inline-source-map',
     module: {
