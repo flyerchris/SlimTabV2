@@ -22,14 +22,21 @@ export class Metronome {
             let cycleTime = 60 / this.bpm;
             this.audioContext.suspend();
             let at = this.audioContext.currentTime;
-            this.nextTime = at + this.timeOffset + cycleTime;
-            this.tickTimer = setInterval(() => this.tick(), cycleTime * 1000);
-            this.makeSound(at + this.timeOffset);
+            this.nextTime = at + cycleTime;
+            this.tickTimer = -1 * setTimeout(() => {
+                this.tick();
+                this.tickTimer = setInterval(() => this.tick(), cycleTime * 1000);
+            }, cycleTime * 1000 - this.timeOffset);
+            this.makeSound(at);
             this.audioContext.resume();
         }
     }
     stopTick(){
-        clearInterval(this.tickTimer);
+        if(this.tickTimer < 0){
+            clearTimeout(-1 * this.tickTimer);
+        }else{
+            clearInterval(this.tickTimer);
+        }
         this.tickTimer = null;
     }
     setBpm(bpm: number){
