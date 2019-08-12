@@ -58,7 +58,8 @@ export class SLTab {
                 tl += this.lengthPerBeat / this.notes[nl-1][i][0];
             }
             if(tl > this.beatPerSection){
-                this.notes.push([data]);
+                this.notes[nl-1].push(data);
+                this.notes.push([]);
             }else{
                 this.notes[nl-1].push(data);
             }
@@ -79,8 +80,9 @@ export class SLTab {
             page.append(this.svgElement);
             anchor.appendChild(page);
         }
+        let noteRawData = this.calNoteRawData();
         this.drawAllLine();
-        this.setAllNoteElementData(this.calNoteRawData());
+        this.setAllNoteElementData(noteRawData);
     }
     private drawAllLine() {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
@@ -153,22 +155,70 @@ export class SLTab {
         this.noteElement.push(note);
     }
     /**
-     * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord]
+     * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord, tail length]
      */
-    private calNoteRawData(): [number, number, number, number[]][]{
+    private calNoteRawData(): [number, number, number, number[], number[]][]{
         let [x, y] = this.startPosition;
         let beatLength = (this.sectionWidth - 20) / this.beatPerSection;
-        let rawData: [number, number, number, number[]][] = [];
+        let rawData: [number, number, number, number[], number[]][] = [];
+        let sectionLength = this.beatPerSection / this.lengthPerBeat;
+        let seperaterLength = 1 / 4;
+        let accumulatedLength = 0;
+
+        for(let s = 0; s < this.notes.length; s++){ //adjust section data
+            for(let i = 0; i < this.notes[s].length; i++){
+                let note = this.notes[s][i];
+                let noteLength = 1 / note[0];
+                if(accumulatedLength + noteLength > sectionLength){
+                    let restLength = accumulatedLength + noteLength - sectionLength;
+                    note[0] = 1 / (noteLength - restLength);
+                    if(!this.notes[s + 1])this.notes[s + 1] = [];
+                    this.notes[s + 1].splice(0, 0 , [1 / restLength, note[1], null]);
+                    accumulatedLength = restLength;
+                }else{
+                    accumulatedLength += noteLength;
+                    if(accumulatedLength == sectionLength)accumulatedLength = 0;
+                }
+            }
+        }
+
+        accumulatedLength = 0;
         for(let s = 0; s < this.notes.length; s++){ // section
-            if(s % this.sectionPerLine == 0){
+            if(s % this.sectionPerLine == 0){ // change line
                 x = this.startPosition[0];
                 if(s != 0)y += this.stringPadding * 5 + this.lineDistance;
             }
             let nx = x + this.sectionWidth;
             for(let i = 0; i < this.notes[s].length; i++){ // note
                 let note = this.notes[s][i];
-                rawData.push([x, y, note[0], note[1]]);
+                let noteLength = this.lengthPerBeat / note[0];
+                let tail: number[];
+                let originalAccumulatedLength = accumulatedLength;
+                if(accumulatedLength + noteLength / this.lengthPerBeat > seperaterLength){
+                    let restLength = accumulatedLength + noteLength / this.lengthPerBeat - seperaterLength;
+                    note[0] = 1 / (noteLength / this.lengthPerBeat - restLength);
+                    this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], null]);
+                    accumulatedLength = restLength;
+                    tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1);
+                }else{
+                    accumulatedLength += noteLength / this.lengthPerBeat;
+                    if(accumulatedLength == seperaterLength){
+                        accumulatedLength = 0;
+                        if(rawData.length == 0){
+                            tail = this.calculateTail(0 , note[0], originalAccumulatedLength);
+                        }else{
+                            tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1);
+                        }
+                    }else{
+                        if(rawData.length ==0){
+                            tail = this.calculateTail(0 , note[0], originalAccumulatedLength);
+                        }else{
+                            tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], originalAccumulatedLength);
+                        }
+                    }
+                }
                 let step = beatLength * this.lengthPerBeat / note[0];
+                rawData.push([x, y, note[0], note[1], tail]);
                 x += step;
             }
             x = nx;
@@ -176,11 +226,77 @@ export class SLTab {
         return rawData;
     }
 
+    private calculateTail(lastNoteLength: number, noteLength: number, accumulatedLength: number): number[]{
+        let beatLength = (this.sectionWidth - 20) / this.beatPerSection;
+        let step = beatLength * this.lengthPerBeat / lastNoteLength * -1;
+        if(accumulatedLength == 0){ // start of a seperate note
+            if(noteLength == 8){
+                return [8, 0, 0];
+            }else if(noteLength == 16){
+                return [8, 8, 0];
+            }else if(noteLength == 32){
+                return [8, 8, 8];
+            }
+        }else if(accumulatedLength == -1){ // end of a seperate note;
+            if(noteLength == 8){
+                if(lastNoteLength == 8){
+                    return [step, 0, 0];
+                }else if(lastNoteLength == 16){
+                    return [step, 0, 0];
+                }else if(lastNoteLength == 32){
+                    return [step, 0, 0];
+                }
+            }else if(noteLength == 16){
+                if(lastNoteLength == 8){
+                    return [step, -8, 0];
+                }else if(lastNoteLength == 16){
+                    return [step, step, 0];
+                }else if(lastNoteLength == 32){
+                    return [step, step, 0];
+                }
+            }else if(noteLength == 32){
+                if(lastNoteLength == 8){
+                    return [step, -8, -8];
+                }else if(lastNoteLength == 16){
+                    return [step, step, -8];
+                }else if(lastNoteLength == 32){
+                    return [step, step, step];
+                }
+            }
+        }else{
+            if(noteLength == 8){
+                if(lastNoteLength == 8){
+                    return [step, 0, 0];
+                }else if(lastNoteLength == 16){
+                    return [step, 0, 0];
+                }else if(lastNoteLength == 32){
+                    return [step, 0, 0];
+                }
+            }else if(noteLength == 16){
+                if(lastNoteLength == 8){
+                    return [step, 8, 0];
+                }else if(lastNoteLength == 16){
+                    return [step, step, 0];
+                }else if(lastNoteLength == 32){
+                    return [step, step, 0];
+                }
+            }else if(noteLength == 32){
+                if(lastNoteLength == 8){
+                    return [step, 8, 8];
+                }else if(lastNoteLength == 16){
+                    return [step, step, 8];
+                }else if(lastNoteLength == 32){
+                    return [step, step, step];
+                }
+            }
+        }
+        return [0, 0, 0];
+    }
     /**
      * receive data from calNoteRawData and set elements
      * @param { [number, number, number, number[]][] } data 
      */
-    private setAllNoteElementData(data: [number, number, number, number[]][]){
+    private setAllNoteElementData(data: [number, number, number, number[], number[]][]){
         let ne = data.length - this.noteElement.length;
         for(let i = 0; i < ne; i++){
             this.createNoteElement();
@@ -189,44 +305,20 @@ export class SLTab {
             this.setNoteElementData(this.noteElement[i], data[i]);
         }
     }
-    private setNoteElementData(el:SVGElement, data: [number, number, number, number[]]){
-        this.setElementPosition(el, data[0], data[1]);
-        this.setNoteBar(el, data[2]);
+    private setNoteElementData(el:SVGElement, data: [number, number, number, number[], number[]]){
+        this.setElementPosition(el, data[0], data[1], data[4]);
         this.setChordVisiable(el, data[1], data[3]);
     }
-    private setElementPosition(e:SVGElement, x:number, y:number){
+    private setElementPosition(e:SVGElement, x:number, y:number, tail: number[]){
         // set note bar's position and bar tail's length
         utils.setAttributes(e.children[0].children[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
-        utils.setAttributes(e.children[0].children[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${25 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.children[0].children[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${21 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.children[0].children[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + 10}`, y2: `${17 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.children[0].children[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.children[0].children[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + tail[1]}`, y2: `${21 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.children[0].children[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
         // set note word position
         for(let i = 1 ; i <= 6; i++){
             utils.setAttributes(e.children[i].children[0], {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
             utils.setAttributes(e.children[i].children[1], {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
-        }
-    }
-    /**
-     * set display of bar tail
-     * @param e 
-     * @param length 
-     */
-    private setNoteBar(e:SVGElement, length: number){
-        let lf = length / this.lengthPerBeat;
-        if(lf > 1.9){
-            utils.setStyle(<HTMLElement>e.children[0].children[1],{display: "block"});
-        }else{
-            utils.setStyle(<HTMLElement>e.children[0].children[1],{display: "none"});
-        }
-        if(lf > 3.9){
-            utils.setStyle(<HTMLElement>e.children[0].children[2],{display: "block"});
-        }else{
-            utils.setStyle(<HTMLElement>e.children[0].children[2],{display: "none"});
-        }
-        if(lf > 7.9){
-            utils.setStyle(<HTMLElement>e.children[0].children[3],{display: "block"});
-        }else{
-            utils.setStyle(<HTMLElement>e.children[0].children[3],{display: "none"});
         }
     }
     private setChordVisiable(e:SVGElement, y: number, data: number[]){
