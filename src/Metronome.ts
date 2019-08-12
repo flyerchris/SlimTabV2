@@ -26,7 +26,7 @@ export class Metronome {
             this.tickTimer = -1 * setTimeout(() => {
                 this.tick();
                 this.tickTimer = setInterval(() => this.tick(), cycleTime * 1000);
-            }, cycleTime * 1000 - this.timeOffset);
+            }, cycleTime * 1000 - this.timeOffset*1000);
             this.makeSound(at);
             this.audioContext.resume();
         }
