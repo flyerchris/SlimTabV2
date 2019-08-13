@@ -1,13 +1,13 @@
 //Tablature
-
-import {utils} from "./utils"
- /**
-  * render pipeline: draw necessary lines (drawAllLine)
-  *                 => caculate each note position (calNoteRawData)
+/**
+  * render pipeline: caculate each note position and actual note number (calNoteRawData)
+  *                 => draw necessary lines (drawAllLine)
   *                 => create enough svg element and reuse them (setAllNoteElementData)
   *                 => set elements data  (setNoteElementData)
   *                  
   */
+
+import {utils} from "./utils"
 
 export class SLTab {
     private lengthPerBeat: number = 4;
@@ -53,16 +53,7 @@ export class SLTab {
     addNote(section: number, data: [number, number[], any]) {
         if(section == -1){
             let nl = this.notes.length;
-            let tl = this.lengthPerBeat / data[0];
-            for(let i = 0; i < this.notes[nl-1].length; i++){
-                tl += this.lengthPerBeat / this.notes[nl-1][i][0];
-            }
-            if(tl > this.beatPerSection){
-                this.notes[nl-1].push(data);
-                this.notes.push([]);
-            }else{
-                this.notes[nl-1].push(data);
-            }
+            this.notes[nl-1].push(data);
         }else{
             this.notes[section].push(data);
         }
@@ -163,27 +154,26 @@ export class SLTab {
         let rawData: [number, number, number, number[], number[]][] = [];
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let seperaterLength = 1 / 4;
+        let sectionAccumulatedLength = 0;
         let accumulatedLength = 0;
-
+        rawData.push([0, 0, 0, null, null]); // give a initial data, remove it at the end of function
         for(let s = 0; s < this.notes.length; s++){ //adjust section data
             for(let i = 0; i < this.notes[s].length; i++){
                 let note = this.notes[s][i];
                 let noteLength = 1 / note[0];
-                if(accumulatedLength + noteLength > sectionLength){
-                    let restLength = accumulatedLength + noteLength - sectionLength;
+                if(sectionAccumulatedLength + noteLength >= sectionLength){
+                    let restLength = sectionAccumulatedLength + noteLength - sectionLength;
                     note[0] = 1 / (noteLength - restLength);
                     if(!this.notes[s + 1])this.notes[s + 1] = [];
-                    this.notes[s + 1].splice(0, 0 , [1 / restLength, note[1], null]);
-                    accumulatedLength = restLength;
+                    if(restLength != 0)this.notes[s + 1].splice(0, 0 , [1 / restLength, note[1], null]);
+                    sectionAccumulatedLength = 0;
                 }else{
-                    accumulatedLength += noteLength;
-                    if(accumulatedLength == sectionLength)accumulatedLength = 0;
+                    sectionAccumulatedLength += noteLength;
                 }
             }
         }
 
-        accumulatedLength = 0;
-        for(let s = 0; s < this.notes.length; s++){ // section
+        for(let s = 0; s < this.notes.length; s++){ // adjust note and caculate it's position and tail length
             if(s % this.sectionPerLine == 0){ // change line
                 x = this.startPosition[0];
                 if(s != 0)y += this.stringPadding * 5 + this.lineDistance;
@@ -193,29 +183,15 @@ export class SLTab {
                 let note = this.notes[s][i];
                 let noteLength = this.lengthPerBeat / note[0];
                 let tail: number[];
-                let originalAccumulatedLength = accumulatedLength;
-                if(accumulatedLength + noteLength / this.lengthPerBeat > seperaterLength){
+                if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a seperater or the note's length equals to seperater length
                     let restLength = accumulatedLength + noteLength / this.lengthPerBeat - seperaterLength;
                     note[0] = 1 / (noteLength / this.lengthPerBeat - restLength);
-                    this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], null]);
-                    accumulatedLength = restLength;
+                    if(restLength != 0)this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], null]);
                     tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1);
+                    accumulatedLength = 0;
                 }else{
+                    tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], accumulatedLength);
                     accumulatedLength += noteLength / this.lengthPerBeat;
-                    if(accumulatedLength == seperaterLength){
-                        accumulatedLength = 0;
-                        if(rawData.length == 0){
-                            tail = this.calculateTail(0 , note[0], originalAccumulatedLength);
-                        }else{
-                            tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1);
-                        }
-                    }else{
-                        if(rawData.length ==0){
-                            tail = this.calculateTail(0 , note[0], originalAccumulatedLength);
-                        }else{
-                            tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], originalAccumulatedLength);
-                        }
-                    }
                 }
                 let step = beatLength * this.lengthPerBeat / note[0];
                 rawData.push([x, y, note[0], note[1], tail]);
@@ -223,12 +199,15 @@ export class SLTab {
             }
             x = nx;
         }
+        rawData.shift();
         return rawData;
     }
 
     private calculateTail(lastNoteLength: number, noteLength: number, accumulatedLength: number): number[]{
         let beatLength = (this.sectionWidth - 20) / this.beatPerSection;
         let step = beatLength * this.lengthPerBeat / lastNoteLength * -1;
+        let basicLength = 8;
+        if(accumulatedLength == -1)basicLength = -8;
         if(accumulatedLength == 0){ // start of a seperate note
             if(noteLength == 8){
                 return [8, 0, 0];
@@ -237,54 +216,22 @@ export class SLTab {
             }else if(noteLength == 32){
                 return [8, 8, 8];
             }
-        }else if(accumulatedLength == -1){ // end of a seperate note;
-            if(noteLength == 8){
-                if(lastNoteLength == 8){
-                    return [step, 0, 0];
-                }else if(lastNoteLength == 16){
-                    return [step, 0, 0];
-                }else if(lastNoteLength == 32){
-                    return [step, 0, 0];
-                }
-            }else if(noteLength == 16){
-                if(lastNoteLength == 8){
-                    return [step, -8, 0];
-                }else if(lastNoteLength == 16){
-                    return [step, step, 0];
-                }else if(lastNoteLength == 32){
-                    return [step, step, 0];
-                }
-            }else if(noteLength == 32){
-                if(lastNoteLength == 8){
-                    return [step, -8, -8];
-                }else if(lastNoteLength == 16){
-                    return [step, step, -8];
-                }else if(lastNoteLength == 32){
-                    return [step, step, step];
-                }
-            }
         }else{
             if(noteLength == 8){
-                if(lastNoteLength == 8){
-                    return [step, 0, 0];
-                }else if(lastNoteLength == 16){
-                    return [step, 0, 0];
-                }else if(lastNoteLength == 32){
+                if(lastNoteLength == 8 || lastNoteLength == 16 || lastNoteLength == 32){
                     return [step, 0, 0];
                 }
             }else if(noteLength == 16){
-                if(lastNoteLength == 8){
-                    return [step, 8, 0];
-                }else if(lastNoteLength == 16){
-                    return [step, step, 0];
-                }else if(lastNoteLength == 32){
+                if(lastNoteLength == 8 ){
+                    return [step, basicLength, 0];
+                }else if(lastNoteLength == 16 || lastNoteLength == 32){
                     return [step, step, 0];
                 }
             }else if(noteLength == 32){
                 if(lastNoteLength == 8){
-                    return [step, 8, 8];
+                    return [step, basicLength, basicLength];
                 }else if(lastNoteLength == 16){
-                    return [step, step, 8];
+                    return [step, step, basicLength];
                 }else if(lastNoteLength == 32){
                     return [step, step, step];
                 }
