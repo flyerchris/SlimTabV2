@@ -21,6 +21,7 @@ export class SLTab {
     private lineDistance: number = 90; // distance between each line
     private notes: [number, number[], any][][];
     private noteElement: SVGElement[] = [];
+    private linkerElement: SVGElement[] = [];
     private svgElement: SVGElement;
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
@@ -67,13 +68,14 @@ export class SLTab {
             page.setAttribute("style",`position: relative; background: radial-gradient(#3E3E3E, #000) ; width: fit-content;`);
             this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
             utils.setAttributes(this.svgElement,{width: `${width}`, height: "600"});
-            this.svgElement.innerHTML = "<g></g><g></g>"; // lines, notes
+            this.svgElement.innerHTML = "<g></g><g></g><g></g>"; // lines, notes, linker
             page.append(this.svgElement);
             anchor.appendChild(page);
         }
-        let noteRawData = this.calNoteRawData();
+        let [noteRawData, linkerData] = this.calNoteRawData();
         this.drawAllLine();
         this.setAllNoteElementData(noteRawData);
+        this.setLinker(linkerData);
     }
     private drawAllLine() {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
@@ -148,16 +150,18 @@ export class SLTab {
     /**
      * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord, tail length]
      */
-    private calNoteRawData(): [number, number, number, number[], number[]][]{
+    private calNoteRawData():[ [number, number, number, number[], number[]][], number[][] ]{
         let [x, y] = this.startPosition;
         let beatLength = (this.sectionWidth - 20) / this.beatPerSection;
         let rawData: [number, number, number, number[], number[]][] = [];
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
+        let linker = [];
         let seperaterLength = 1 / 4;
         let sectionAccumulatedLength = 0;
         let accumulatedLength = 0;
         rawData.push([0, 0, 0, null, null]); // give a initial data, remove it at the end of function
         for(let s = 0; s < this.notes.length; s++){ //adjust section data
+            sectionAccumulatedLength = 0;
             for(let i = 0; i < this.notes[s].length; i++){
                 let note = this.notes[s][i];
                 let noteLength = 1 / note[0];
@@ -165,8 +169,10 @@ export class SLTab {
                     let restLength = sectionAccumulatedLength + noteLength - sectionLength;
                     note[0] = 1 / (noteLength - restLength);
                     if(!this.notes[s + 1])this.notes[s + 1] = [];
-                    if(restLength != 0)this.notes[s + 1].splice(0, 0 , [1 / restLength, note[1], null]);
-                    sectionAccumulatedLength = 0;
+                    if(restLength != 0){
+                        this.notes[s + 1].splice(0, 0 , [1 / restLength, note[1], "linkEnd"]);
+                        note[2] = "linkStart";
+                    }
                 }else{
                     sectionAccumulatedLength += noteLength;
                 }
@@ -186,7 +192,10 @@ export class SLTab {
                 if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a seperater or the note's length equals to seperater length
                     let restLength = accumulatedLength + noteLength / this.lengthPerBeat - seperaterLength;
                     note[0] = 1 / (noteLength / this.lengthPerBeat - restLength);
-                    if(restLength != 0)this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], null]);
+                    if(restLength != 0){
+                        this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], "linkEnd"]);
+                        note[2] = "linkStart";
+                    }
                     tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1);
                     accumulatedLength = 0;
                 }else{
@@ -195,12 +204,15 @@ export class SLTab {
                 }
                 let step = beatLength * this.lengthPerBeat / note[0];
                 rawData.push([x, y, note[0], note[1], tail]);
+                if(note[2] === "linkStart" || note[2] === "linkEnd"){
+                    linker.push([x,y]);
+                }
                 x += step;
             }
             x = nx;
         }
         rawData.shift();
-        return rawData;
+        return [rawData, linker];
     }
 
     private calculateTail(lastNoteLength: number, noteLength: number, accumulatedLength: number): number[]{
@@ -295,4 +307,27 @@ export class SLTab {
             utils.setStyle(<HTMLElement>e.children[0].children[0],{display: "none"});
         }
     }
+
+    private setLinker(linkerData: number[][]){
+        let lenumber = Math.floor(linkerData.length / 2);
+        let existNumber = this.linkerElement.length
+        for(let i = 0; i < lenumber - existNumber; i++){
+            this.createLinkerElement();
+        }
+        for(let i = 0; i < lenumber; i++){
+            this.setLinkerData(this.linkerElement[i], linkerData[i*2], linkerData[i*2+1]);
+        }
+    }
+    private createLinkerElement(){
+        let linker = document.createElementNS('http://www.w3.org/2000/svg',"path");
+        this.svgElement.children[2].appendChild(linker);
+        utils.setAttributes(linker, {fill: `white`});
+        this.linkerElement.push(linker);
+    }
+    private setLinkerData(linkElement:SVGElement, start: number[], end: number[]){
+        let ly = start[1] + 31 + this.stringPadding * 5;
+        utils.setAttributes(linkElement, {d: `M ${start[0]} ${ly} C ${start[0]+4} ${ly+15}, ${end[0]-4} ${ly+15}, ${end[0]} ${ly} C ${end[0]-4} ${ly+12}, ${start[0]+4} ${ly+12}, ${start[0]} ${ly}`});
+    }
 }
+//<path d="M 10 10 C 12 25, 48 25, 50 10 C 48 20, 12 20, 10 10" stroke="black" fill="red"></path>
+//<path d="M 10 10 C 12 18, 20 18, 25 18 L 25 16 C 20 16, 12 16, 10 10" stroke="black" fill="red"></path>
