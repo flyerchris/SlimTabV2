@@ -13,6 +13,7 @@ export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
     private sectionWidth: number = 400; // unit in pixel
+    private lineWidth: number = 800;
     private sectionPerLine: number = 2;
     private stringPadding: number = 16; // distance between each string
     private linePerPage: number = 20;
@@ -48,16 +49,39 @@ export class SLTab {
     
     /**
      * add a note
-     * @param { number }                    section, if give -1, note will be appended at last section
      * @param { [number, number[], any] }   data
+     * @param { number }                    section, if give -1, note will be appended at last section. Index start from 0
+     * @param { number }                    note, if give -1, note will be appended at last note. Index start from 0
      */
-    addNote(section: number, data: [number, number[], any]) {
-        if(section == -1){
-            let nl = this.notes.length;
-            this.notes[nl-1].push(data);
-        }else{
-            this.notes[section].push(data);
+    instrumentNoteInput(data: [number, number[], any], section: number = -1, note: number = -1) {
+        if(section == -1)section = this.notes.length - 1;
+        if(note == -1)note = this.notes[section].length - 1;
+        this.notes[section] = this.notes[section].slice(0, note + 1);
+        let stackLength = 0;// unit in beat
+        for(let i = 0; i <= note; i++){
+            stackLength += this.lengthPerBeat / this.notes[section][i][0];
         }
+        if(stackLength >= this.beatPerSection){
+            this.notes.splice(section + 1, 0, []);
+            this.notes[section + 1].push(data);
+        }else if(stackLength + this.lengthPerBeat / data[0] > this.beatPerSection){
+            let restLength = this.beatPerSection - stackLength;
+            let addLength = this.lengthPerBeat / (this.lengthPerBeat / data[0] - restLength);
+            restLength = this.lengthPerBeat / restLength;
+            this.notes[section].push([restLength, data[1], "linkStart"]);
+            this.notes.splice(section + 1, 0, []);
+            this.notes[section + 1].push([addLength, data[1], "linkEnd"]);   
+        }else{
+            let noteRestLength = 1 - stackLength % 1; // unit in beat
+            if(noteRestLength >= this.lengthPerBeat / data[0]){
+                this.notes[section].push(data);
+            }else{
+                let noteAddLength = this.lengthPerBeat / data[0] - noteRestLength;
+                this.notes[section].push([this.lengthPerBeat / noteRestLength, data[1], "linkStart"]);
+                this.notes[section].push([this.lengthPerBeat / noteAddLength, data[1], "linkEnd"]);
+            }
+        }
+
         this.render();
     }
     
@@ -160,24 +184,6 @@ export class SLTab {
         let sectionAccumulatedLength = 0;
         let accumulatedLength = 0;
         rawData.push([0, 0, 0, null, null]); // give a initial data, remove it at the end of function
-        for(let s = 0; s < this.notes.length; s++){ //adjust section data
-            sectionAccumulatedLength = 0;
-            for(let i = 0; i < this.notes[s].length; i++){
-                let note = this.notes[s][i];
-                let noteLength = 1 / note[0];
-                if(sectionAccumulatedLength + noteLength >= sectionLength){
-                    let restLength = sectionAccumulatedLength + noteLength - sectionLength;
-                    note[0] = 1 / (noteLength - restLength);
-                    if(!this.notes[s + 1])this.notes[s + 1] = [];
-                    if(restLength != 0){
-                        this.notes[s + 1].splice(0, 0 , [1 / restLength, note[1], "linkEnd"]);
-                        note[2] = "linkStart";
-                    }
-                }else{
-                    sectionAccumulatedLength += noteLength;
-                }
-            }
-        }
 
         for(let s = 0; s < this.notes.length; s++){ // adjust note and caculate it's position and tail length
             if(s % this.sectionPerLine == 0){ // change line
@@ -190,12 +196,12 @@ export class SLTab {
                 let noteLength = this.lengthPerBeat / note[0];
                 let tail: number[];
                 if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a seperater or the note's length equals to seperater length
-                    let restLength = accumulatedLength + noteLength / this.lengthPerBeat - seperaterLength;
-                    note[0] = 1 / (noteLength / this.lengthPerBeat - restLength);
-                    if(restLength != 0){
-                        this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], "linkEnd"]);
-                        note[2] = "linkStart";
-                    }
+                    // let restLength = accumulatedLength + noteLength / this.lengthPerBeat - seperaterLength;
+                    // note[0] = 1 / (noteLength / this.lengthPerBeat - restLength);
+                    // if(restLength != 0){
+                    //     this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], "linkEnd"]);
+                    //     note[2] = "linkStart";
+                    // }
                     tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1);
                     accumulatedLength = 0;
                 }else{
@@ -261,7 +267,11 @@ export class SLTab {
             this.createNoteElement();
         }
         for(let i = 0; i < data.length; i++){
+            utils.setStyle(<HTMLElement><unknown>this.noteElement[i],{ display: "unset"});
             this.setNoteElementData(this.noteElement[i], data[i]);
+        }
+        for(let i = data.length; i < this.noteElement.length; i++){
+            utils.setStyle(<HTMLElement><unknown>this.noteElement[i],{ display: "none"});
         }
     }
     private setNoteElementData(el:SVGElement, data: [number, number, number, number[], number[]]){
