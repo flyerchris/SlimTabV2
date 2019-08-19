@@ -179,17 +179,17 @@ export class SLTab {
         this.noteElement.push(note);
     }
     /**
-     * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord, tail length]
+     * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord, tail length, section index, note index]
      */
-    private calNoteRawData():[ [number, number, number, number[], number[]][], number[][] ]{
+    private calNoteRawData():[ [number, number, number, number[], number[], number, number][], number[][] ]{
         let [x, y] = this.startPosition;
-        let rawData: [number, number, number, number[], number[]][] = [];
+        let rawData: [number, number, number, number[], number[], number, number][] = [];
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let linker = [];
         let seperaterLength = 1 / 4;
         let sectionAccumulatedLength = 0;
         let accumulatedLength = 0;
-        rawData.push([0, 0, 0, null, null]); // give a initial data, remove it at the end of function
+        rawData.push([0, 0, 0, null, null, 0, 0]); // give a initial data, remove it at the end of function
 
         for(let s = 0; s < this.notes.length; s++){ // section
             let line = Math.floor(s / this.sectionPerLine);
@@ -226,7 +226,7 @@ export class SLTab {
                     accumulatedLength += noteLength / this.lengthPerBeat;
                 }
                 let step = beatLength * this.lengthPerBeat / note[0];
-                rawData.push([x, y, note[0], note[1], tail]);
+                rawData.push([x, y, note[0], note[1], tail, s, i]);
                 if(note[2] === "linkStart" || note[2] === "linkEnd"){
                     linker.push([x,y]);
                 }
@@ -277,7 +277,7 @@ export class SLTab {
      * receive data from calNoteRawData and set elements
      * @param { [number, number, number, number[]][] } data 
      */
-    private setAllNoteElementData(data: [number, number, number, number[], number[]][]){
+    private setAllNoteElementData(data: [number, number, number, number[], number[], number, number][]){
         let ne = data.length - this.noteElement.length;
         for(let i = 0; i < ne; i++){
             this.createNoteElement();
@@ -290,11 +290,11 @@ export class SLTab {
             utils.setStyle(<HTMLElement><unknown>this.noteElement[i],{ display: "none"});
         }
     }
-    private setNoteElementData(el:SVGElement, data: [number, number, number, number[], number[]]){
-        this.setElementPosition(el, data[0], data[1], data[4]);
+    private setNoteElementData(el:SVGElement, data: [number, number, number, number[], number[], number, number]){
+        this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6]);
         this.setChordVisiable(el, data[1], data[3]);
     }
-    private setElementPosition(e:SVGElement, x:number, y:number, tail: number[]){
+    private setElementPosition(e:SVGElement, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number){
         // set note bar's position and bar tail's length
         utils.setAttributes(e.children[0].children[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
         utils.setAttributes(e.children[0].children[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
@@ -305,6 +305,7 @@ export class SLTab {
             utils.setAttributes(e.children[i].children[0], {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
             utils.setAttributes(e.children[i].children[1], {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
         }
+        utils.setAttributes(e, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
     }
     private setChordVisiable(e:SVGElement, y: number, data: number[]){
         for(let i = 1 ; i <= 6; i++){
