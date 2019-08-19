@@ -20,6 +20,7 @@ export class SLTab {
     private lineMargin: number = 42; // only for left and right
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
+    private sectionAddNoteNumber = 16;
     private notes: [number, number[], any][][];
     private noteElement: SVGElement[] = [];
     private linkerElement: SVGElement[] = [];
@@ -28,7 +29,7 @@ export class SLTab {
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
 
-    constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, sectionWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
+    constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
     }
 
@@ -126,33 +127,13 @@ export class SLTab {
             ng.appendChild(newLine);
         }
         ng.appendChild(this.drawLineTitle(x - 30, y));
-
         ng.appendChild(this.createBar(x , y));
-        //let bar = this.createBar(x + sectionWidth, y);
-        
         for(let i = 0; i < this.sectionPerLine; i++){
             let bar = this.createBar(0, 0);
             this.sectionBarElement.push(bar);
             ng.appendChild(bar);
         }
-        // let totalNoteInLine = 0;
-        // let sumNoteNum = 0;
-        // for(let i = 0; i < this.sectionPerLine; i++){
-        //     if(this.notes[lineNumber * this.sectionPerLine + i]){
-        //         totalNoteInLine += this.notes[lineNumber * this.sectionPerLine + i].length + 8;
-        //     }else{
-        //         totalNoteInLine += 8;
-        //     }
-        // }
-        // for(let i = 0; i < this.sectionPerLine; i++){
-        //     if(this.notes[lineNumber * this.sectionPerLine + i]){
-        //         sumNoteNum += this.notes[lineNumber * this.sectionPerLine + i].length + 8;
-        //     }else{
-        //         sumNoteNum += 8;
-        //     }
-        //     let sectionWidth = this.lineWidth * sumNoteNum / totalNoteInLine;
-            
-        // }
+
         return ng;
     }
     private drawLineTitle(x: number, y: number): SVGElement {
@@ -215,12 +196,12 @@ export class SLTab {
             let lineTotalNote = 0;
             for(let i = 0; i < this.sectionPerLine; i++){
                 if(this.notes[line * this.sectionPerLine + i]){
-                    lineTotalNote += this.notes[line * this.sectionPerLine + i].length + 8;
+                    lineTotalNote += this.notes[line * this.sectionPerLine + i].length + this.sectionAddNoteNumber;
                 }else{
-                    lineTotalNote += 8;
+                    lineTotalNote += this.sectionAddNoteNumber;
                 }
             }
-            let sectionWidth = this.lineWidth * (this.notes[s].length + 8) / lineTotalNote;
+            let sectionWidth = this.lineWidth * (this.notes[s].length + this.sectionAddNoteNumber) / lineTotalNote;
             let sectionTotalBeat = 0;
             for(let i = 0; i < this.notes[s].length; i++){
                 sectionTotalBeat += this.lengthPerBeat /this.notes[s][i][0];
@@ -238,12 +219,6 @@ export class SLTab {
                 let noteLength = this.lengthPerBeat / note[0];
                 let tail: number[];
                 if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a seperater or the note's length equals to seperater length
-                    // let restLength = accumulatedLength + noteLength / this.lengthPerBeat - seperaterLength;
-                    // note[0] = 1 / (noteLength / this.lengthPerBeat - restLength);
-                    // if(restLength != 0){
-                    //     this.notes[s].splice(i + 1, 0 , [1 / restLength, note[1], "linkEnd"]);
-                    //     note[2] = "linkStart";
-                    // }
                     tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1, beatLength);
                     accumulatedLength = 0;
                 }else{
@@ -264,7 +239,6 @@ export class SLTab {
     }
 
     private calculateTail(lastNoteLength: number, noteLength: number, accumulatedLength: number, beatLength: number): number[]{
-        //let beatLength = (sectionWidth - 20) / this.beatPerSection;
         let step = beatLength * this.lengthPerBeat / lastNoteLength * -1;
         let basicLength = 8;
         if(accumulatedLength == -1)basicLength = -8;
@@ -378,8 +352,17 @@ export class SLTab {
     }
     private setLinkerData(linkElement:SVGElement, start: number[], end: number[]){
         let ly = start[1] + 31 + this.stringPadding * 5;
-        utils.setAttributes(linkElement, {d: `M ${start[0]} ${ly} C ${start[0]+4} ${ly+15}, ${end[0]-4} ${ly+15}, ${end[0]} ${ly} C ${end[0]-4} ${ly+12}, ${start[0]+4} ${ly+12}, ${start[0]} ${ly}`});
+        if(start[1] !== end[1]){
+            let ex = start[0] + 30;
+            let sx = start[0];
+            let path = `M ${sx} ${ly} C ${sx+4} ${ly+15}, ${ex-4} ${ly+15}, ${ex} ${ly} C ${ex-4} ${ly+12}, ${sx+4} ${ly+12}, ${sx} ${ly} `;
+            ly = end[1] + 31 + this.stringPadding * 5;
+            sx = end[0] - 30;
+            ex = end[0];
+            path += `M ${sx} ${ly} C ${sx+4} ${ly+15}, ${ex-4} ${ly+15}, ${ex} ${ly} C ${ex-4} ${ly+12}, ${sx+4} ${ly+12}, ${sx} ${ly}`;
+            utils.setAttributes(linkElement, {d: path});
+        }else{
+            utils.setAttributes(linkElement, {d: `M ${start[0]} ${ly} C ${start[0]+4} ${ly+15}, ${end[0]-4} ${ly+15}, ${end[0]} ${ly} C ${end[0]-4} ${ly+12}, ${start[0]+4} ${ly+12}, ${start[0]} ${ly}`});
+        }
     }
 }
-//<path d="M 10 10 C 12 25, 48 25, 50 10 C 48 20, 12 20, 10 10" stroke="black" fill="red"></path>
-//<path d="M 10 10 C 12 18, 20 18, 25 18 L 25 16 C 20 16, 12 16, 10 10" stroke="black" fill="red"></path>
