@@ -12,7 +12,6 @@ type caculatedNoteData = [number, number, number, number[], number[], number, nu
 export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
-    private sectionWidth: number = 400; // unit in pixel
     private lineWidth: number = 800;
     private sectionPerLine: number = 2;
     private stringPadding: number = 16; // distance between each string
@@ -26,6 +25,8 @@ export class SLTab {
     private linkerElement: SVGElement[] = [];
     private svgElement: SVGElement;
     private sectionBarElement: SVGElement[] = [];
+    private lineElement: SVGElement[] = [];
+    private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
 
@@ -93,12 +94,13 @@ export class SLTab {
             page.setAttribute("style",`position: relative; background: radial-gradient(#3E3E3E, #000) ; width: fit-content;`);
             this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
             utils.setAttributes(this.svgElement,{width: `${width}`, height: "600"});
-            this.svgElement.innerHTML = "<g></g><g></g><g></g>"; // lines, notes, linker
+            this.svgElement.innerHTML = "<g></g><g></g><g></g><g></g>"; // lines, section indicator, notes, linker
             page.append(this.svgElement);
             anchor.appendChild(page);
         }
         this.setAllLine();
-        let [noteRawData, linkerData] = this.calNoteRawData();
+        let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
+        this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(noteRawData);
         this.setLinker(linkerData);
     }
@@ -107,11 +109,32 @@ export class SLTab {
         if(ln > this.lineInfo[0]){
             for(let i = 0; i < ln - this.lineInfo[0]; i++){
                 let nl = this.createLine(this.lineInfo[1], this.lineInfo[2], i);
+                this.lineElement.push(nl);
                 this.svgElement.children[0].appendChild(nl);
                 this.lineInfo[2] += this.stringPadding * 5 + this.lineDistance;
             }
         }
         this.lineInfo[0] = ln;
+    }
+    private setSectionIndicator(position: [number[], number[]][]){
+        if(position.length > this.sectionIndicatorElement.length){
+            let nsNumber = position.length - this.sectionIndicatorElement.length;
+            for(let i = 0; i < nsNumber; i++){
+                let ns = this.createSectionIndicator();
+                this.svgElement.children[1].appendChild(ns);
+                this.sectionIndicatorElement.push(ns);
+            }
+        }
+        for(let i = 0; i < position.length; i++){
+            let width = position[i][1][0] - position[i][0][0];
+            let height = this.stringPadding * 5;
+            utils.setAttributes(this.sectionIndicatorElement[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
+        }
+    }
+    private createSectionIndicator(): SVGElement{
+        let square = document.createElementNS('http://www.w3.org/2000/svg',"rect");
+        utils.setAttributes(square, {"stroke-width": "0", fill: "rgba(0, 255, 255, 0.13)"});
+        return square;
     }
     private createLine(x: number, y: number, lineNumber: number): SVGElement {
         let ng = document.createElementNS('http://www.w3.org/2000/svg',"g");
@@ -175,19 +198,19 @@ export class SLTab {
             `;
         }
         note.innerHTML = noteHtml;
-        this.svgElement.children[1].appendChild(note);
+        this.svgElement.children[2].appendChild(note);
         this.noteElement.push(note);
     }
     /**
-     * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data
+     * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data, section x position
      */
-    private calNoteRawData():[ caculatedNoteData[], number[][] ]{
+    private calNoteRawData():[ caculatedNoteData[], number[][], [number[], number[]][] ]{
         let [x, y] = this.startPosition;
         let rawData: caculatedNoteData[] = [];
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let linker = [];
+        let sectionIndicator: [number[], number[]][] = [];
         let seperaterLength = 1 / 4;
-        let sectionAccumulatedLength = 0;
         let accumulatedLength = 0;
         rawData.push([0, 0, 0, null, null, 0, 0]); // give a initial data, remove it at the end of function
 
@@ -212,8 +235,11 @@ export class SLTab {
                 x = this.startPosition[0];
                 if(s != 0)y += this.stringPadding * 5 + this.lineDistance;
             }
+            let sx: [number[], number[]] = [[x - 20, y], [0, y]]; // section position
             let nx = x + sectionWidth;
+            sx[1][0] = nx - 20;
             this.setBarPosition(this.sectionBarElement[s], nx -20, y);
+            sectionIndicator.push(sx);
             for(let i = 0; i < this.notes[s].length; i++){ // note
                 let note = this.notes[s][i];
                 let noteLength = this.lengthPerBeat / note[0];
@@ -235,7 +261,7 @@ export class SLTab {
             x = nx;
         }
         rawData.shift();
-        return [rawData, linker];
+        return [rawData, linker, sectionIndicator];
     }
 
     private calculateTail(lastNoteLength: number, noteLength: number, accumulatedLength: number, beatLength: number): number[]{
@@ -347,7 +373,7 @@ export class SLTab {
     }
     private createLinkerElement(){
         let linker = document.createElementNS('http://www.w3.org/2000/svg',"path");
-        this.svgElement.children[2].appendChild(linker);
+        this.svgElement.children[3].appendChild(linker);
         utils.setAttributes(linker, {fill: `white`});
         this.linkerElement.push(linker);
     }
