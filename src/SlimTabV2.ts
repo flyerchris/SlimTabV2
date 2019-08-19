@@ -8,7 +8,7 @@
   */
 
 import {utils} from "./utils"
-
+type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
@@ -51,7 +51,7 @@ export class SLTab {
     
     /**
      * add a note
-     * @param { [number, number[], any] }   data
+     * @param { [number, number[], any] }   data, note length, [block number, index is string number,], user data
      * @param { number }                    section, if give -1, note will be appended at last section. Index start from 0
      * @param { number }                    note, if give -1, note will be appended at last note. Index start from 0
      */
@@ -179,11 +179,11 @@ export class SLTab {
         this.noteElement.push(note);
     }
     /**
-     * @return { [number, number, number, number[]][] } array of [x, y , length, block of every chord, tail length, section index, note index]
+     * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data
      */
-    private calNoteRawData():[ [number, number, number, number[], number[], number, number][], number[][] ]{
+    private calNoteRawData():[ caculatedNoteData[], number[][] ]{
         let [x, y] = this.startPosition;
-        let rawData: [number, number, number, number[], number[], number, number][] = [];
+        let rawData: caculatedNoteData[] = [];
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let linker = [];
         let seperaterLength = 1 / 4;
@@ -277,7 +277,7 @@ export class SLTab {
      * receive data from calNoteRawData and set elements
      * @param { [number, number, number, number[]][] } data 
      */
-    private setAllNoteElementData(data: [number, number, number, number[], number[], number, number][]){
+    private setAllNoteElementData(data: caculatedNoteData[]){
         let ne = data.length - this.noteElement.length;
         for(let i = 0; i < ne; i++){
             this.createNoteElement();
@@ -290,7 +290,7 @@ export class SLTab {
             utils.setStyle(<HTMLElement><unknown>this.noteElement[i],{ display: "none"});
         }
     }
-    private setNoteElementData(el:SVGElement, data: [number, number, number, number[], number[], number, number]){
+    private setNoteElementData(el:SVGElement, data: caculatedNoteData){
         this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6]);
         this.setChordVisiable(el, data[1], data[3]);
     }
