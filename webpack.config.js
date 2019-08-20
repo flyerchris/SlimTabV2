@@ -7,7 +7,7 @@ module.exports = {
         DataAdapter: './src/DataAdapter.ts',
         Metronome: './src/Metronome.ts'
     },
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
     module: {
         rules: [
             {
