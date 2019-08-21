@@ -7,8 +7,12 @@
   *                  
   */
 
-import {utils} from "./utils"
+import { utils } from "./utils"
+import { section, note } from "./SlimTabV2Types"
+import { Correction } from "./SlimTabV2Interface"
+
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
+
 export class SLTab {
     private lengthPerBeat: number = 4;
     private beatPerSection: number = 4;
@@ -20,7 +24,7 @@ export class SLTab {
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
     private sectionAddNoteNumber = 16;
-    private notes: [number, number[], any][][];
+    private notes: section[];
     private noteElement: SVGElement[] = [];
     private linkerElement: SVGElement[] = [];
     private svgElement: SVGElement;
@@ -34,18 +38,6 @@ export class SLTab {
         Object.assign(this, data);
     }
 
-    /**
-    notes data example :
-    [
-        [// section
-            [4, [3, -1, -1, 4, -1, -1], null], // note length, [block number, index is string number,], user data
-            [8, [-1, 5, 2, -1, -1, -1], null],
-        ],
-        [
-            [16, [-1, 5, 2, -1, -1, -1], null],
-        ],
-    ]
-    */
     setNoteData(data: [number, number[], any][][]) {
         this.notes = data;
     }
@@ -56,34 +48,10 @@ export class SLTab {
      * @param { number }                    section, if give -1, note will be appended at last section. Index start from 0
      * @param { number }                    note, if give -1, note will be appended at last note. Index start from 0
      */
-    instrumentNoteInput(data: [number, number[], any], section: number = -1, note: number = -1) {
+    instrumentNoteInput(correction: Correction, data: note, section: number = -1, note: number = -1) {
         if(section == -1)section = this.notes.length - 1;
         if(note == -1)note = this.notes[section].length - 1;
-        this.notes[section] = this.notes[section].slice(0, note + 1);
-        let stackLength = 0;// unit in beat
-        for(let i = 0; i <= note; i++){
-            stackLength += this.lengthPerBeat / this.notes[section][i][0];
-        }
-        if(stackLength >= this.beatPerSection){
-            this.notes.splice(section + 1, 0, []);
-            this.notes[section + 1].push(data);
-        }else if(stackLength + this.lengthPerBeat / data[0] > this.beatPerSection){
-            let restLength = this.beatPerSection - stackLength;
-            let addLength = this.lengthPerBeat / (this.lengthPerBeat / data[0] - restLength);
-            restLength = this.lengthPerBeat / restLength;
-            this.notes[section].push([restLength, data[1], "linkStart"]);
-            this.notes.splice(section + 1, 0, []);
-            this.notes[section + 1].push([addLength, data[1], "linkEnd"]);   
-        }else{
-            let noteRestLength = 1 - stackLength % 1; // unit in beat
-            if(noteRestLength >= this.lengthPerBeat / data[0]){
-                this.notes[section].push(data);
-            }else{
-                let noteAddLength = this.lengthPerBeat / data[0] - noteRestLength;
-                this.notes[section].push([this.lengthPerBeat / noteRestLength, data[1], "linkStart"]);
-                this.notes[section].push([this.lengthPerBeat / noteAddLength, data[1], "linkEnd"]);
-            }
-        }
+        correction(this.notes, data, section, note);
         this.render();
     }
     
