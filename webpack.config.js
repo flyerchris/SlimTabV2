@@ -2,10 +2,7 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        LiCAP: './src/LiCAP.ts',
-        SlimTabV2: './src/SlimTabV2.ts',
-        DataAdapter: './src/DataAdapter.ts',
-        Metronome: './src/Metronome.ts'
+        demo: './src/demo.ts',
     },
     devtool: 'source-map',
     module: {

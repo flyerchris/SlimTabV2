@@ -1,5 +1,11 @@
-let nt = new SlimTabV2.SLTab();
-let data = [
+import { section } from "./SlimTabV2Types"
+import { SLTab } from "./SlimTabV2";
+import { DataAdapter } from "./DataAdapter"
+import { LiCAP } from "./LiCAP"
+import { Metronome } from "./Metronome"
+import { instrumentCorrection } from "./instrumentCorrection"
+let nt = new SLTab();
+let data: section[] = [
     [// section
         // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
         [4, [-1, 5, 2, -1, -1, -1], null],
@@ -18,20 +24,22 @@ let data = [
 nt.setNoteData(data);
 nt.render(document.getElementById("slimtab"));
 
-let da = new DataAdapter.DataAdapter();
-LiCAP.LiCAP.enumerate().then((devs)=>{
-    if(devs.length > 0) {     
+let da = new DataAdapter();
+LiCAP.enumerate().then((devs)=>{
+    if(devs.length > 0) {
         devs[0].on("pick", da.receiveData.bind(da));
     }
 });
+
 //da.setSendDataCallBack(nt.instrumentNoteInput.bind(nt));
 
-let beep = null;
+let beep: Metronome = null;
 let bs = 0;
 let beepEle = document.getElementById("metronome");
+
 beepEle.onclick = function(event){
     if(!beep){
-        beep = new Metronome.Metronome(120);
+        beep = new Metronome(120);
     }
     if(bs == 0){
         beep.startTick();
@@ -44,4 +52,4 @@ beepEle.onclick = function(event){
     }
 }
 //setInterval(function(){nt.instrumentNoteInput([8, [-1, -1, -1, 4, -1, 6], null])}, 1000);
-nt.instrumentNoteInput([4, [-1, -1, -1, 4, -1, 6], null]);
+nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
