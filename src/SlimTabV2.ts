@@ -7,7 +7,7 @@
   *                  
   */
 
-import { utils } from "./utils"
+import {utils, Callbacks} from "./utils"
 import { section, note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
 
@@ -33,9 +33,17 @@ export class SLTab {
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
+    
+    /**
+     * Callbacks
+     * Available callbacks
+     * noteclick: triggered when a note element is clicked
+     */
+    private callbacks: Callbacks;
 
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
+        this.callbacks = new Callbacks(["noteclick", "sectionchange"]);
     }
 
     setNoteData(data: [number, number[], any][][]) {
@@ -72,6 +80,13 @@ export class SLTab {
         this.setAllNoteElementData(noteRawData);
         this.setLinker(linkerData);
     }
+
+    on(ename: string, cbk: (...args: any[]) => void) {
+        if(ename in this.callbacks) {
+            this.callbacks[ename].push(cbk);
+        }
+    }
+
     private setAllLine() {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
         if(ln > this.lineInfo[0]){
@@ -168,6 +183,8 @@ export class SLTab {
         note.innerHTML = noteHtml;
         this.svgElement.children[2].appendChild(note);
         this.noteElement.push(note);
+
+        note.addEventListener("click", this.onNoteClicked.bind(this));
     }
     /**
      * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data, section x position
@@ -359,5 +376,9 @@ export class SLTab {
         }else{
             utils.setAttributes(linkElement, {d: `M ${start[0]} ${ly} C ${start[0]+4} ${ly+15}, ${end[0]-4} ${ly+15}, ${end[0]} ${ly} C ${end[0]-4} ${ly+12}, ${start[0]+4} ${ly+12}, ${start[0]} ${ly}`});
         }
+    }
+
+    private onNoteClicked(ev: MouseEvent) {
+        this.callbacks["noteclick"].callAll(Number((ev.currentTarget as SVGGElement).dataset.section), Number((ev.currentTarget as SVGGElement).dataset.note));
     }
 }

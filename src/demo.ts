@@ -53,3 +53,10 @@ beepEle.onclick = function(event){
 }
 //setInterval(function(){nt.instrumentNoteInput([8, [-1, -1, -1, 4, -1, 6], null])}, 1000);
 nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
+
+
+function pad(num: string, size: number){ return ('000000000' + num).substr(-size); }
+
+nt.on("noteclick", (section_idx, note_idx) => {
+    document.getElementById("section-idx").innerText = pad(section_idx+1, 3) + ".";
+})
