@@ -14,8 +14,8 @@ import { Correction } from "./SlimTabV2Interface"
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 
 export class SLTab {
-    private lengthPerBeat: number = 4;
-    private beatPerSection: number = 4;
+    readonly lengthPerBeat: number = 4;
+    readonly beatPerSection: number = 4;
     private lineWidth: number = 800;
     private sectionPerLine: number = 2;
     private stringPadding: number = 16; // distance between each string
@@ -24,7 +24,7 @@ export class SLTab {
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
     private sectionAddNoteNumber = 16;
-    private notes: section[];
+    notes: section[];
     private noteElement: SVGElement[] = [];
     private linkerElement: SVGElement[] = [];
     private svgElement: SVGElement;
@@ -59,7 +59,7 @@ export class SLTab {
     instrumentNoteInput(correction: Correction, data: note, section: number = -1, note: number = -1) {
         if(section == -1)section = this.notes.length - 1;
         if(note == -1)note = this.notes[section].length - 1;
-        correction(this.notes, data, section, note);
+        correction(this, data, section, note);
         this.render();
     }
     

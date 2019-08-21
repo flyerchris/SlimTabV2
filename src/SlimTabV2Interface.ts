@@ -1,4 +1,5 @@
-import { note, section } from "./SlimTabV2Types"
+import { note } from "./SlimTabV2Types"
+import { SLTab } from "./SlimTabV2"
 export interface Correction {
-    (allData: section[], addData: note, startSection: number, startNode: number): void
+    (sltab: SLTab, addData: note, startSection: number, startNode: number): void
 }
