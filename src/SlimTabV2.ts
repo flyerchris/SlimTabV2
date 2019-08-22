@@ -1,12 +1,3 @@
-//Tablature
-/**
-  * render pipeline: caculate each note position and actual note number (calNoteRawData)
-  *                 => draw necessary lines (drawAllLine)
-  *                 => create enough svg element and reuse them (setAllNoteElementData)
-  *                 => set elements data  (setNoteElementData)
-  *                  
-  */
-
 import {utils, Callbacks} from "./utils"
 import { section, note, svgNote } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
@@ -121,73 +112,7 @@ export class SLTab {
         utils.setAttributes(square, {"stroke-width": "0", fill: "rgba(0, 255, 255, 0.13)"});
         return square;
     }
-    private createLine(x: number, y: number, lineNumber: number): SVGElement {
-        let ng = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        let lineBack = document.createElementNS('http://www.w3.org/2000/svg',"rect");
-        utils.setAttributes(lineBack,{x: `${x}`, y:`${y}`,style: "fill: rgba(255, 255, 255, 0.09)", width:`${this.linePadding[0]*2 + this.lineWidth}`, height: `${this.linePadding[1]*2 + this.stringPadding * 5}`});
-        ng.appendChild(lineBack);
-        x += this.linePadding[0];
-        y += this.linePadding[1];
-        for(let i = 0; i < 6; i++){
-            let l = this.lineWidth;
-            let newLine = document.createElementNS('http://www.w3.org/2000/svg',"line");
-            utils.setAttributes(newLine,{x1: `${x}`, y1: `${y + i*this.stringPadding}`, x2: `${x + l}`, y2: `${y + i*this.stringPadding}`, style: "stroke:rgba(255, 255, 255, 0.24) ;stroke-width:2"});
-            ng.appendChild(newLine);
-        }
-        ng.appendChild(this.drawLineTitle(x - 30, y));
-        ng.appendChild(this.createBar(x , y));
-        for(let i = 0; i < this.sectionPerLine; i++){
-            let bar = this.createBar(0, 0);
-            this.sectionBarElement.push(bar);
-            ng.appendChild(bar);
-        }
 
-        return ng;
-    }
-    private drawLineTitle(x: number, y: number): SVGElement {
-        let title = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        title.innerHTML = `
-        <text style="fill:#959595;font:17px arial;">
-            <tspan x='${x + 10}' y='${y + 26}'>T</tspan>
-            <tspan x='${x + 10}' y='${y + 22 + 26}'>A</tspan>
-            <tspan x='${x + 10}' y='${y + 44 + 26}'>B</tspan>
-        </text>
-        `;
-        return title;
-    }
-    private createBar(x: number, y: number): SVGElement {
-        let bar = document.createElementNS('http://www.w3.org/2000/svg',"line");
-        utils.setAttributes(bar,{style: 'stroke:rgba(255, 255, 255, 0.24) ;stroke-width:2'})
-        utils.setAttributes(bar,{x1: `${x}`, y1: `${y}`, x2: `${x}`, y2: `${y + this.stringPadding * 5}`})
-        return bar;
-    }
-
-    private setBarPosition(bar:SVGElement, x: number, y: number){
-        utils.setAttributes(bar,{x1: `${x}`, y1: `${y}`, x2: `${x}`, y2: `${y + this.stringPadding * 5}`})
-    }
-
-    private createNoteElement(x: number = 200, y:number = 20){
-        let note = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        let noteHtml = `<g>
-        <line style="stroke:white;stroke-width:1" x1="${x}" y1="140" x2="${x}" y2="${y}"></line>
-        <line style="stroke:white;stroke-width:2" x1="${x}" y1="138" x2="${x+10}" y2="138"></line>
-        <line style="stroke:white;stroke-width:2" x1="${x}" y1="130" x2="${x+10}" y2="130"></line>
-        <line style="stroke:white;stroke-width:2"></line>
-        </g>`;
-        for(let i = 0; i < 6 ; i++){
-            noteHtml += `
-                <g>
-                <ellipse cx='${x}' cy='${y + this.stringPadding * i}' rx='4' ry='6' fill='#444' stroke-width='0' stroke='black' style='cursor:pointer;'></ellipse>
-                <text x='${x }' y='${y + this.stringPadding * i + 4}' text-anchor="middle" style="font:12px Sans-serif; fill:#fff">3</text>
-                </g>
-            `;
-        }
-        note.innerHTML = noteHtml;
-        this.svgElement.children[2].appendChild(note);
-        this.noteElement.push(note);
-
-        note.addEventListener("click", this.onNoteClicked.bind(this));
-    }
     /**
      * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data, section x position
      */
