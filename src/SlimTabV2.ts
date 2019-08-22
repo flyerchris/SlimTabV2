@@ -8,8 +8,9 @@
   */
 
 import {utils, Callbacks} from "./utils"
-import { section, note } from "./SlimTabV2Types"
+import { section, note, svgNote } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
+import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
 
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 
@@ -33,6 +34,7 @@ export class SLTab {
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
+    tabCanvas: SLCanvas<SLLayer>;
     
     /**
      * Callbacks
@@ -43,6 +45,7 @@ export class SLTab {
 
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
+        this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
         this.callbacks = new Callbacks(["noteclick", "sectionchange"]);
     }
 
@@ -63,22 +66,18 @@ export class SLTab {
         this.render();
     }
     
-    render(anchor?: Element) {
-        if(!this.svgElement){ // mount on an element
-            let page = document.createElement("div");
-            let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
-            page.setAttribute("style",`position: relative; background: radial-gradient(#3E3E3E, #000) ; width: fit-content;`);
-            this.svgElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-            utils.setAttributes(this.svgElement,{width: `${width}`, height: "600"});
-            this.svgElement.innerHTML = "<g></g><g></g><g></g><g></g>"; // lines, section indicator, notes, linker
-            page.append(this.svgElement);
-            anchor.appendChild(page);
-        }
-        this.setAllLine();
+    attach(anchor: HTMLElement){
+        anchor.append(this.tabCanvas.domElement);
+    }
+
+    render() {
+        let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
+        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: "600"});
+        //this.setAllLine();
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
-        this.setSectionIndicator(sectionPosition);
+        //this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(noteRawData);
-        this.setLinker(linkerData);
+        //this.setLinker(linkerData);
     }
 
     on(ename: string, cbk: (...args: any[]) => void) {
@@ -223,7 +222,7 @@ export class SLTab {
             let sx: [number[], number[]] = [[x - 20, y], [0, y]]; // section position
             let nx = x + sectionWidth;
             sx[1][0] = nx - 20;
-            this.setBarPosition(this.sectionBarElement[s], nx -20, y);
+            //this.setBarPosition(this.sectionBarElement[s], nx -20, y);
             sectionIndicator.push(sx);
             for(let i = 0; i < this.notes[s].length; i++){ // note
                 let note = this.notes[s][i];
@@ -289,44 +288,46 @@ export class SLTab {
      * @param { [number, number, number, number[]][] } data 
      */
     private setAllNoteElementData(data: caculatedNoteData[]){
-        let ne = data.length - this.noteElement.length;
+        let noteElement = this.tabCanvas.layers.notes.noteElements
+        let ne = data.length - noteElement.length;
         for(let i = 0; i < ne; i++){
-            this.createNoteElement();
+            this.tabCanvas.layers.notes.createNote();
         }
         for(let i = 0; i < data.length; i++){
-            utils.setStyle(<HTMLElement><unknown>this.noteElement[i],{ display: "unset"});
-            this.setNoteElementData(this.noteElement[i], data[i]);
+            utils.setStyle(noteElement[i].element,{ display: "unset"});
+            this.setNoteElementData(noteElement[i], data[i]);
         }
         for(let i = data.length; i < this.noteElement.length; i++){
-            utils.setStyle(<HTMLElement><unknown>this.noteElement[i],{ display: "none"});
+            utils.setStyle(noteElement[i].element,{ display: "none"});
         }
     }
-    private setNoteElementData(el:SVGElement, data: caculatedNoteData){
+    private setNoteElementData(el: svgNote, data: caculatedNoteData){
         this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6]);
         this.setChordVisiable(el, data[1], data[3]);
     }
-    private setElementPosition(e:SVGElement, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number){
+    private setElementPosition(e: svgNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number){
         // set note bar's position and bar tail's length
-        utils.setAttributes(e.children[0].children[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
-        utils.setAttributes(e.children[0].children[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.children[0].children[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + tail[1]}`, y2: `${21 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.children[0].children[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.lineGroup[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
+        utils.setAttributes(e.lineGroup[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.lineGroup[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + tail[1]}`, y2: `${21 + y + this.stringPadding * 5}`});
+        utils.setAttributes(e.lineGroup[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
         // set note word position
-        for(let i = 1 ; i <= 6; i++){
-            utils.setAttributes(e.children[i].children[0], {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
-            utils.setAttributes(e.children[i].children[1], {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
+        for(let i = 0 ; i < 6; i++){
+            utils.setAttributes(e.blockGroup[i].ellipse, {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
+            utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
         }
-        utils.setAttributes(e, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        utils.setAttributes(e.element, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
     }
-    private setChordVisiable(e:SVGElement, y: number, data: number[]){
-        for(let i = 1 ; i <= 6; i++){
-            e.children[i].children[1].innerHTML = `${data[i-1]}`;
-            if(data[i-1] == -1){
-                utils.setStyle(<HTMLElement>e.children[i].children[0],{display: "none"});
-                utils.setStyle(<HTMLElement>e.children[i].children[1],{display: "none"});
+    private setChordVisiable(e:svgNote, y: number, data: number[]){
+        
+        for(let i = 0 ; i < 6; i++){
+            e.blockGroup[i].word.innerHTML = `${data[i]}`;
+            if(data[i] == -1){
+                utils.setStyle(e.blockGroup[i].ellipse, {display: "none"});
+                utils.setStyle(e.blockGroup[i].word, {display: "none"});
             }else{
-                utils.setStyle(<HTMLElement>e.children[i].children[0],{display: "block"});
-                utils.setStyle(<HTMLElement>e.children[i].children[1],{display: "block"});
+                utils.setStyle(e.blockGroup[i].ellipse, {display: "block"});
+                utils.setStyle(e.blockGroup[i].word, {display: "block"});
             }
         }
         
@@ -339,10 +340,10 @@ export class SLTab {
             }    
         }
         if(hc != -1){
-            utils.setAttributes(e.children[0].children[0],{y2: `${y + this.stringPadding * hc}`});
-            utils.setStyle(<HTMLElement>e.children[0].children[0],{display: "block"});
+            utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * hc}`});
+            utils.setStyle(<HTMLElement>e.lineGroup[0], {display: "block"});
         }else{
-            utils.setStyle(<HTMLElement>e.children[0].children[0],{display: "none"});
+            utils.setStyle(<HTMLElement>e.lineGroup[0], {display: "none"});
         }
     }
 

@@ -1,4 +1,5 @@
 import {utils} from './utils';
+import { svgNote } from './SlimTabV2Types';
 
 interface SVGPrimitiveRenderer {
     clear(): void;
@@ -25,7 +26,7 @@ export class Layer implements SVGPrimitiveRenderer {
             x: `${x}`, y:`${y}`,
             width:`${width}`, height: `${height}`
         });
-        if(target)
+        if(!target)
             this.domElement.appendChild(inst);
         else
             target.appendChild(inst);
@@ -39,7 +40,7 @@ export class Layer implements SVGPrimitiveRenderer {
             rx: `${rx}`, ry: `${ry}`
         });
 
-        if(target)
+        if(!target)
             this.domElement.appendChild(inst);
         else
             target.appendChild(inst);
@@ -55,7 +56,7 @@ export class Layer implements SVGPrimitiveRenderer {
         
         inst.innerHTML = `${str}`;
 
-        if(target)
+        if(!target)
             this.domElement.appendChild(inst);
         else
             target.appendChild(inst);
@@ -70,7 +71,7 @@ export class Layer implements SVGPrimitiveRenderer {
             "stroke-width": `${width}`
         });
         
-        if(target)
+        if(!target)
             this.domElement.appendChild(inst);
         else
             target.appendChild(inst);
@@ -80,24 +81,31 @@ export class Layer implements SVGPrimitiveRenderer {
 }
 
 class NoteLayer extends Layer {
-    createNote(x: number, y: number, fredIdx: number): SVGElement {
+    noteElements: svgNote[] = [];
+
+    createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
+        const blockArray: {word: HTMLElement, ellipse: HTMLElement}[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
+        this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
+        for(let i = 0; i < 3 ; i++){
+            this.createLine(0, 0, 0, 0, 2, "white", lineGroup);
+        }
+        note.append(lineGroup);
         for(let i = 0; i < 6 ; i++){
             const wordGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
             const elipse = this.createEllipse(0, 0 , 4, 6, wordGroup);
             const word = this.createText(0, 0, "", "middle", wordGroup);
             utils.setAttributes(elipse, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
             utils.setStyle(<HTMLElement><unknown>word, {"font": "12px Sans-serif", "fill": "#fff"});
-            blockGroup.appendChild(wordGroup);
+            blockGroup.append(wordGroup);
+            blockArray.push({word: <HTMLElement><unknown>word, ellipse: <HTMLElement><unknown>elipse});
+            utils.setAttributes(wordGroup, {"data-block": `${i}`});
         }
-        note.appendChild(blockGroup);
-        this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
-        for(let i = 0; i < 3 ; i++){
-            this.createLine(0, 0, 0, 0, 2, "white", lineGroup);
-        }
-        this.domElement.appendChild(note);
+        note.append(blockGroup);
+        this.noteElements.push({element: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
+        this.domElement.append(note);
         return note;
     }
 }
@@ -112,34 +120,42 @@ class UILayer extends Layer {
 
 }
 
-class Layers {
+export class Layers {
     readonly background: Layer;
     readonly sheet: SheetLayer;
     readonly notes: NoteLayer;
     readonly foreground: Layer;
-
+    constructor(){
+        this.background = new Layer();
+        this.sheet = new SheetLayer();
+        this.notes = new NoteLayer();
+        this.foreground = new Layer();
+    }
     get flattened(): Layer[] {
         return [this.background, this.sheet, this.notes, this.foreground];
     }
 
 }
 
-class SLLayer extends Layers{
+export class SLLayer extends Layers{
     readonly ui: UILayer;
-
+    constructor(){
+        super();
+        this.ui = new UILayer();
+    }
     get flattened(): Layer[] {
         return [this.background, this.sheet, this.notes, this.foreground, this.ui];
     }
 }
 
-class SLCanvas<T extends Layers> {
+export class SLCanvas<T extends Layers> {
     readonly domElement: SVGElement;
     readonly layers: T;
 
     constructor(private layerType: new () => T) {
         this.layers = new layerType();
 
-        this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"g");
+        this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
 
         this.layers.flattened.forEach(layer => this.domElement.appendChild(layer.domElement));
     }
