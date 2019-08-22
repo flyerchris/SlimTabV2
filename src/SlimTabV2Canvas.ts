@@ -82,7 +82,10 @@ export class Layer implements SVGPrimitiveRenderer {
 
 class NoteLayer extends Layer {
     noteElements: svgNote[] = [];
-
+    constructor(){
+        super();
+        utils.setAttributes(this.domElement,{"data-layer": "NoteLayer"})
+    }
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
@@ -111,13 +114,53 @@ class NoteLayer extends Layer {
 }
 
 class SheetLayer extends Layer {
-    note(x: number, y: number, fredIdx: number) {
+    readonly row: HTMLElement[] = [];
+    readonly bar: HTMLElement[] = [];
+    constructor(){
+        super();
+        utils.setAttributes(this.domElement,{"data-layer": "SheetLayer"})
+    }
+    createRow(x: number, y: number, lineWidth:number, linePadding: [number, number], stringPadding: number, sectionPerLine: number): SVGElement {
+        let ng = document.createElementNS('http://www.w3.org/2000/svg',"g");
+        let lineBack = document.createElementNS('http://www.w3.org/2000/svg',"rect");
+        utils.setAttributes(lineBack,{x: `${x}`, y:`${y}`,style: "fill: rgba(255, 255, 255, 0.09)", width:`${linePadding[0]*2 + lineWidth}`, height: `${linePadding[1]*2 + stringPadding * 5}`});
+        ng.appendChild(lineBack);
+        x += linePadding[0];
+        y += linePadding[1];
+        for(let i = 0; i < 6; i++){
+            let l = lineWidth;
+            this.createLine(x, y + i*stringPadding, x + l, y + i * stringPadding, 2, "rgba(255, 255, 255, 0.24)", ng);
+        }
+        this.drawRowTitle(x - 30, y, ng);
+        this.createLine(x, y, x, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", this.domElement);
+        for(let i= 0; i < sectionPerLine; i++){
+            let nb = this.createLine(0, y, 0, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", this.domElement);
+            this.bar.push(<HTMLElement><unknown>nb);
+        }
+        this.domElement.append(ng);
+        this.row.push(<HTMLElement><unknown>ng);
+        return ng;
+    }
 
+    private drawRowTitle(x: number, y: number, target?: SVGElement): SVGElement {
+        let title = document.createElementNS('http://www.w3.org/2000/svg',"g");
+        title.innerHTML = `
+        <text style="fill:#959595;font:17px arial;">
+            <tspan x='${x + 10}' y='${y + 26}'>T</tspan>
+            <tspan x='${x + 10}' y='${y + 22 + 26}'>A</tspan>
+            <tspan x='${x + 10}' y='${y + 44 + 26}'>B</tspan>
+        </text>
+        `;
+        if(target)target.append(title);
+        return title;
     }
 }
 
 class UILayer extends Layer {
-
+    constructor(){
+        super();
+        utils.setAttributes(this.domElement,{"data-layer": "UILayer"})
+    }
 }
 
 export class Layers {

@@ -33,7 +33,7 @@ export class SLTab {
     private lineElement: SVGElement[] = [];
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
-    private lineInfo: [number, number, number] = [0, this.lineMargin, 120]; // total line number, last line X, last line Y
+    private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
     tabCanvas: SLCanvas<SLLayer>;
     
     /**
@@ -73,7 +73,7 @@ export class SLTab {
     render() {
         let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
         utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: "600"});
-        //this.setAllLine();
+        this.setAllLine();
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
         //this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(noteRawData);
@@ -87,16 +87,19 @@ export class SLTab {
     }
 
     private setAllLine() {
-        let ln = Math.ceil(this.notes.length / this.sectionPerLine);
-        if(ln > this.lineInfo[0]){
-            for(let i = 0; i < ln - this.lineInfo[0]; i++){
-                let nl = this.createLine(this.lineInfo[1], this.lineInfo[2], i);
-                this.lineElement.push(nl);
-                this.svgElement.children[0].appendChild(nl);
-                this.lineInfo[2] += this.stringPadding * 5 + this.lineDistance;
-            }
+        let ln = Math.ceil(this.notes.length / this.sectionPerLine); // number of row you need
+        let an = this.tabCanvas.layers.sheet.row.length; // number of row you have
+        for(let i = an; i < ln ; i++){
+            let x = this.lineStartPosition[0];
+            let y = this.lineStartPosition[1] + (this.stringPadding * 5 + this.lineDistance) * i;
+            this.tabCanvas.layers.sheet.createRow(x, y, this.lineWidth, this.linePadding, this.stringPadding, this.sectionPerLine);
         }
-        this.lineInfo[0] = ln;
+        for(let i = ln; i < an; i++){
+            utils.setStyle(this.tabCanvas.layers.sheet.row[i], {display: "none"});
+        }
+        for(let i = 0; i < ln; i++){
+            utils.setStyle(this.tabCanvas.layers.sheet.row[i], {display: "unset"})
+        }
     }
     private setSectionIndicator(position: [number[], number[]][]){
         if(position.length > this.sectionIndicatorElement.length){
@@ -222,7 +225,7 @@ export class SLTab {
             let sx: [number[], number[]] = [[x - 20, y], [0, y]]; // section position
             let nx = x + sectionWidth;
             sx[1][0] = nx - 20;
-            //this.setBarPosition(this.sectionBarElement[s], nx -20, y);
+            utils.setAttributes(this.tabCanvas.layers.sheet.bar[s], {x1: `${nx - 20}`, x2: `${nx - 20}`});
             sectionIndicator.push(sx);
             for(let i = 0; i < this.notes[s].length; i++){ // note
                 let note = this.notes[s][i];
@@ -340,7 +343,7 @@ export class SLTab {
             }    
         }
         if(hc != -1){
-            utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * hc}`});
+            utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * (hc - 1)}`});
             utils.setStyle(<HTMLElement>e.lineGroup[0], {display: "block"});
         }else{
             utils.setStyle(<HTMLElement>e.lineGroup[0], {display: "none"});
