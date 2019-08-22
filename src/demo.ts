@@ -22,7 +22,8 @@ let data: section[] = [
     ]
 ];
 nt.setNoteData(data);
-nt.render(document.getElementById("slimtab"));
+nt.attach(document.getElementById("slimtab"));
+nt.render();
 
 let da = new DataAdapter();
 LiCAP.enumerate().then((devs)=>{
