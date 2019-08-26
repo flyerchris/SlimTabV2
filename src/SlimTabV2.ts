@@ -220,6 +220,10 @@ export class SLTab {
         let ne = data.length - noteElement.length;
         for(let i = 0; i < ne; i++){
             this.tabCanvas.layers.notes.createNote();
+            noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
+                wg.groupElement.addEventListener("click", this.onNoteClicked.bind(this));
+                utils.setAttributes(wg.groupElement, {"data-string": `${i}`});
+            });
         }
         for(let i = 0; i < data.length; i++){
             utils.setStyle(noteElement[i].element,{ display: "unset"});
@@ -241,28 +245,29 @@ export class SLTab {
         utils.setAttributes(e.lineGroup[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
         // set note word position
         for(let i = 0 ; i < 6; i++){
-            utils.setAttributes(e.blockGroup[i].ellipse, {cx: `${x}`, cy: `${y + this.stringPadding * (i-1)}`});
-            utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * (i-1) + 4}`});
+            utils.setAttributes(e.blockGroup[i].ellipse, {cx: `${x}`, cy: `${y + this.stringPadding * i}`});
+            utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
         }
         utils.setAttributes(e.element, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        e.blockGroup.forEach((wg, i) => {
+            utils.setAttributes(wg.groupElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        });
     }
     private setChordVisiable(e:svgNote, y: number, data: number[]){
         
         for(let i = 0 ; i < 6; i++){
             e.blockGroup[i].word.innerHTML = `${data[i]}`;
             if(data[i] == -1){
-                utils.setStyle(e.blockGroup[i].ellipse, {display: "none"});
-                utils.setStyle(e.blockGroup[i].word, {display: "none"});
+                utils.setStyle(e.blockGroup[i].groupElement, {display: "none"});
             }else{
-                utils.setStyle(e.blockGroup[i].ellipse, {display: "block"});
-                utils.setStyle(e.blockGroup[i].word, {display: "block"});
+                utils.setStyle(e.blockGroup[i].groupElement, {display: "block"});
             }
         }
         
         // note bar should reach the top word
         let hc: number = -1;
-        for(let i = 0 ; i < 6; i++){
-            if(data[i] != -1){
+        for(let i = 1 ; i <= 6; i++){
+            if(data[i-1] != -1){
                 hc = i;
                 break;
             }    
@@ -308,6 +313,6 @@ export class SLTab {
     }
 
     private onNoteClicked(ev: MouseEvent) {
-        this.callbacks["noteclick"].callAll(Number((ev.currentTarget as SVGGElement).dataset.section), Number((ev.currentTarget as SVGGElement).dataset.note));
+        this.callbacks["noteclick"].callAll(Number((ev.currentTarget as SVGGElement).dataset.section), Number((ev.currentTarget as SVGGElement).dataset.note), Number((ev.currentTarget as SVGElement).dataset.string));
     }
 }

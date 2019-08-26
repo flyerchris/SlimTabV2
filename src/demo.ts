@@ -8,7 +8,7 @@ let nt = new SLTab();
 let data: section[] = [
     [// section
         // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
-        [4, [-1, 5, 2, -1, -1, -1], null],
+        [4, [3, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
@@ -58,6 +58,7 @@ nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
 
 function pad(num: string, size: number){ return ('000000000' + num).substr(-size); }
 
-nt.on("noteclick", (section_idx, note_idx) => {
-    document.getElementById("section-idx").innerText = pad(section_idx+1, 3) + ".";
+nt.on("noteclick", (sectionIdx, noteIdx, stringIdx) => {
+    document.getElementById("section-idx").innerText = pad(sectionIdx+1, 3) + ".";
+    console.log(sectionIdx, noteIdx, stringIdx);
 })

@@ -89,7 +89,7 @@ class NoteLayer extends Layer {
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        const blockArray: {word: HTMLElement, ellipse: HTMLElement}[] = [];
+        const blockArray: {groupElement: HTMLElement, word: HTMLElement, ellipse: HTMLElement}[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
         for(let i = 0; i < 3 ; i++){
@@ -100,11 +100,10 @@ class NoteLayer extends Layer {
             const wordGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
             const elipse = this.createEllipse(0, 0 , 4, 6, wordGroup);
             const word = this.createText(0, 0, "", "middle", wordGroup);
-            utils.setAttributes(elipse, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
+            utils.setAttributes(wordGroup, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
             utils.setStyle(<HTMLElement><unknown>word, {"font": "12px Sans-serif", "fill": "#fff"});
             blockGroup.append(wordGroup);
-            blockArray.push({word: <HTMLElement><unknown>word, ellipse: <HTMLElement><unknown>elipse});
-            utils.setAttributes(wordGroup, {"data-block": `${i}`});
+            blockArray.push({groupElement: <HTMLElement><unknown>wordGroup, word: <HTMLElement><unknown>word, ellipse: <HTMLElement><unknown>elipse});
         }
         note.append(blockGroup);
         this.noteElements.push({element: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
