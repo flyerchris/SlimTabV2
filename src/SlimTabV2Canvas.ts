@@ -11,7 +11,7 @@ interface SVGPrimitiveRenderer {
 
 export class Layer implements SVGPrimitiveRenderer {
     readonly domElement: SVGElement;
-
+    readonly linker: SVGElement[] = [];
     constructor() {
         this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"g");
     }
@@ -79,7 +79,17 @@ export class Layer implements SVGPrimitiveRenderer {
             target.appendChild(inst);
         return inst;
     };
-    
+    createLinker(target?: SVGElement){
+        let linker = document.createElementNS('http://www.w3.org/2000/svg',"path");
+        if(!target)
+            this.domElement.appendChild(linker);
+        else
+            target.appendChild(linker);
+        
+        utils.setAttributes(linker, {fill: `white`});
+        this.linker.push(linker);
+        return linker;
+    }
 }
 
 class NoteLayer extends Layer {

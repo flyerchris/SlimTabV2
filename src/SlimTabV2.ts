@@ -68,7 +68,7 @@ export class SLTab {
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
         this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(noteRawData);
-        //this.setLinker(linkerData);
+        this.setLinker(linkerData);
     }
 
     on(ename: string, cbk: (...args: any[]) => void) {
@@ -282,17 +282,11 @@ export class SLTab {
         let lenumber = Math.floor(linkerData.length / 2);
         let existNumber = this.linkerElement.length
         for(let i = 0; i < lenumber - existNumber; i++){
-            this.createLinkerElement();
+            this.tabCanvas.layers.background.createLinker();
         }
         for(let i = 0; i < lenumber; i++){
-            this.setLinkerData(this.linkerElement[i], linkerData[i*2], linkerData[i*2+1]);
+            this.setLinkerData(this.tabCanvas.layers.background.linker[i], linkerData[i*2], linkerData[i*2+1]);
         }
-    }
-    private createLinkerElement(){
-        let linker = document.createElementNS('http://www.w3.org/2000/svg',"path");
-        this.svgElement.children[3].appendChild(linker);
-        utils.setAttributes(linker, {fill: `white`});
-        this.linkerElement.push(linker);
     }
     private setLinkerData(linkElement:SVGElement, start: number[], end: number[]){
         let ly = start[1] + 31 + this.stringPadding * 5;
