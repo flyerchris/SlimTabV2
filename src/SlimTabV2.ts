@@ -66,7 +66,7 @@ export class SLTab {
         utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: "600"});
         this.setAllLine();
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
-        //this.setSectionIndicator(sectionPosition);
+        this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(noteRawData);
         //this.setLinker(linkerData);
     }
@@ -96,15 +96,13 @@ export class SLTab {
         if(position.length > this.sectionIndicatorElement.length){
             let nsNumber = position.length - this.sectionIndicatorElement.length;
             for(let i = 0; i < nsNumber; i++){
-                let ns = this.createSectionIndicator();
-                this.svgElement.children[1].appendChild(ns);
-                this.sectionIndicatorElement.push(ns);
+                this.tabCanvas.layers.ui.createSectionIndicator();
             }
         }
         for(let i = 0; i < position.length; i++){
             let width = position[i][1][0] - position[i][0][0];
             let height = this.stringPadding * 5;
-            utils.setAttributes(this.sectionIndicatorElement[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
+            utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
     private createSectionIndicator(): SVGElement{

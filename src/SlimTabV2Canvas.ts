@@ -3,7 +3,7 @@ import { svgNote } from './SlimTabV2Types';
 
 interface SVGPrimitiveRenderer {
     clear(): void;
-    createRect(x: number, y: number, width: number, height: number): SVGRectElement;
+    createRect(x: number, y: number, width: number, height: number, strokeWidth: number, color: string): SVGRectElement;
     createEllipse(cx: number, cy: number, rx: number, ry: number): SVGEllipseElement;
     createText(x: number, y: number, str: string, anchor: string): SVGTextElement;
     createLine(x1: number, y1: number, x2: number, y2: number, width: number, color?: string): SVGElement;
@@ -20,11 +20,13 @@ export class Layer implements SVGPrimitiveRenderer {
         this.domElement.innerHTML = "";
     }
 
-    createRect(x: number, y: number, width: number, height: number, target?: SVGElement): SVGRectElement {
+    createRect(x: number, y: number, width: number, height: number, strokeWidth: number, fill: string, target?: SVGElement): SVGRectElement {
         const inst = document.createElementNS('http://www.w3.org/2000/svg',"rect");
         utils.setAttributes(inst, {
             x: `${x}`, y:`${y}`,
-            width:`${width}`, height: `${height}`
+            width:`${width}`, height: `${height}`,
+            "stroke-width": `${strokeWidth}`,
+            fill: fill,
         });
         if(!target)
             this.domElement.appendChild(inst);
@@ -156,9 +158,15 @@ class SheetLayer extends Layer {
 }
 
 class UILayer extends Layer {
+    readonly sectionIndicator: SVGElement[] = [];
     constructor(){
         super();
         utils.setAttributes(this.domElement,{"data-layer": "UILayer"})
+    }
+    createSectionIndicator(){
+        let newSquare = this.createRect(0, 0, 0, 0, 0,"rgba(0, 255, 255, 0.13)")
+        this.sectionIndicator.push(newSquare);
+        return newSquare;
     }
 }
 
@@ -186,7 +194,7 @@ export class SLLayer extends Layers{
         this.ui = new UILayer();
     }
     get flattened(): Layer[] {
-        return [this.background, this.sheet, this.notes, this.foreground, this.ui];
+        return [this.background, this.ui, this.sheet, this.notes, this.foreground];
     }
 }
 
