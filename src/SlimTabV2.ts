@@ -4,7 +4,9 @@ import { Correction } from "./SlimTabV2Interface"
 import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
 
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
-
+enum callbackKeys {
+    "noteclick", "sectionchange", "keydown"
+}
 export class SLTab {
     notes: section[];
     tabCanvas: SLCanvas<SLLayer>;
@@ -34,7 +36,11 @@ export class SLTab {
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
-        this.callbacks = new Callbacks(["noteclick", "sectionchange", "keydown"]);
+        let callbackArray = [];
+        for(let i = 0; i < Object.keys(callbackKeys).length / 2; i++){
+            callbackArray.push(callbackKeys[i]);
+        }
+        this.callbacks = new Callbacks(callbackArray);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
     }
@@ -74,7 +80,7 @@ export class SLTab {
         this.setLinker(linkerData);
     }
 
-    on(ename: string, cbk: (...args: any[]) => void) {
+    on(ename: keyof typeof callbackKeys, cbk: (...args: any[]) => void) {
         if(ename in this.callbacks) {
             this.callbacks[ename].push(cbk);
         }
@@ -315,6 +321,7 @@ export class SLTab {
         this.callbacks["noteclick"].callAll(section, note, string, ev.currentTarget);
     }
     private onKeydown(ev: KeyboardEvent){
+        console.log(ev);
         this.callbacks["keydown"].callAll(ev.key);
     }
 }
