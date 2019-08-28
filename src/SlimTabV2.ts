@@ -136,6 +136,7 @@ export class SLTab {
         for(let s = 0; s < this.notes.length; s++){ // section
             let line = Math.floor(s / this.sectionPerLine);
             let lineTotalNote = 0;
+            accumulatedLength = 0;
             for(let i = 0; i < this.sectionPerLine; i++){
                 if(this.notes[line * this.sectionPerLine + i]){
                     lineTotalNote += this.notes[line * this.sectionPerLine + i].length + this.sectionAddNoteNumber;
