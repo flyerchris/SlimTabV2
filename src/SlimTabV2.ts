@@ -6,6 +6,8 @@ import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 
 export class SLTab {
+    notes: section[];
+    tabCanvas: SLCanvas<SLLayer>;
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
     private lineWidth: number = 800;
@@ -16,16 +18,11 @@ export class SLTab {
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
     private sectionAddNoteNumber = 16;
-    notes: section[];
     private noteElement: SVGElement[] = [];
     private linkerElement: SVGElement[] = [];
-    private svgElement: SVGElement;
-    private sectionBarElement: SVGElement[] = [];
-    private lineElement: SVGElement[] = [];
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
-    tabCanvas: SLCanvas<SLLayer>;
     
     /**
      * Callbacks
@@ -40,8 +37,12 @@ export class SLTab {
         this.callbacks = new Callbacks(["noteclick", "sectionchange"]);
     }
 
-    setNoteData(data: [number, number[], any][][]) {
+    setData(data: [number, number[], any][][]) {
         this.notes = data;
+    }
+
+    getNoteData(section: number, note: number): note{
+        return this.notes[section][note];
     }
     
     /**

@@ -11,17 +11,17 @@ let data: section[] = [
         [4, [3, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
+        [8, [-1, 5, 2, -1, -1, -1], null],
     ],
     [
-        [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
+        [4, [-1, 5, 2, -1, -1, -1], null],
+        [4, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
     ]
 ];
-nt.setNoteData(data);
+nt.setData(data);
 nt.attach(document.getElementById("slimtab"));
 nt.render();
 
@@ -54,6 +54,7 @@ beepEle.onclick = function(event){
 }
 //setInterval(function(){nt.instrumentNoteInput([8, [-1, -1, -1, 4, -1, 6], null])}, 1000);
 nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
+nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null], 0, 2);
 
 
 function pad(num: string, size: number){ return ('000000000' + num).substr(-size); }
