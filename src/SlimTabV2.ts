@@ -34,7 +34,9 @@ export class SLTab {
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
-        this.callbacks = new Callbacks(["noteclick", "sectionchange"]);
+        this.callbacks = new Callbacks(["noteclick", "sectionchange", "keydown"]);
+        this.tabCanvas.domElement.addEventListener("focus", ()=>{});
+        this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
     }
 
     setData(data: [number, number[], any][][]) {
@@ -246,6 +248,7 @@ export class SLTab {
         for(let i = 0 ; i < 6; i++){
             utils.setAttributes(e.blockGroup[i].ellipse, {cx: `${x}`, cy: `${y + this.stringPadding * i}`});
             utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
+            utils.setAttributes(e.element,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
         }
         utils.setAttributes(e.element, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
@@ -306,6 +309,12 @@ export class SLTab {
     }
 
     private onNoteClicked(ev: MouseEvent) {
-        this.callbacks["noteclick"].callAll(Number((ev.currentTarget as SVGGElement).dataset.section), Number((ev.currentTarget as SVGGElement).dataset.note), Number((ev.currentTarget as SVGElement).dataset.string));
+        let section = Number((ev.currentTarget as SVGGElement).dataset.section);
+        let note = Number((ev.currentTarget as SVGGElement).dataset.note);
+        let string = Number((ev.currentTarget as SVGElement).dataset.string);
+        this.callbacks["noteclick"].callAll(section, note, string, ev.currentTarget);
+    }
+    private onKeydown(ev: KeyboardEvent){
+        this.callbacks["keydown"].callAll(ev.key);
     }
 }
