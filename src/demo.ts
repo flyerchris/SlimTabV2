@@ -4,6 +4,7 @@ import { DataAdapter } from "./DataAdapter"
 import { LiCAP } from "./LiCAP"
 import { Metronome } from "./Metronome"
 import { instrumentCorrection } from "./instrumentCorrection"
+import { SLEditor } from "./SlimTabV2Editor"
 let nt = new SLTab();
 let data: section[] = [
     [// section
@@ -22,6 +23,7 @@ let data: section[] = [
     ]
 ];
 nt.setData(data);
+let tabEditor = new SLEditor(nt);
 nt.attach(document.getElementById("slimtab"));
 nt.render();
 
