@@ -257,7 +257,7 @@ export class SLTab {
         utils.setAttributes(e.lineGroup[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
         // set note word position
         for(let i = 0 ; i < 6; i++){
-            utils.setAttributes(e.blockGroup[i].ellipse, {cx: `${x}`, cy: `${y + this.stringPadding * i}`});
+            utils.setAttributes(e.blockGroup[i].wordBack, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
             utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
             utils.setAttributes(e.blockGroup[i].groupElement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
         }
@@ -270,6 +270,7 @@ export class SLTab {
         
         for(let i = 0 ; i < 6; i++){
             e.blockGroup[i].word.innerHTML = `${data[i]}`;
+            e.blockGroup[i].wordBack.innerHTML = `${data[i]}`;
             if(data[i] == -1){
                 utils.setStyle(e.blockGroup[i].groupElement, {display: "none"});
             }else{

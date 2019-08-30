@@ -101,7 +101,7 @@ class NoteLayer extends Layer {
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        const blockArray: {groupElement: HTMLElement, word: HTMLElement, ellipse: HTMLElement}[] = [];
+        const blockArray: {groupElement: HTMLElement, word: HTMLElement, wordBack: HTMLElement}[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
         for(let i = 0; i < 3 ; i++){
@@ -110,12 +110,13 @@ class NoteLayer extends Layer {
         note.append(lineGroup);
         for(let i = 0; i < 6 ; i++){
             const wordGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-            const elipse = this.createEllipse(0, 0 , 4, 6, wordGroup);
+            const wordBack = this.createText(0, 0, "", "middle", wordGroup);
             const word = this.createText(0, 0, "", "middle", wordGroup);
             utils.setAttributes(wordGroup, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
+            utils.setAttributes(wordBack, {"stroke-width": "3", style: "font: 12px Sans-serif"});
             utils.setStyle(<HTMLElement><unknown>word, {"font": "12px Sans-serif", "fill": "#fff"});
             blockGroup.append(wordGroup);
-            blockArray.push({groupElement: <HTMLElement><unknown>wordGroup, word: <HTMLElement><unknown>word, ellipse: <HTMLElement><unknown>elipse});
+            blockArray.push({groupElement: <HTMLElement><unknown>wordGroup, word: <HTMLElement><unknown>word, wordBack: <HTMLElement><unknown>wordBack});
         }
         note.append(blockGroup);
         this.noteElements.push({element: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
@@ -174,7 +175,8 @@ class UILayer extends Layer {
         utils.setAttributes(this.domElement,{"data-layer": "UILayer"})
     }
     createSectionIndicator(){
-        let newSquare = this.createRect(0, 0, 0, 0, 0,"rgba(0, 255, 255, 0.13)")
+        let newSquare = this.createRect(0, 0, 0, 0, 0,"rgba(0, 255, 255, 0.13)");
+        utils.setAttributes(newSquare, {style: "display: none"});
         this.sectionIndicator.push(newSquare);
         return newSquare;
     }
