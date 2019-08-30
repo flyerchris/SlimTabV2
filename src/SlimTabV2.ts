@@ -255,7 +255,7 @@ export class SLTab {
         for(let i = 0 ; i < 6; i++){
             utils.setAttributes(e.blockGroup[i].ellipse, {cx: `${x}`, cy: `${y + this.stringPadding * i}`});
             utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
-            utils.setAttributes(e.element,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
+            utils.setAttributes(e.blockGroup[i].groupElement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
         }
         utils.setAttributes(e.element, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
@@ -319,10 +319,10 @@ export class SLTab {
         let section = Number((ev.currentTarget as SVGGElement).dataset.section);
         let note = Number((ev.currentTarget as SVGGElement).dataset.note);
         let string = Number((ev.currentTarget as SVGElement).dataset.string);
-        this.callbacks["noteclick"].callAll(section, note, string, ev.currentTarget);
+        let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
+        this.callbacks["noteclick"].callAll(section, note, string, position, ev.currentTarget);
     }
     private onKeydown(ev: KeyboardEvent){
-        console.log(ev);
         this.callbacks["keydown"].callAll(ev.key);
     }
 }
