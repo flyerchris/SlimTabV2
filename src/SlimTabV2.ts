@@ -8,10 +8,10 @@ enum callbackKeys {
     "noteclick", "sectionchange", "keydown"
 }
 export class SLTab {
-    notes: section[];
     tabCanvas: SLCanvas<SLLayer>;
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
+    private notes: section[];
     private lineWidth: number = 800;
     private sectionPerLine: number = 2;
     private stringPadding: number = 16; // distance between each string
@@ -53,6 +53,10 @@ export class SLTab {
         return this.notes[section][note];
     }
     
+    setNoteData(section: number, note: number, data: note){
+        this.notes[section][note] = data;
+    }
+
     /**
      * add a note
      * @param { [number, number[], any] }   data, note length, [block number, index is string number,], user data
