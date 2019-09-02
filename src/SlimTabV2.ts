@@ -9,9 +9,9 @@ enum callbackKeys {
 }
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
+    notes: section[];
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
-    private notes: section[];
     private lineWidth: number = 800;
     private sectionPerLine: number = 2;
     private stringPadding: number = 16; // distance between each string
@@ -45,6 +45,7 @@ export class SLTab {
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
     }
 
+    //todo: do a stricter check for these function
     setData(data: [number, number[], any][][]) {
         this.notes = data;
     }
@@ -55,6 +56,30 @@ export class SLTab {
     
     setNoteData(section: number, note: number, data: note){
         this.notes[section][note] = data;
+    }
+
+    getNotePosition(section: number, note: number, string: number = 0): [number, number]{
+        let sum = 0;
+        if(section == -1) section = this.notes.length -1;
+        if(note == -1) note = this.notes[section].length -1;
+        if(section >= this.notes.length || section < -1 || note >= this.notes[section].length || note < -1 || string > 5 || string < 0){
+            return [-1, -1];
+        }
+        for(let i = 0; i < section; i++){
+            sum += this.notes[i].length;
+        }
+        sum += note;
+        let element = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string].groupElement;
+        return [Number(element.dataset.x), Number(element.dataset.y)];
+    }
+
+    getNoteNumberOfSection(section: number){
+        if(section == -1) section = this.notes.length - 1;
+        return this.notes[section].length;
+    }
+
+    getSectionNumber(){
+        return this.notes.length;
     }
 
     /**

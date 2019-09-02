@@ -1,8 +1,14 @@
 import { note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
 import { utils } from "./utils";
+interface SingleNote{
+    section: number;
+    note: number;
+    string: number;
+    data: note;
+}
 export class SLEditor {
-    private selectNote: note;
+    private selectNote: SingleNote;
     private controlTab: SLTab;
     private indicator: SVGElement;
 
@@ -17,9 +23,58 @@ export class SLEditor {
         this.controlTab.on("noteclick", (section, note, string, position) => {
             this.setNoteClickEvent(section, note, string, position);
         });
+        this.controlTab.on("keydown", (key) => {
+            if((<string>key).toLowerCase() === "d"){
+                if(this.selectNote){
+                    let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
+                    if(!s){
+                        s = this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
+                    }
+                }
+            }
+            if((<string>key).toLowerCase() === "a"){
+                if(this.selectNote){
+                    if(this.selectNote.note === 0){
+                        if(this.selectNote.section > 0){
+                            let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
+                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
+                        }
+                    }else{
+                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note - 1 ,this.selectNote.string);
+                    }
+                }
+            }
+            if((<string>key).toLowerCase() === "w"){
+                if(this.selectNote){
+                    if(this.selectNote.string > 0){
+                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string - 1);
+                    }
+                }
+            }
+            if((<string>key).toLowerCase() === "s"){
+                if(this.selectNote){
+                    if(this.selectNote.string < 5){
+                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string + 1);
+                    }
+                }
+            }
+        });
+    }
+    private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
+        let np = this.controlTab.getNotePosition(section, note, string);
+        if(np[0] === -1)return false;
+        this.setSelectNote(section, note, string);
+        this.setIndicator(np);
+        return true;
     }
     private setNoteClickEvent(section: number, note: number, string: number, position: number[]){
-        this.selectNote = this.controlTab.getNoteData(section, note);
+        this.setSelectNote(section, note, string);
+        this.setIndicator(position);
+    }
+    private setSelectNote(section: number, note: number, string: number){
+        this.selectNote = {section: section, note: note, string: string, data: this.controlTab.getNoteData(section, note)};
+    }
+    private setIndicator(position: number[]){
         utils.setAttributes(this.indicator,{cx: `${position[0]}`, cy: `${position[1]}`});
         utils.setStyle(<HTMLElement><unknown>this.indicator,{display: "unset"});
     }
