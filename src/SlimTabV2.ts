@@ -143,11 +143,6 @@ export class SLTab {
             utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
-    private createSectionIndicator(): SVGElement{
-        let square = document.createElementNS('http://www.w3.org/2000/svg',"rect");
-        utils.setAttributes(square, {"stroke-width": "0", fill: "rgba(0, 255, 255, 0.13)"});
-        return square;
-    }
 
     /**
      * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data, section x position

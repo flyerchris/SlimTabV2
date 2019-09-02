@@ -63,5 +63,4 @@ function pad(num: string, size: number){ return ('000000000' + num).substr(-size
 
 nt.on("noteclick", (sectionIdx, noteIdx, stringIdx) => {
     document.getElementById("section-idx").innerText = pad(sectionIdx+1, 3) + ".";
-    console.log(sectionIdx, noteIdx, stringIdx);
 })
