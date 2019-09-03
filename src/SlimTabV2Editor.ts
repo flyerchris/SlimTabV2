@@ -41,15 +41,27 @@ export class SLEditor {
                             this.controlTab.render();
                             this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
                         }
+                    }else{
+                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note - 1)){
+                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note - 1);
+                            this.controlTab.render();
+                            this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
+                        }
                     }
                 }
             }
             if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
                 if(this.selectNote){
                     if(this.selectNote.note === 0){
-                        if(this.selectNote.section > 0){
-                            let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
-                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
+                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
+                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
+                            this.controlTab.render();
+                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1, this.selectNote.string);
+                        }else{
+                            if(this.selectNote.section > 0){
+                                let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
+                                this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
+                            }
                         }
                     }else{
                         if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
@@ -74,6 +86,21 @@ export class SLEditor {
                     if(this.selectNote.string < 5){
                         this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string + 1);
                     }
+                }
+            }
+            if(!isNaN(Number(key))){
+                if(this.selectNote){
+                    this.selectNote.data[1][this.selectNote.string] = Number(key);
+                    // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
+                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                    this.controlTab.render();
+                }
+            }
+            if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
+                if(this.selectNote){
+                    this.selectNote.data[1][this.selectNote.string] = -1;
+                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                    this.controlTab.render();
                 }
             }
         });
