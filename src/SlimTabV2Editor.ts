@@ -24,7 +24,7 @@ export class SLEditor {
             this.setNoteClickEvent(section, note, string, position);
         });
         this.controlTab.on("keydown", (key) => {
-            if((<string>key).toLowerCase() === "d"){
+            if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
                 if(this.selectNote){
                     let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
                     if(!s){
@@ -32,7 +32,7 @@ export class SLEditor {
                     }
                 }
             }
-            if((<string>key).toLowerCase() === "a"){
+            if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
                 if(this.selectNote){
                     if(this.selectNote.note === 0){
                         if(this.selectNote.section > 0){
@@ -44,14 +44,14 @@ export class SLEditor {
                     }
                 }
             }
-            if((<string>key).toLowerCase() === "w"){
+            if((<string>key).toLowerCase() === "w" || (<string>key).toLowerCase() === "arrowup"){
                 if(this.selectNote){
                     if(this.selectNote.string > 0){
                         this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string - 1);
                     }
                 }
             }
-            if((<string>key).toLowerCase() === "s"){
+            if((<string>key).toLowerCase() === "s" || (<string>key).toLowerCase() === "arrowdown"){
                 if(this.selectNote){
                     if(this.selectNote.string < 5){
                         this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string + 1);
