@@ -27,8 +27,20 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
                 if(this.selectNote){
                     let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
-                    if(!s){
-                        s = this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
+                    if(!s){ // the current selection is the last note of the section
+                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
+                            // delete the blank note and move to next section in the second time pressing "right" key
+                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
+                            this.controlTab.render();
+                            s = this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
+                            if(!s){ // the current selection is the last section and the last note
+                                this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
+                            }
+                        }else{
+                            this.controlTab.addNote(this.selectNote.section, this.selectNote.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
+                            this.controlTab.render();
+                            this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
+                        }
                     }
                 }
             }
@@ -40,7 +52,13 @@ export class SLEditor {
                             this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
                         }
                     }else{
-                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note - 1 ,this.selectNote.string);
+                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
+                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
+                            this.controlTab.render();
+                            this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
+                        }else{
+                            this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note - 1 ,this.selectNote.string);
+                        }
                     }
                 }
             }

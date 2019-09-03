@@ -56,6 +56,24 @@ export class SLTab {
         this.notes[section][note] = data;
     }
 
+    deleteNote(section: number, note: number){
+        this.notes[section].splice(note, 1);
+    }
+
+    addNote(section: number, note: number, data: note){
+        this.notes[section].splice(note, 0, data);
+    }
+
+    
+    isBlankNote(section: number, note: number){
+        for(let i = 0; i < 6; i++){
+            if(this.notes[section][note][1][i] != -1){
+                return false;
+            }
+        }
+        return true;
+    }
+
     getNotePosition(section: number, note: number, string: number = 0): [number, number]{
         let sum = 0;
         if(section == -1) section = this.notes.length -1;
@@ -79,7 +97,6 @@ export class SLTab {
     getSectionNumber(){
         return this.notes.length;
     }
-
     /**
      * add a note
      * @param { [number, number[], any] }   data, note length, [block number, index is string number,], user data
@@ -259,7 +276,7 @@ export class SLTab {
             utils.setStyle(noteElement[i].element,{ display: "unset"});
             this.setNoteElementData(noteElement[i], data[i]);
         }
-        for(let i = data.length; i < this.noteElement.length; i++){
+        for(let i = data.length; i < noteElement.length; i++){
             utils.setStyle(noteElement[i].element,{ display: "none"});
         }
     }
@@ -296,20 +313,15 @@ export class SLTab {
             }
         }
         
+        let hc: number = 6.5;
         // note bar should reach the top word
-        let hc: number = -1;
         for(let i = 1 ; i <= 6; i++){
             if(data[i-1] != -1){
                 hc = i;
                 break;
             }    
         }
-        if(hc != -1){
-            utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * (hc - 1)}`});
-            utils.setStyle(<HTMLElement>e.lineGroup[0], {display: "block"});
-        }else{
-            utils.setStyle(<HTMLElement>e.lineGroup[0], {display: "none"});
-        }
+        utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * (hc - 1)}`});
     }
 
     private setLinker(linkerData: number[][]){
