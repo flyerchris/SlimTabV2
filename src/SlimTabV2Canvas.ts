@@ -284,7 +284,7 @@ export class Line extends SVGShape{
         return Number(this.domElement.getAttribute("stroke-width"))
     }
 }
-
+type anchor =  "center" | "left";
 export class Text extends SVGShape{
     constructor(domElement: SVGTextElement) {
         super(domElement);
@@ -305,13 +305,13 @@ export class Text extends SVGShape{
     get y(): number{
         return Number(this.domElement.getAttribute("y"));
     }
-    set anchor(val: string){
+    set anchor(val: anchor){
         utils.setAttributes(this.domElement, {
             "text-anchor": `${val}`
         });
     }
-    get anchor(): string{
-        return this.domElement.getAttribute("text-anchor");
+    get anchor(): anchor{
+        return <anchor>this.domElement.getAttribute("text-anchor");
     }
 
     set text(val: string){
