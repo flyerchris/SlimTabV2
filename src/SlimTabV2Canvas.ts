@@ -342,7 +342,7 @@ class NoteLayer extends Layer {
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        const blockArray: {groupElement: HTMLElement, word: HTMLElement, wordBack: HTMLElement}[] = [];
+        const blockArray: {groupElement: HTMLElement, word: Text, wordBack: Text}[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
         for(let i = 0; i < 3 ; i++){
@@ -356,10 +356,9 @@ class NoteLayer extends Layer {
             utils.setAttributes(wordGroup, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
             wordBack.strokeWidth = 3; 
             wordBack.style = {font: "12px Sans-serf"}
-            //utils.setAttributes(wordBack, {"stroke-width": "3", style: "font: 12px Sans-serif"});
-            utils.setStyle(<HTMLElement><unknown>word, {"font": "12px Sans-serif", "fill": "#fff"});
+            word.style = {"font": "12px Sans-serif", "fill": "#fff"};
             blockGroup.append(wordGroup);
-            blockArray.push({groupElement: <HTMLElement><unknown>wordGroup, word: <HTMLElement><unknown>word, wordBack: <HTMLElement><unknown>wordBack});
+            blockArray.push({groupElement: <HTMLElement><unknown>wordGroup, word: word, wordBack: wordBack});
         }
         note.append(blockGroup);
         this.noteElements.push({element: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
@@ -370,7 +369,7 @@ class NoteLayer extends Layer {
 
 class SheetLayer extends Layer {
     readonly row: HTMLElement[] = [];
-    readonly bar: HTMLElement[] = [];
+    readonly bar: Line[] = [];
     constructor(){
         super();
         utils.setAttributes(this.domElement,{"data-layer": "SheetLayer"})
@@ -390,7 +389,7 @@ class SheetLayer extends Layer {
         this.createLine(x, y, x, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", this.domElement);
         for(let i= 0; i < sectionPerLine; i++){
             let nb = this.createLine(0, y, 0, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", this.domElement);
-            this.bar.push(<HTMLElement><unknown>nb);
+            this.bar.push(nb);
         }
         this.domElement.append(ng);
         this.row.push(<HTMLElement><unknown>ng);
