@@ -11,6 +11,7 @@ export class SLEditor {
     private selectNote: SingleNote;
     private controlTab: SLTab;
     private indicator: SVGElement;
+    private inputBlock: number = 0;
 
     constructor(controlTab: SLTab){
         this.controlTab = controlTab;
@@ -24,6 +25,17 @@ export class SLEditor {
             this.setNoteClickEvent(section, note, string, position);
         });
         this.controlTab.on("keydown", (key) => {
+            if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
+                if(this.selectNote){
+                    this.inputBlock = this.inputBlock * 10 + Number(key)
+                    this.selectNote.data[1][this.selectNote.string] = this.inputBlock;
+                    // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
+                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                    this.controlTab.render();
+                }
+            }else{
+                this.inputBlock = 0;
+            }
             if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
                 if(this.selectNote){
                     let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
@@ -85,14 +97,6 @@ export class SLEditor {
                     if(this.selectNote.string < 5){
                         this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string + 1);
                     }
-                }
-            }
-            if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
-                if(this.selectNote){
-                    this.selectNote.data[1][this.selectNote.string] = Number(key);
-                    // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
-                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
-                    this.controlTab.render();
                 }
             }
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
