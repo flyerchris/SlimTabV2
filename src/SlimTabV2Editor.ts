@@ -87,7 +87,7 @@ export class SLEditor {
                     }
                 }
             }
-            if(!isNaN(Number(key))){
+            if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
                 if(this.selectNote){
                     this.selectNote.data[1][this.selectNote.string] = Number(key);
                     // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
