@@ -61,6 +61,10 @@ export class SLTab {
     }
 
     addNote(section: number, note: number, data: note){
+        if(section >= this.notes.length){
+            section = this.notes.length;
+            this.notes.push([]);
+        }
         this.notes[section].splice(note, 0, data);
     }
 
