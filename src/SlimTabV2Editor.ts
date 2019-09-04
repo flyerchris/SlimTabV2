@@ -29,11 +29,12 @@ export class SLEditor {
                     let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
                     if(!s){ // the current selection is the last note of the section
                         if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
-                            if(this.selectNote.note === 0 && this.controlTab.getNoteNumberOfSection(this.selectNote.section) === 1)return;
-                            
                             // delete the blank note and move to next section in the second time pressing "right" key
-                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
-                            this.controlTab.render();
+                            let pl = this.controlTab.getNoteNumberOfSection(this.selectNote.section);
+                            if(pl != 1){
+                                this.controlTab.deleteNote(this.selectNote.section , this.selectNote.note);
+                                this.controlTab.render();
+                            }
                             s = this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
                             if(!s){ // the current selection is the last section and the last note
                                 this.controlTab.addNote(this.selectNote.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
@@ -57,15 +58,9 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
                 if(this.selectNote){
                     if(this.selectNote.note === 0){
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
-                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
-                            this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1, this.selectNote.string);
-                        }else{
-                            if(this.selectNote.section > 0){
-                                let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
-                                this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
-                            }
+                        if(this.selectNote.section > 0){
+                            let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
+                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
                         }
                     }else{
                         if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
