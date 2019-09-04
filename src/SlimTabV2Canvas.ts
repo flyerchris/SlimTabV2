@@ -104,21 +104,16 @@ class SVGShape {
     get domElement() {
         return this._domElement;
     }
-    set style(val: string){
-        utils.setAttributes(this.domElement, {
-            "style": `${val}`
-        });
-    }
-    get style(): string{
-        return this.domElement.getAttribute("style");
+    set style(val: {[key: string]: string}){
+        utils.setStyle(<HTMLElement><unknown>this.domElement, val);
     }
 };
 
-class Rect extends SVGShape{
+export class Rect extends SVGShape{
     constructor(domElement: SVGRectElement) {
         super(domElement);
     }
-    
+
     set x(val: number) {
         utils.setAttributes(this.domElement, {
             x: `${val}`
@@ -180,7 +175,7 @@ class Rect extends SVGShape{
     }
 }
 
-class Ellipse extends SVGShape{
+export class Ellipse extends SVGShape{
     constructor(domElement: SVGEllipseElement) {
         super(domElement);
     }
@@ -224,9 +219,19 @@ class Ellipse extends SVGShape{
     get ry(): number{
         return Number(this.domElement.getAttribute("ry"));
     }
+
+    set fill(val: string){
+        utils.setAttributes(this.domElement, {
+            fill: `${val}`
+        });
+    }
+
+    get fill(): string{
+        return this.domElement.getAttribute("fill");
+    }
 }
 
-class Line extends SVGShape{
+export class Line extends SVGShape{
     constructor(domElement: SVGElement) {
         super(domElement);
     }
@@ -280,7 +285,7 @@ class Line extends SVGShape{
     }
 }
 
-class Text extends SVGShape{
+export class Text extends SVGShape{
     constructor(domElement: SVGTextElement) {
         super(domElement);
     }
@@ -350,7 +355,7 @@ class NoteLayer extends Layer {
             const word = this.createText(0, 0, "", "middle", wordGroup);
             utils.setAttributes(wordGroup, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
             wordBack.strokeWidth = 3; 
-            wordBack.style = "font: 12px Sans-serif"
+            wordBack.style = {font: "12px Sans-serf"}
             //utils.setAttributes(wordBack, {"stroke-width": "3", style: "font: 12px Sans-serif"});
             utils.setStyle(<HTMLElement><unknown>word, {"font": "12px Sans-serif", "fill": "#fff"});
             blockGroup.append(wordGroup);
@@ -414,7 +419,7 @@ class UILayer extends Layer {
     }
     createSectionIndicator(){
         let newSquare = this.createRect(0, 0, 0, 0, 0,"rgba(0, 255, 255, 0.13)");
-        newSquare.style = "display: none";
+        newSquare.style = {display: "none"};
         //utils.setAttributes(newSquare, {style: "display: none"});
         this.sectionIndicator.push(newSquare);
         return newSquare;

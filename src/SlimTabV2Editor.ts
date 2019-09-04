@@ -1,22 +1,27 @@
 import { note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
 import { utils } from "./utils";
+import { Rect, Ellipse, Text, Line} from "./SlimTabV2Canvas"
+
 interface SingleNote{
     section: number;
     note: number;
     string: number;
     data: note;
 }
+
 export class SLEditor {
     private selectNote: SingleNote;
     private controlTab: SLTab;
-    private indicator: SVGElement;
+    private indicator: Ellipse;
 
     constructor(controlTab: SLTab){
         this.controlTab = controlTab;
         this.indicator = this.controlTab.tabCanvas.layers.ui.createEllipse(0, 0 , 8, 8);
-        utils.setStyle(<HTMLElement><unknown>this.indicator,{display: "none"});
-        utils.setAttributes(this.indicator,{ fill: "rgb(255, 50, 0)"});
+        this.indicator.style = {display: "none"};
+        //utils.setStyle(<HTMLElement><unknown>this.indicator,{display: "none"});
+        this.indicator.fill = "rgb(255, 50, 0)"
+        //utils.setAttributes(this.indicator,{ fill: "rgb(255, 50, 0)"});
         this.setEvents();
     }
     private setEvents(){
@@ -125,7 +130,9 @@ export class SLEditor {
         this.selectNote = {section: section, note: note, string: string, data: this.controlTab.getNoteData(section, note)};
     }
     private setIndicator(position: number[]){
-        utils.setAttributes(this.indicator,{cx: `${position[0]}`, cy: `${position[1]}`});
+        this.indicator.cx = position[0]
+        this.indicator.cy = position[1]
+        //utils.setAttributes(this.indicator,{cx: `${position[0]}`, cy: `${position[1]}`});
         utils.setStyle(<HTMLElement><unknown>this.indicator,{display: "unset"});
     }
     private changeNoteLength(operater: string){
