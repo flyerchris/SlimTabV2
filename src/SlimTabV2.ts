@@ -5,8 +5,10 @@ import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
 
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 interface eventCallBackInterface {
-    noteclick : (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
-    keydown : (key: string) => any;
+    noteclick: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    keydown: (key: string) => any;
+    mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
 }
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
@@ -38,7 +40,7 @@ export class SLTab {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
         //if add new event, you should describe the callback in eventCallBackInterface above
-        this.callbacks = new Callbacks(["noteclick", "keydown"]);
+        this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote"]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
     }
@@ -273,6 +275,8 @@ export class SLTab {
             this.tabCanvas.layers.notes.createNote();
             noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
                 wg.groupElement.addEventListener("click", this.onNoteClicked.bind(this));
+                wg.groupElement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
+                wg.groupElement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
                 utils.setAttributes(wg.groupElement, {"data-string": `${i}`});
             });
         }
@@ -363,5 +367,19 @@ export class SLTab {
     }
     private onKeydown(ev: KeyboardEvent){
         this.callbacks["keydown"].callAll(ev.key);
+    }
+    private onMouseOverNote(ev: MouseEvent){
+        let section = Number((ev.currentTarget as SVGGElement).dataset.section);
+        let note = Number((ev.currentTarget as SVGGElement).dataset.note);
+        let string = Number((ev.currentTarget as SVGElement).dataset.string);
+        let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
+        this.callbacks["mouseovernote"].callAll(section, note, string, position, ev.currentTarget);
+    }
+    private onMouseOutNote(ev: MouseEvent){
+        let section = Number((ev.currentTarget as SVGGElement).dataset.section);
+        let note = Number((ev.currentTarget as SVGGElement).dataset.note);
+        let string = Number((ev.currentTarget as SVGElement).dataset.string);
+        let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
+        this.callbacks["mouseoutnote"].callAll(section, note, string, position, ev.currentTarget);
     }
 }

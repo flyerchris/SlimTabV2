@@ -11,6 +11,7 @@ export class SLEditor {
     private selectNote: SingleNote;
     private controlTab: SLTab;
     private indicator: SVGElement;
+    private shadowIndicator: SVGElement;
     private inputBlock: number = 0;
 
     constructor(controlTab: SLTab){
@@ -18,6 +19,9 @@ export class SLEditor {
         this.indicator = this.controlTab.tabCanvas.layers.ui.createEllipse(0, 0 , 8, 8);
         utils.setStyle(<HTMLElement><unknown>this.indicator,{display: "none"});
         utils.setAttributes(this.indicator,{ fill: "rgb(255, 50, 0)"});
+        this.shadowIndicator = this.controlTab.tabCanvas.layers.ui.createEllipse(0, 0 , 8, 8);
+        utils.setAttributes(this.shadowIndicator,{ cx: "-20", cy: "-20"});
+        utils.setAttributes(this.shadowIndicator,{ fill: "rgba(255, 50, 0, 0.6)"});
         this.setEvents();
     }
     private setEvents(){
@@ -117,6 +121,12 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "+"){
                 this.changeNoteLength("+");
             }
+        });
+        this.controlTab.on("mouseovernote", (section, note, string, position) => {
+            utils.setAttributes(this.shadowIndicator,{ cx: `${position[0]}`, cy: `${position[1]}`});
+        });
+        this.controlTab.on("mouseoutnote", (section, note, string, position) => {
+            utils.setAttributes(this.shadowIndicator,{ cx: "-20", cy: "-20"});
         });
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
