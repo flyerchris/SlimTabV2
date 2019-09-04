@@ -27,7 +27,12 @@ export class SLEditor {
         this.controlTab.on("keydown", (key) => {
             if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
                 if(this.selectNote){
-                    this.inputBlock = this.inputBlock * 10 + Number(key)
+                    let tb = this.inputBlock * 10 + Number(key)
+                    if(tb < 40){
+                        this.inputBlock = tb;
+                    }else{
+                        this.inputBlock = Number(key);
+                    }
                     this.selectNote.data[1][this.selectNote.string] = this.inputBlock;
                     // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
                     this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
