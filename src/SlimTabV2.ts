@@ -161,7 +161,11 @@ export class SLTab {
         for(let i = 0; i < position.length; i++){
             let width = position[i][1][0] - position[i][0][0];
             let height = this.stringPadding * 5;
-            utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
+            this.tabCanvas.layers.ui.sectionIndicator[i].x = position[i][0][0]
+            this.tabCanvas.layers.ui.sectionIndicator[i].y = position[i][0][1]
+            this.tabCanvas.layers.ui.sectionIndicator[i].width = width
+            this.tabCanvas.layers.ui.sectionIndicator[i].height = height
+            //utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
 
