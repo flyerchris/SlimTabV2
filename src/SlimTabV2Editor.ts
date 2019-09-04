@@ -103,6 +103,12 @@ export class SLEditor {
                     this.controlTab.render();
                 }
             }
+            if((<string>key).toLowerCase() === "-"){
+                this.changeNoteLength("-");
+            }
+            if((<string>key).toLowerCase() === "+"){
+                this.changeNoteLength("+");
+            }
         });
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
@@ -122,5 +128,27 @@ export class SLEditor {
     private setIndicator(position: number[]){
         utils.setAttributes(this.indicator,{cx: `${position[0]}`, cy: `${position[1]}`});
         utils.setStyle(<HTMLElement><unknown>this.indicator,{display: "unset"});
+    }
+    private changeNoteLength(operater: string){
+        let factor: number;
+        if(operater === "+"){
+            factor = 1;
+        }else if(operater === "-"){
+            factor = 0;
+        }else{
+            return;
+        }
+        if(this.selectNote){
+            let lengthArray = [1, 2, 4, 8, 16, 32];
+            for(let i = factor ; i < lengthArray.length - 2 + factor; i++){
+                if(lengthArray[i] === this.selectNote.data[0]){
+                    this.selectNote.data[0] = lengthArray[i + 1 - factor * 2];
+                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                    this.controlTab.render();
+                    this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note, this.selectNote.string);
+                    break;
+                }
+            }
+        }
     }
 }
