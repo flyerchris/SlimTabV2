@@ -125,6 +125,35 @@ export class SLTab {
         anchor.append(this.tabCanvas.domElement);
     }
 
+        /**
+     * Drag and drog area select notes
+     * Bad implement by now, the function search each note to find collision
+     * Algorithm will be fixed in future.
+     */
+    areaSelect(x1: number, y1: number, x2: number, y2: number){
+        let noteElements = this.tabCanvas.layers.notes.noteElements;
+        var selectedNoteIds: number[] = [];
+        let leftSelectedNote: number;
+        let rightSelectedNote: number;
+        for(let i = 0; i < noteElements.length; i++){
+            for(let j = 0; j < 6; j++){
+                //Check if note is in the selected area
+                if(noteElements[i].blockGroup[j].x >= x1 
+                    && noteElements[i].blockGroup[j].x <= x2 
+                    && noteElements[i].blockGroup[j].y >=y1 
+                    && noteElements[i].blockGroup[j].y <=y2){
+                    selectedNoteIds.push(i);
+                    console.log(i);
+                }
+            }
+        }
+        console.log(selectedNoteIds);
+        leftSelectedNote = Math.min(...selectedNoteIds);
+        rightSelectedNote = Math.max(...selectedNoteIds);
+        console.log(noteElements.slice(leftSelectedNote, rightSelectedNote+1));
+        return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
+    }
+
     render() {
         let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
         utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: "600"});
