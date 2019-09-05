@@ -303,7 +303,7 @@ export class SLTab {
     }
     private setNoteElementData(el: SVGNote, data: caculatedNoteData, xlength: number){
         this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6], xlength);
-        this.setChordVisiable(el, data[1], data[3]);
+        this.setChordVisiable(el, data[1], data[2], data[3]);
     }
     
     private setElementPosition(e: SVGNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
@@ -329,8 +329,7 @@ export class SLTab {
             utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         });
     }
-    private setChordVisiable(e:SVGNote, y: number, data: number[]){
-        
+    private setChordVisiable(e:SVGNote, y: number, noteLength: number, data: number[]){
         for(let i = 0 ; i < 6; i++){
             e.blockGroup[i].word.text = `${data[i]}`;
             e.blockGroup[i].wordBack.text = `${data[i]}`;
@@ -340,7 +339,13 @@ export class SLTab {
                 utils.setStyle(e.blockGroup[i].domelement, {display: "block"});
             }
         }
-        
+        if(noteLength == 2){
+            utils.setAttributes(e.lineGroup[0],{y2: `${10 + y + this.stringPadding * 5}`});
+            return;
+        }else if(noteLength == 1){
+            utils.setAttributes(e.lineGroup[0],{y2: `${26 + y + this.stringPadding * 5}`});
+            return;
+        }
         let hc: number = 6.5;
         // note bar should reach the top word
         for(let i = 1 ; i <= 6; i++){
