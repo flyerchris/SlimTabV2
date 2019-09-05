@@ -114,6 +114,17 @@ export class Rect extends SVGShape{
         super(domElement);
     }
 
+    setPos(x: number, y: number) {
+        utils.setAttributes(this.domElement, {
+            "x": `${x}`, "y": `${y}`
+        });
+    }
+    setShape(width: number, height: number) {
+        utils.setAttributes(this.domElement, {
+            "width": `${width}`, "height": `${height}`
+        });
+    }
+
     set x(val: number) {
         utils.setAttributes(this.domElement, {
             x: `${val}`
@@ -180,6 +191,17 @@ export class Ellipse extends SVGShape{
         super(domElement);
     }
 
+    setPos(cx: number, cy: number) {
+        utils.setAttributes(this.domElement, {
+            "cx": `${cx}`, "cy": `${cy}`
+        });
+    }
+    setShape(cx: number, cy: number, rx: number, ry: number) {
+        utils.setAttributes(this.domElement, {
+            "rx": `${rx}`, "ry": `${ry}`
+        });
+    }
+
     set cx(val: number){
         utils.setAttributes(this.domElement, {
             cx: `${val}`
@@ -235,6 +257,14 @@ export class Line extends SVGShape{
     constructor(domElement: SVGElement) {
         super(domElement);
     }
+
+    setEndPoints(x1: number, y1: number, x2: number, y2: number) {
+        utils.setAttributes(this.domElement, {
+            "x1": `${x1}`, "y1": `${y1}`,
+            "x2": `${x2}`, "y2": `${y2}`
+        });
+    }
+
     set x1(val: number){
         utils.setAttributes(this.domElement, {
             x1: `${val}`
@@ -288,6 +318,11 @@ type anchor =  "center" | "left";
 export class Text extends SVGShape{
     constructor(domElement: SVGTextElement) {
         super(domElement);
+    }
+    setPos(x: number, y: number) {
+        utils.setAttributes(this.domElement, {
+            "x": `${x}`, "y": `${y}`,
+        });
     }
     set x(val: number){
         utils.setAttributes(this.domElement, {
