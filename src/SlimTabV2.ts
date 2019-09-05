@@ -9,6 +9,9 @@ interface eventCallBackInterface {
     keydown: (key: string) => any;
     mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
     mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    mousedown: (x: number, y: number) => any;
+    mousemove: (x: number, y: number) => any;
+    mouseup: (x: number, y: number) => any;
 }
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
@@ -40,9 +43,12 @@ export class SLTab {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
         //if add new event, you should describe the callback in eventCallBackInterface above
-        this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote"]);
+        this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote", "mousedown", "mousemove", "mouseup"]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
+        this.tabCanvas.domElement.addEventListener("mousedown", this.onMouseDown.bind(this));
+        this.tabCanvas.domElement.addEventListener("mousemove", this.onMouseMove.bind(this));
+        this.tabCanvas.domElement.addEventListener("mouseup", this.onMouseUp.bind(this));
     }
 
     //todo: do a stricter check for these function
@@ -388,5 +394,14 @@ export class SLTab {
         let string = Number((ev.currentTarget as SVGElement).dataset.string);
         let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
         this.callbacks["mouseoutnote"].callAll(section, note, string, position, ev.currentTarget);
+    }
+    private onMouseDown(ev: MouseEvent){
+        this.callbacks["mousedown"].callAll(Number(ev.x), Number(ev.y));
+    }
+    private onMouseMove(ev: MouseEvent){
+        this.callbacks["mousemove"].callAll(Number(ev.x), Number(ev.y));
+    }
+    private onMouseUp(ev: MouseEvent){
+        this.callbacks["mouseup"].callAll(Number(ev.x), Number(ev.y));
     }
 }
