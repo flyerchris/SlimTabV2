@@ -1,5 +1,5 @@
 import {utils, Callbacks} from "./utils"
-import { section, note, svgNote } from "./SlimTabV2Types"
+import { section, note, SVGNote } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
 import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
 
@@ -301,12 +301,12 @@ export class SLTab {
             utils.setStyle(noteElement[i].domelement,{ display: "none"});
         }
     }
-    private setNoteElementData(el: svgNote, data: caculatedNoteData, xlength: number){
+    private setNoteElementData(el: SVGNote, data: caculatedNoteData, xlength: number){
         this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6], xlength);
         this.setChordVisiable(el, data[1], data[3]);
     }
     
-    private setElementPosition(e: svgNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
+    private setElementPosition(e: SVGNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
         // set note bar's position and bar tail's length
         utils.setAttributes(e.lineGroup[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
         utils.setAttributes(e.lineGroup[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
@@ -329,7 +329,7 @@ export class SLTab {
             utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         });
     }
-    private setChordVisiable(e:svgNote, y: number, data: number[]){
+    private setChordVisiable(e:SVGNote, y: number, data: number[]){
         
         for(let i = 0 ; i < 6; i++){
             e.blockGroup[i].word.text = `${data[i]}`;

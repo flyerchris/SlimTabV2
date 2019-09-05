@@ -1,5 +1,5 @@
 import {utils} from './utils';
-import { svgNote } from './SlimTabV2Types';
+import { SVGNote } from './SlimTabV2Types';
 
 interface SVGPrimitiveRenderer {
     clear(): void;
@@ -334,7 +334,7 @@ export class Text extends SVGShape{
 }
 
 class NoteLayer extends Layer {
-    noteElements: svgNote[] = [];
+    noteElements: SVGNote[] = [];
     constructor(){
         super();
         utils.setAttributes(this.domElement,{"data-layer": "NoteLayer"})
