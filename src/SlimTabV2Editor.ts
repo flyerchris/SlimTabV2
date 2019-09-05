@@ -129,10 +129,10 @@ export class SLEditor {
                     this.controlTab.render();
                 }
             }
-            if((<string>key).toLowerCase() === "-"){
+            if((<string>key).toLowerCase() === "+"){
                 this.changeNoteLength("-");
             }
-            if((<string>key).toLowerCase() === "+"){
+            if((<string>key).toLowerCase() === "-"){
                 this.changeNoteLength("+");
             }
         });
