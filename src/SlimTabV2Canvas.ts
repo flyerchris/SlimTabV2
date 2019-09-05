@@ -1,5 +1,4 @@
 import {utils} from './utils';
-import { SVGNote } from './SlimTabV2Types';
 
 interface SVGPrimitiveRenderer {
     clear(): void;
@@ -8,7 +7,83 @@ interface SVGPrimitiveRenderer {
     createText(x: number, y: number, str: string, anchor: string): Text;
     createLine(x1: number, y1: number, x2: number, y2: number, width: number, color?: string): Line;
 }
+class noteBlock{
+    readonly domelement: HTMLElement;
+    readonly word: Text;
+    readonly wordBack: Text;
+    readonly extendRect: Rect;
+    private _x: number;
+    private _y: number;
+    private _section: number;
+    private _note: number;
+    private _string: number;
 
+    constructor(domelement: HTMLElement, word: Text, wordBack: Text, extendRect: Rect){
+        this.domelement = domelement;
+        this.word = word;
+        this.wordBack = wordBack;
+        this.extendRect = extendRect;
+    }
+    set x(val: number){
+        this._x = val;
+        this.word.x = val;
+        this.wordBack.x = val;
+        this.extendRect.x = val;
+    }
+    get x(){
+        return this._x;
+    }
+    set y(val: number){
+        this._y = val;
+        this.word.y = val + 4;
+        this.wordBack.y = val + 4;
+    }
+    get y(){
+        return this._y;
+    }
+    set section(val: number){
+        this._section = val;
+    }
+    get section(): number{
+        return this._section;
+    }
+    set note(val: number){
+        this._note = val;
+    }
+    get note(): number{
+        return this._note;
+    }
+    set string(val: number){
+        this._string = val;
+    }
+    get string(): number{
+        return this._string;
+    }
+}
+export class SVGNote{
+    readonly domelement: HTMLElement;
+    readonly blockGroup: noteBlock[] = [];
+    readonly lineGroup: Line[] = [];
+    private _section: number;
+    private _note: number;
+    constructor(domelement: HTMLElement, blockGroup: noteBlock[], lineGroup: Line[]){
+        this.domelement = domelement;
+        this.blockGroup = blockGroup;
+        this.lineGroup = lineGroup;
+    }
+    set section(val: number){
+        this._section = val;
+    }
+    get section(): number{
+        return this._section;
+    }
+    set note(val: number){
+        this._note = val;
+    }
+    get note(): number{
+        return this._note;
+    }
+}
 export class Layer implements SVGPrimitiveRenderer {
     readonly domElement: SVGElement;
     readonly linker: SVGElement[] = [];
@@ -342,11 +417,12 @@ class NoteLayer extends Layer {
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        const blockArray: {domelement: HTMLElement, word: Text, wordBack: Text, extendRect: Rect}[] = [];
+        const blockArray: noteBlock[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
+        const lg: Line[] = [];
+        lg.push(this.createLine(0, 0, 0, 0, 1, "white", lineGroup));
         for(let i = 0; i < 3 ; i++){
-            this.createLine(0, 0, 0, 0, 2, "white", lineGroup);
+            lg.push(this.createLine(0, 0, 0, 0, 2, "white", lineGroup));
         }
         note.append(lineGroup);
         for(let i = 0; i < 6 ; i++){
@@ -359,10 +435,10 @@ class NoteLayer extends Layer {
             wordBack.style = {font: "12px Sans-serf"}
             word.style = {"font": "12px Sans-serif", "fill": "#fff"};
             blockGroup.append(wordGroup);
-            blockArray.push({domelement: <HTMLElement><unknown>wordGroup, word: word, wordBack: wordBack, extendRect: extendRect});
+            blockArray.push(new noteBlock(<HTMLElement><unknown>wordGroup, word, wordBack, extendRect));
         }
         note.append(blockGroup);
-        this.noteElements.push({domelement: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
+        this.noteElements.push(new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
         this.domElement.append(note);
         return note;
     }

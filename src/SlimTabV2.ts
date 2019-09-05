@@ -1,7 +1,7 @@
 import {utils, Callbacks} from "./utils"
-import { section, note, SVGNote } from "./SlimTabV2Types"
+import { section, note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
-import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
+import { SLCanvas, SLLayer, SVGNote } from "./SlimTabV2Canvas"
 
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 interface eventCallBackInterface {
@@ -23,7 +23,6 @@ export class SLTab {
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
     private sectionAddNoteNumber = 16;
-    private noteElement: SVGElement[] = [];
     private linkerElement: SVGElement[] = [];
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
@@ -91,8 +90,8 @@ export class SLTab {
             sum += this.notes[i].length;
         }
         sum += note;
-        let element = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string].domelement;
-        return [Number(element.dataset.x), Number(element.dataset.y)];
+        let sel = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string];
+        return [sel.x, sel.y];
     }
 
     getNoteNumberOfSection(section: number){
@@ -282,6 +281,7 @@ export class SLTab {
                 wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
                 wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
                 wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
+                wg.string = i;
                 utils.setAttributes(wg.domelement, {"data-string": `${i}`});
             });
         }
@@ -308,24 +308,25 @@ export class SLTab {
     
     private setElementPosition(e: SVGNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
         // set note bar's position and bar tail's length
-        utils.setAttributes(e.lineGroup[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
-        utils.setAttributes(e.lineGroup[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.lineGroup[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + tail[1]}`, y2: `${21 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.lineGroup[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
+        e.lineGroup[0].x1 = x; e.lineGroup[0].y1 = 26 + y + this.stringPadding * 5; e.lineGroup[0].x2 = x; e.lineGroup[0].y2 = y;
+        e.lineGroup[1].x1 = x; e.lineGroup[1].y1 = 25 + y + this.stringPadding * 5; e.lineGroup[1].x2 = x + tail[0]; e.lineGroup[1].y2 = 25 + y + this.stringPadding * 5;
+        e.lineGroup[2].x1 = x; e.lineGroup[2].y1 = 21 + y + this.stringPadding * 5; e.lineGroup[2].x2 = x + tail[1]; e.lineGroup[2].y2 = 21 + y + this.stringPadding * 5;
+        e.lineGroup[3].x1 = x; e.lineGroup[3].y1 = 17 + y + this.stringPadding * 5; e.lineGroup[3].x2 = x + tail[2]; e.lineGroup[3].y2 = 17 + y + this.stringPadding * 5;
         // set note word position
         for(let i = 0 ; i < 6; i++){
-            e.blockGroup[i].wordBack.x = x;
-            e.blockGroup[i].wordBack.y = y + this.stringPadding * i + 4;
-            e.blockGroup[i].word.x = x;
-            e.blockGroup[i].word.y = y + this.stringPadding * i + 4;
-            e.blockGroup[i].extendRect.x = x;
+            e.blockGroup[i].x = x;
+            e.blockGroup[i].y = y + this.stringPadding * i;
             e.blockGroup[i].extendRect.y =  y + this.stringPadding * (i - 0.5);
             e.blockGroup[i].extendRect.height = this.stringPadding;
             e.blockGroup[i].extendRect.width = xlength;
             utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
         }
+        e.section = sectionIndex;
+        e.note = noteIndex;
         utils.setAttributes(e.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
+            wg.section = sectionIndex;
+            wg.note = noteIndex;
             utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         });
     }
@@ -340,10 +341,10 @@ export class SLTab {
             }
         }
         if(noteLength == 2){
-            utils.setAttributes(e.lineGroup[0],{y2: `${10 + y + this.stringPadding * 5}`});
+            e.lineGroup[0].y2 = 10 + y + this.stringPadding * 5;
             return;
         }else if(noteLength == 1){
-            utils.setAttributes(e.lineGroup[0],{y2: `${26 + y + this.stringPadding * 5}`});
+            e.lineGroup[0].y2 = 26 + y + this.stringPadding * 5;
             return;
         }
         let hc: number = 6.5;
@@ -354,7 +355,7 @@ export class SLTab {
                 break;
             }    
         }
-        utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * (hc - 1)}`});
+        e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
     }
 
     private setLinker(linkerData: number[][]){
