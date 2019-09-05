@@ -3,6 +3,8 @@ import { SLTab } from "./SlimTabV2"
 import { utils } from "./utils";
 import { Rect, Ellipse, Text, Line} from "./SlimTabV2Canvas"
 
+
+
 interface SingleNote{
     section: number;
     note: number;
@@ -16,6 +18,10 @@ export class SLEditor {
     private indicator: Ellipse;
     private shadowIndicator: Ellipse;
     private inputBlock: number = 0;
+    private dragNDropSection: Rect;
+    private dragNDropStartPos: number[];
+    private selectedNotes: number[] = [];
+    private mouseDown: boolean = false;
 
     constructor(controlTab: SLTab){
         this.controlTab = controlTab;
@@ -27,6 +33,9 @@ export class SLEditor {
         this.shadowIndicator.cx = -20;
         this.shadowIndicator.cy = -20;
         this.shadowIndicator.fill = "rgba(255, 50, 0, 0.6)";
+        this.dragNDropSection = this.controlTab.tabCanvas.layers.ui.createRect(0, 0, 0, 0, 0, "rgba(255, 50, 0, 0.6)");
+        this.selectedNotes = [];
+        this.mouseDown
         this.setEvents();
     }
     private setEvents(){
@@ -135,6 +144,39 @@ export class SLEditor {
             this.shadowIndicator.cx = -20;
             this.shadowIndicator.cy = -20;
         });
+        this.controlTab.on("mousedown", (x, y) => {
+            console.log("Down")
+            if(this.dragNDropSection != null){
+                this.dragNDropSection.remove();
+            }
+            this.dragNDropSection = this.controlTab.tabCanvas.layers.ui.createRect(0, 0, 0, 0, 5, "rgba(255, 50, 0, 0.6)");
+            this.dragNDropStartPos = [x, y];
+            this.dragNDropSection.style = {display: "none"};
+            this.mouseDown = true;
+        });
+        //Mouse move event, handle with all quadrant of direction.
+        this.controlTab.on("mousemove", (x, y) => {
+            if (this.mouseDown) {
+                if(x - this.dragNDropStartPos[0] >= 0){
+                    this.dragNDropSection.x = this.dragNDropStartPos[0];
+                }
+                else{
+                    this.dragNDropSection.x = x;
+                }
+                if(y - this.dragNDropStartPos[1] >= 0){
+                    this.dragNDropSection.y = this.dragNDropStartPos[1];
+                }
+                else{
+                    this.dragNDropSection.y = y;
+                }
+                this.dragNDropSection.setShape(Math.abs(x - this.dragNDropStartPos[0]), Math.abs(y - this.dragNDropStartPos[1]));
+                this.dragNDropSection.style = {display: "unset"};
+            }
+        });
+        this.controlTab.on("mouseup", (x, y) =>{
+            this.dragNDropSection.remove();
+        });
+
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
         let np = this.controlTab.getNotePosition(section, note, string);
