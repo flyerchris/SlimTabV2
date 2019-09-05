@@ -91,7 +91,7 @@ export class SLTab {
             sum += this.notes[i].length;
         }
         sum += note;
-        let element = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string].groupElement;
+        let element = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string].domelement;
         return [Number(element.dataset.x), Number(element.dataset.y)];
     }
 
@@ -279,25 +279,34 @@ export class SLTab {
         for(let i = 0; i < ne; i++){
             this.tabCanvas.layers.notes.createNote();
             noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
-                wg.groupElement.addEventListener("click", this.onNoteClicked.bind(this));
-                wg.groupElement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
-                wg.groupElement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
-                utils.setAttributes(wg.groupElement, {"data-string": `${i}`});
+                wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
+                wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
+                wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
+                utils.setAttributes(wg.domelement, {"data-string": `${i}`});
             });
         }
         for(let i = 0; i < data.length; i++){
-            utils.setStyle(noteElement[i].element,{ display: "unset"});
-            this.setNoteElementData(noteElement[i], data[i]);
+            utils.setStyle(noteElement[i].domelement,{ display: "unset"});
+            if(i != data.length - 1){
+                if(data[i+1][0] > data[i][0]){
+                    this.setNoteElementData(noteElement[i], data[i], (data[i+1][0] - data[i][0]) * 0.7);
+                }else{
+                    this.setNoteElementData(noteElement[i], data[i], 30);
+                }
+            }else{
+                this.setNoteElementData(noteElement[i], data[i], 30);
+            }
         }
         for(let i = data.length; i < noteElement.length; i++){
-            utils.setStyle(noteElement[i].element,{ display: "none"});
+            utils.setStyle(noteElement[i].domelement,{ display: "none"});
         }
     }
-    private setNoteElementData(el: svgNote, data: caculatedNoteData){
-        this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6]);
+    private setNoteElementData(el: svgNote, data: caculatedNoteData, xlength: number){
+        this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6], xlength);
         this.setChordVisiable(el, data[1], data[3]);
     }
-    private setElementPosition(e: svgNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number){
+    
+    private setElementPosition(e: svgNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
         // set note bar's position and bar tail's length
         utils.setAttributes(e.lineGroup[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
         utils.setAttributes(e.lineGroup[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
@@ -309,11 +318,15 @@ export class SLTab {
             e.blockGroup[i].wordBack.y = y + this.stringPadding * i + 4;
             e.blockGroup[i].word.x = x;
             e.blockGroup[i].word.y = y + this.stringPadding * i + 4;
-            utils.setAttributes(e.blockGroup[i].groupElement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
+            e.blockGroup[i].extendRect.x = x;
+            e.blockGroup[i].extendRect.y =  y + this.stringPadding * (i - 0.5);
+            e.blockGroup[i].extendRect.height = this.stringPadding;
+            e.blockGroup[i].extendRect.width = xlength;
+            utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
         }
-        utils.setAttributes(e.element, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        utils.setAttributes(e.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
-            utils.setAttributes(wg.groupElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+            utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         });
     }
     private setChordVisiable(e:svgNote, y: number, data: number[]){
@@ -322,9 +335,9 @@ export class SLTab {
             e.blockGroup[i].word.text = `${data[i]}`;
             e.blockGroup[i].wordBack.text = `${data[i]}`;
             if(data[i] == -1){
-                utils.setStyle(e.blockGroup[i].groupElement, {display: "none"});
+                utils.setStyle(e.blockGroup[i].domelement, {display: "none"});
             }else{
-                utils.setStyle(e.blockGroup[i].groupElement, {display: "block"});
+                utils.setStyle(e.blockGroup[i].domelement, {display: "block"});
             }
         }
         

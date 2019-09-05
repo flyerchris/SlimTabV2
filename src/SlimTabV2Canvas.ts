@@ -342,7 +342,7 @@ class NoteLayer extends Layer {
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        const blockArray: {groupElement: HTMLElement, word: Text, wordBack: Text}[] = [];
+        const blockArray: {domelement: HTMLElement, word: Text, wordBack: Text, extendRect: Rect}[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         this.createLine(0, 0, 0, 0, 1, "white", lineGroup);
         for(let i = 0; i < 3 ; i++){
@@ -351,6 +351,7 @@ class NoteLayer extends Layer {
         note.append(lineGroup);
         for(let i = 0; i < 6 ; i++){
             const wordGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
+            const extendRect = this.createRect(0, 0, 0, 0, 0, "rgba(0, 0, 0, 0)",wordGroup);
             const wordBack = this.createText(0, 0, "", "middle", wordGroup);
             const word = this.createText(0, 0, "", "middle", wordGroup);
             utils.setAttributes(wordGroup, {"stroke-width": '0', "stroke": "black", style: "cursor:pointer;"});
@@ -358,10 +359,10 @@ class NoteLayer extends Layer {
             wordBack.style = {font: "12px Sans-serf"}
             word.style = {"font": "12px Sans-serif", "fill": "#fff"};
             blockGroup.append(wordGroup);
-            blockArray.push({groupElement: <HTMLElement><unknown>wordGroup, word: word, wordBack: wordBack});
+            blockArray.push({domelement: <HTMLElement><unknown>wordGroup, word: word, wordBack: wordBack, extendRect: extendRect});
         }
         note.append(blockGroup);
-        this.noteElements.push({element: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
+        this.noteElements.push({domelement: <HTMLElement><unknown>note, blockGroup: blockArray, lineGroup: lineGroup.children});
         this.domElement.append(note);
         return note;
     }
