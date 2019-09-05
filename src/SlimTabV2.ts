@@ -313,6 +313,7 @@ export class SLTab {
     }
     
     private setElementPosition(e: SVGNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
+        let ln = Math.floor(sectionIndex / this.sectionPerLine);
         // set note bar's position and bar tail's length
         e.lineGroup[0].x1 = x; e.lineGroup[0].y1 = 26 + y + this.stringPadding * 5; e.lineGroup[0].x2 = x; e.lineGroup[0].y2 = y;
         e.lineGroup[1].x1 = x; e.lineGroup[1].y1 = 25 + y + this.stringPadding * 5; e.lineGroup[1].x2 = x + tail[0]; e.lineGroup[1].y2 = 25 + y + this.stringPadding * 5;
@@ -325,15 +326,17 @@ export class SLTab {
             e.blockGroup[i].extendRect.y =  y + this.stringPadding * (i - 0.5);
             e.blockGroup[i].extendRect.height = this.stringPadding;
             e.blockGroup[i].extendRect.width = xlength;
-            utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
+            utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
         }
         e.section = sectionIndex;
         e.note = noteIndex;
+        e.line = ln;
         utils.setAttributes(e.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
             wg.section = sectionIndex;
             wg.note = noteIndex;
-            utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+            wg.line = ln;
+            utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
         });
     }
     private setChordVisiable(e:SVGNote, y: number, noteLength: number, data: number[]){

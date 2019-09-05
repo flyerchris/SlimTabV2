@@ -17,6 +17,7 @@ class noteBlock{
     private _section: number;
     private _note: number;
     private _string: number;
+    private _line: number;
 
     constructor(domelement: HTMLElement, word: Text, wordBack: Text, extendRect: Rect){
         this.domelement = domelement;
@@ -59,6 +60,12 @@ class noteBlock{
     get string(): number{
         return this._string;
     }
+    set line(val: number){
+        this._line = val;
+    }
+    get line(): number{
+        return this._line;
+    }
 }
 export class SVGNote{
     readonly domelement: HTMLElement;
@@ -66,6 +73,7 @@ export class SVGNote{
     readonly lineGroup: Line[] = [];
     private _section: number;
     private _note: number;
+    private _line: number;
     constructor(domelement: HTMLElement, blockGroup: noteBlock[], lineGroup: Line[]){
         this.domelement = domelement;
         this.blockGroup = blockGroup;
@@ -82,6 +90,12 @@ export class SVGNote{
     }
     get note(): number{
         return this._note;
+    }
+    set line(val: number){
+        this._line = val;
+    }
+    get line(): number{
+        return this._line;
     }
 }
 export class Layer implements SVGPrimitiveRenderer {
