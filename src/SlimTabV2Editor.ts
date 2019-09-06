@@ -20,6 +20,9 @@ export class SLEditor {
     private dragStartPos: number[];
     private selectedNotes: SVGNote[];
     private mouseDown: boolean = false;
+    private mouseMove: boolean = false;
+    private selectNotesIndicator: Rect[] = [];
+    private selectNotesIndicatorPadding: number = 8;
 
     constructor(controlTab: SLTab){
         this.controlTab = controlTab;
@@ -148,51 +151,124 @@ export class SLEditor {
             this.dragStartPos = [x, y];
             this.dragNDropSection.style = {display: "none"};
             this.mouseDown = true;
+            this.mouseMove = false;
+            if(this.selectNotesIndicator.length > 0){
+                this.selectNotesIndicator.forEach((elem, index, self)=>{
+                    elem.remove();
+                });
+            }
         });
         //Mouse move event, handle with all quadrant of direction.
         this.controlTab.on("mousemove", (x, y) => {
             if (this.mouseDown) {
-                if(x - this.dragStartPos[0] >= 0){
-                    this.dragNDropSection.x = this.dragStartPos[0];
+                if(Math.sqrt(Math.pow(x - this.dragStartPos[0], 2) + Math.pow(y - this.dragStartPos[1], 2)) > 2){
+                    this.mouseMove = true;
+                } 
+
+                if(this.mouseMove){
+                    if(x - this.dragStartPos[0] >= 0){
+                        this.dragNDropSection.x = this.dragStartPos[0];
+                    }
+                    else{
+                        this.dragNDropSection.x = x;
+                    }
+                    if(y - this.dragStartPos[1] >= 0){
+                        this.dragNDropSection.y = this.dragStartPos[1];
+                    }
+                    else{
+                        this.dragNDropSection.y = y;
+                    }
+                    this.dragNDropSection.setShape(Math.abs(x - this.dragStartPos[0]), Math.abs(y - this.dragStartPos[1]));
+                    this.dragNDropSection.style = {display: "unset"};
                 }
-                else{
-                    this.dragNDropSection.x = x;
-                }
-                if(y - this.dragStartPos[1] >= 0){
-                    this.dragNDropSection.y = this.dragStartPos[1];
-                }
-                else{
-                    this.dragNDropSection.y = y;
-                }
-                this.dragNDropSection.setShape(Math.abs(x - this.dragStartPos[0]), Math.abs(y - this.dragStartPos[1]));
-                this.dragNDropSection.style = {display: "unset"};
             }
         });
         this.controlTab.on("mouseup", (x, y) =>{
-            let x1: number;
-            let y1: number;
-            let x2: number;
-            let y2: number;
-            this.dragNDropSection.remove();
-            if (x >= this.dragStartPos[0]){
-                x1 = this.dragStartPos[0];
-                x2 = x;
+            this.mouseDown = false;
+            if(this.mouseMove){
+                let x1: number;
+                let y1: number;
+                let x2: number;
+                let y2: number;
+                this.dragNDropSection.remove();
+                if (x >= this.dragStartPos[0]){
+                    x1 = this.dragStartPos[0];
+                    x2 = x;
+                }
+                else{
+                    x1 = x;
+                    x2 = this.dragStartPos[0];
+                }
+                if(y >= this.dragStartPos[1]){
+                    y1 = this.dragStartPos[1];
+                    y2 = y;
+                }
+                else{
+                    y1 = y;
+                    y2 = this.dragStartPos[1];
+                }
+                console.log("start point : " + x1+" "+ y1);
+                console.log("end point : " + x2+" "+y2);
+                this.selectedNotes = this.controlTab.areaSelect(x1, y1, x2, y2);
+
+                //Sort out the selected lines.
+                let selectedLines: number[] = [];
+                for(let i = 0; i < this.selectedNotes.length; i++){
+                    selectedLines.push(this.selectedNotes[i].line);
+                }
+                let uniqueSelectedLines = selectedLines.filter(function(elem, index, self){
+                    return index == self.indexOf(elem);
+                });
+
+                if (this.selectedNotes.length > 0){
+                    if(uniqueSelectedLines.length == 1){
+                        //Draw rectangle to indicate the selected notes area.
+                        //Indicator's left top note, which provideds position.
+                        let rectIndicatorLT = this.selectedNotes[0].blockGroup[0];
+                        //Indicator's right bottom note, which provideds position.
+                        let rectIndicatorRB = this.selectedNotes[this.selectedNotes.length-1].blockGroup[this.selectedNotes[this.selectedNotes.length-1].blockGroup.length-1];
+                        this.selectNotesIndicator.push(this.controlTab.tabCanvas.layers.ui.createRect(
+                            rectIndicatorLT.x - this.selectNotesIndicatorPadding, 
+                            rectIndicatorLT.y - this.selectNotesIndicatorPadding, 
+                            rectIndicatorRB.x - rectIndicatorLT.x + 2 * this.selectNotesIndicatorPadding, 
+                            rectIndicatorRB.y - rectIndicatorLT.y + 2 * this.selectNotesIndicatorPadding, 
+                            5, 
+                            "rgba(255, 182, 45, 0.6)"
+                        ));
+                    }
+                    //If select section across two or more line, select and highlight all notes between left note and right note.
+                    else{
+                        //Sort the notes by line index.
+                        type lineObj = {
+                            lineIndex: number;
+                            notes: SVGNote[];
+                        };
+                        let lineNotes: lineObj[] = [];
+                        for(let i = 0; i < uniqueSelectedLines.length; i++){
+                            let pushNotes = this.selectedNotes.filter(function(elem, index, self){
+                                return elem.line == uniqueSelectedLines[i]
+                            });
+                            lineNotes.push({lineIndex: uniqueSelectedLines[i], notes: pushNotes})
+                        }
+                        for(let i = 0; i < lineNotes.length; i++){
+                            //let rectIndicatorLT = this.selectedNotes[0].blockGroup[0];
+                            let rectIndicatorLT = lineNotes[i].notes[0].blockGroup[0];
+                            //Indicator's right bottom note, which provideds position.
+                            //let rectIndicatorRB = this.selectedNotes[this.selectedNotes.length-1].blockGroup[this.selectedNotes[this.selectedNotes.length-1].blockGroup.length-1];
+                            let rectIndicatorRB = lineNotes[i].notes[lineNotes[i].notes.length - 1].blockGroup[lineNotes[i].notes[lineNotes[i].notes.length - 1].blockGroup.length - 1];
+                            this.selectNotesIndicator.push(this.controlTab.tabCanvas.layers.ui.createRect(
+                                rectIndicatorLT.x - this.selectNotesIndicatorPadding, 
+                                rectIndicatorLT.y - this.selectNotesIndicatorPadding, 
+                                rectIndicatorRB.x - rectIndicatorLT.x + 2 * this.selectNotesIndicatorPadding, 
+                                rectIndicatorRB.y - rectIndicatorLT.y + 2 * this.selectNotesIndicatorPadding, 
+                                5, 
+                                "rgba(255, 182, 45, 0.6)"
+                            ));
+                        }
+                    }
+                    
+                }
             }
-            else{
-                x1 = x;
-                x2 = this.dragStartPos[0];
-            }
-            if(y >= this.dragStartPos[1]){
-                y1 = this.dragStartPos[1];
-                y2 = y;
-            }
-            else{
-                y1 = y;
-                y2 = this.dragStartPos[1];
-            }
-            console.log("start point : " + x1+" "+ y1);
-            console.log("end point : " + x2+" "+y2);
-            this.selectedNotes = this.controlTab.areaSelect(x1, y1, x2, y2);
         });
 
     }
