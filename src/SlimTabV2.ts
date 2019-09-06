@@ -1,12 +1,17 @@
 import {utils, Callbacks} from "./utils"
-import { section, note, svgNote } from "./SlimTabV2Types"
+import { section, note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
-import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
+import { SLCanvas, SLLayer, SVGNote } from "./SlimTabV2Canvas"
 
 type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 interface eventCallBackInterface {
-    noteclick : (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
-    keydown : (key: string) => any;
+    noteclick: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    keydown: (key: string) => any;
+    mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    mousedown: (x: number, y: number) => any;
+    mousemove: (x: number, y: number) => any;
+    mouseup: (x: number, y: number) => any;
 }
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
@@ -21,11 +26,12 @@ export class SLTab {
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
     private sectionAddNoteNumber = 16;
-    private noteElement: SVGElement[] = [];
     private linkerElement: SVGElement[] = [];
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
+    private domElement: HTMLElement;
+    private height: number = 1000;
     
     /**
      * Callbacks
@@ -37,10 +43,18 @@ export class SLTab {
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
+        let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
+        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: `${this.height}`});
+        this.domElement = document.createElement("div");
+        this.domElement.append(this.tabCanvas.domElement);
+        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "600px", "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
-        this.callbacks = new Callbacks(["noteclick", "keydown"]);
+        this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote", "mousedown", "mousemove", "mouseup"]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
+        this.tabCanvas.domElement.addEventListener("mousedown", this.onMouseDown.bind(this));
+        this.tabCanvas.domElement.addEventListener("mousemove", this.onMouseMove.bind(this));
+        this.tabCanvas.domElement.addEventListener("mouseup", this.onMouseUp.bind(this));
     }
 
     //todo: do a stricter check for these function
@@ -89,8 +103,8 @@ export class SLTab {
             sum += this.notes[i].length;
         }
         sum += note;
-        let element = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string].groupElement;
-        return [Number(element.dataset.x), Number(element.dataset.y)];
+        let sel = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string];
+        return [sel.x, sel.y];
     }
 
     getNoteNumberOfSection(section: number){
@@ -115,12 +129,39 @@ export class SLTab {
     }
     
     attach(anchor: HTMLElement){
-        anchor.append(this.tabCanvas.domElement);
+        anchor.append(this.domElement);
+    }
+
+        /**
+     * Drag and drog area select notes
+     * Bad implement by now, the function search each note to find collision
+     * Algorithm will be fixed in future.
+     */
+    areaSelect(x1: number, y1: number, x2: number, y2: number){
+        let noteElements = this.tabCanvas.layers.notes.noteElements;
+        var selectedNoteIds: number[] = [];
+        let leftSelectedNote: number;
+        let rightSelectedNote: number;
+        for(let i = 0; i < noteElements.length; i++){
+            for(let j = 0; j < 6; j++){
+                //Check if note is in the selected area
+                if(noteElements[i].blockGroup[j].x >= x1 
+                    && noteElements[i].blockGroup[j].x <= x2 
+                    && noteElements[i].blockGroup[j].y >=y1 
+                    && noteElements[i].blockGroup[j].y <=y2){
+                    selectedNoteIds.push(i);
+                    console.log(i);
+                }
+            }
+        }
+        console.log(selectedNoteIds);
+        leftSelectedNote = Math.min(...selectedNoteIds);
+        rightSelectedNote = Math.max(...selectedNoteIds);
+        console.log(noteElements.slice(leftSelectedNote, rightSelectedNote+1));
+        return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
 
     render() {
-        let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
-        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: "600"});
         this.setAllLine();
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
         this.setSectionIndicator(sectionPosition);
@@ -159,7 +200,11 @@ export class SLTab {
         for(let i = 0; i < position.length; i++){
             let width = position[i][1][0] - position[i][0][0];
             let height = this.stringPadding * 5;
-            utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
+            this.tabCanvas.layers.ui.sectionIndicator[i].x = position[i][0][0]
+            this.tabCanvas.layers.ui.sectionIndicator[i].y = position[i][0][1]
+            this.tabCanvas.layers.ui.sectionIndicator[i].width = width
+            this.tabCanvas.layers.ui.sectionIndicator[i].height = height
+            //utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
 
@@ -201,7 +246,8 @@ export class SLTab {
             let sx: [number[], number[]] = [[x - 20, y], [0, y]]; // section position
             let nx = x + sectionWidth;
             sx[1][0] = nx - 20;
-            utils.setAttributes(this.tabCanvas.layers.sheet.bar[s], {x1: `${nx - 20}`, x2: `${nx - 20}`});
+            this.tabCanvas.layers.sheet.bar[s].x1 = nx - 20;
+            this.tabCanvas.layers.sheet.bar[s].x2 = nx - 20;
             sectionIndicator.push(sx);
             for(let i = 0; i < this.notes[s].length; i++){ // note
                 let note = this.notes[s][i];
@@ -272,51 +318,78 @@ export class SLTab {
         for(let i = 0; i < ne; i++){
             this.tabCanvas.layers.notes.createNote();
             noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
-                wg.groupElement.addEventListener("click", this.onNoteClicked.bind(this));
-                utils.setAttributes(wg.groupElement, {"data-string": `${i}`});
+                wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
+                wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
+                wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
+                wg.string = i;
+                utils.setAttributes(wg.domelement, {"data-string": `${i}`});
             });
         }
         for(let i = 0; i < data.length; i++){
-            utils.setStyle(noteElement[i].element,{ display: "unset"});
-            this.setNoteElementData(noteElement[i], data[i]);
-        }
-        for(let i = data.length; i < noteElement.length; i++){
-            utils.setStyle(noteElement[i].element,{ display: "none"});
-        }
-    }
-    private setNoteElementData(el: svgNote, data: caculatedNoteData){
-        this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6]);
-        this.setChordVisiable(el, data[1], data[3]);
-    }
-    private setElementPosition(e: svgNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number){
-        // set note bar's position and bar tail's length
-        utils.setAttributes(e.lineGroup[0],{x1: `${x}`, y1: `${26 + y + this.stringPadding * 5}`, x2: `${x}`, y2: `${y}`});
-        utils.setAttributes(e.lineGroup[1],{x1: `${x}`, y1: `${25 + y + this.stringPadding * 5}`, x2: `${x + tail[0]}`, y2: `${25 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.lineGroup[2],{x1: `${x}`, y1: `${21 + y + this.stringPadding * 5}`, x2: `${x + tail[1]}`, y2: `${21 + y + this.stringPadding * 5}`});
-        utils.setAttributes(e.lineGroup[3],{x1: `${x}`, y1: `${17 + y + this.stringPadding * 5}`, x2: `${x + tail[2]}`, y2: `${17 + y + this.stringPadding * 5}`});
-        // set note word position
-        for(let i = 0 ; i < 6; i++){
-            utils.setAttributes(e.blockGroup[i].wordBack, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
-            utils.setAttributes(e.blockGroup[i].word, {x: `${x}`, y: `${y + this.stringPadding * i + 4}`});
-            utils.setAttributes(e.blockGroup[i].groupElement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`});
-        }
-        utils.setAttributes(e.element, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
-        e.blockGroup.forEach((wg, i) => {
-            utils.setAttributes(wg.groupElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
-        });
-    }
-    private setChordVisiable(e:svgNote, y: number, data: number[]){
-        
-        for(let i = 0 ; i < 6; i++){
-            e.blockGroup[i].word.innerHTML = `${data[i]}`;
-            e.blockGroup[i].wordBack.innerHTML = `${data[i]}`;
-            if(data[i] == -1){
-                utils.setStyle(e.blockGroup[i].groupElement, {display: "none"});
+            utils.setStyle(noteElement[i].domelement,{ display: "unset"});
+            if(i != data.length - 1){
+                if(data[i+1][0] > data[i][0]){
+                    this.setNoteElementData(noteElement[i], data[i], (data[i+1][0] - data[i][0]) * 0.7);
+                }else{
+                    this.setNoteElementData(noteElement[i], data[i], 30);
+                }
             }else{
-                utils.setStyle(e.blockGroup[i].groupElement, {display: "block"});
+                this.setNoteElementData(noteElement[i], data[i], 30);
             }
         }
-        
+        for(let i = data.length; i < noteElement.length; i++){
+            utils.setStyle(noteElement[i].domelement,{ display: "none"});
+        }
+    }
+    private setNoteElementData(el: SVGNote, data: caculatedNoteData, xlength: number){
+        this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6], xlength);
+        this.setChordVisiable(el, data[1], data[2], data[3]);
+    }
+    
+    private setElementPosition(e: SVGNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
+        let ln = Math.floor(sectionIndex / this.sectionPerLine);
+        // set note bar's position and bar tail's length
+        e.lineGroup[0].x1 = x; e.lineGroup[0].y1 = 26 + y + this.stringPadding * 5; e.lineGroup[0].x2 = x; e.lineGroup[0].y2 = y;
+        e.lineGroup[1].x1 = x; e.lineGroup[1].y1 = 25 + y + this.stringPadding * 5; e.lineGroup[1].x2 = x + tail[0]; e.lineGroup[1].y2 = 25 + y + this.stringPadding * 5;
+        e.lineGroup[2].x1 = x; e.lineGroup[2].y1 = 21 + y + this.stringPadding * 5; e.lineGroup[2].x2 = x + tail[1]; e.lineGroup[2].y2 = 21 + y + this.stringPadding * 5;
+        e.lineGroup[3].x1 = x; e.lineGroup[3].y1 = 17 + y + this.stringPadding * 5; e.lineGroup[3].x2 = x + tail[2]; e.lineGroup[3].y2 = 17 + y + this.stringPadding * 5;
+        // set note word position
+        for(let i = 0 ; i < 6; i++){
+            e.blockGroup[i].x = x;
+            e.blockGroup[i].y = y + this.stringPadding * i;
+            e.blockGroup[i].extendRect.y =  y + this.stringPadding * (i - 0.5);
+            e.blockGroup[i].extendRect.height = this.stringPadding;
+            e.blockGroup[i].extendRect.width = xlength;
+            utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
+        }
+        e.section = sectionIndex;
+        e.note = noteIndex;
+        e.line = ln;
+        utils.setAttributes(e.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        e.blockGroup.forEach((wg, i) => {
+            wg.section = sectionIndex;
+            wg.note = noteIndex;
+            wg.line = ln;
+            utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
+        });
+    }
+    private setChordVisiable(e:SVGNote, y: number, noteLength: number, data: number[]){
+        for(let i = 0 ; i < 6; i++){
+            e.blockGroup[i].word.text = `${data[i]}`;
+            e.blockGroup[i].wordBack.text = `${data[i]}`;
+            if(data[i] == -1){
+                utils.setStyle(e.blockGroup[i].domelement, {display: "none"});
+            }else{
+                utils.setStyle(e.blockGroup[i].domelement, {display: "block"});
+            }
+        }
+        if(noteLength == 2){
+            e.lineGroup[0].y2 = 10 + y + this.stringPadding * 5;
+            return;
+        }else if(noteLength == 1){
+            e.lineGroup[0].y2 = 26 + y + this.stringPadding * 5;
+            return;
+        }
         let hc: number = 6.5;
         // note bar should reach the top word
         for(let i = 1 ; i <= 6; i++){
@@ -325,7 +398,7 @@ export class SLTab {
                 break;
             }    
         }
-        utils.setAttributes(e.lineGroup[0],{y2: `${y + this.stringPadding * (hc - 1)}`});
+        e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
     }
 
     private setLinker(linkerData: number[][]){
@@ -363,5 +436,28 @@ export class SLTab {
     }
     private onKeydown(ev: KeyboardEvent){
         this.callbacks["keydown"].callAll(ev.key);
+    }
+    private onMouseOverNote(ev: MouseEvent){
+        let section = Number((ev.currentTarget as SVGGElement).dataset.section);
+        let note = Number((ev.currentTarget as SVGGElement).dataset.note);
+        let string = Number((ev.currentTarget as SVGElement).dataset.string);
+        let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
+        this.callbacks["mouseovernote"].callAll(section, note, string, position, ev.currentTarget);
+    }
+    private onMouseOutNote(ev: MouseEvent){
+        let section = Number((ev.currentTarget as SVGGElement).dataset.section);
+        let note = Number((ev.currentTarget as SVGGElement).dataset.note);
+        let string = Number((ev.currentTarget as SVGElement).dataset.string);
+        let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
+        this.callbacks["mouseoutnote"].callAll(section, note, string, position, ev.currentTarget);
+    }
+    private onMouseDown(ev: MouseEvent){
+        this.callbacks["mousedown"].callAll(Number(ev.x), Number(ev.y));
+    }
+    private onMouseMove(ev: MouseEvent){
+        this.callbacks["mousemove"].callAll(Number(ev.x), Number(ev.y));
+    }
+    private onMouseUp(ev: MouseEvent){
+        this.callbacks["mouseup"].callAll(Number(ev.x), Number(ev.y));
     }
 }
