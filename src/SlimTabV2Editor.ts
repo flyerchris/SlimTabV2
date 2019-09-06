@@ -3,7 +3,7 @@ import { SLTab } from "./SlimTabV2"
 import { utils } from "./utils";
 import { Rect, Ellipse, Text, Line, SVGNote} from "./SlimTabV2Canvas"
 
-interface SingleNote{
+interface NoteBlockIndex{
     section: number;
     note: number;
     string: number;
@@ -11,7 +11,7 @@ interface SingleNote{
 }
 
 export class SLEditor {
-    private selectNote: SingleNote;
+    private selectedBlock: NoteBlockIndex;
     private controlTab: SLTab;
     private indicator: Ellipse;
     private shadowIndicator: Ellipse;
@@ -44,88 +44,88 @@ export class SLEditor {
         });
         this.controlTab.on("keydown", (key) => {
             if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
-                if(this.selectNote){
+                if(this.selectedBlock){
                     let tb = this.inputBlock * 10 + Number(key)
                     if(tb < 40){
                         this.inputBlock = tb;
                     }else{
                         this.inputBlock = Number(key);
                     }
-                    this.selectNote.data[1][this.selectNote.string] = this.inputBlock;
+                    this.selectedBlock.data[1][this.selectedBlock.string] = this.inputBlock;
                     // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
-                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.data);
                     this.controlTab.render();
                 }
             }else{
                 this.inputBlock = 0;
             }
             if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
-                if(this.selectNote){
-                    let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
+                if(this.selectedBlock){
+                    let s = this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note + 1, this.selectedBlock.string);
                     if(!s){ // the current selection is the last note of the section
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
+                        if(this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
                             // delete the blank note and move to next section in the second time pressing "right" key
-                            let pl = this.controlTab.getNoteNumberOfSection(this.selectNote.section);
+                            let pl = this.controlTab.getNoteNumberOfSection(this.selectedBlock.section);
                             if(pl != 1){
-                                this.controlTab.deleteNote(this.selectNote.section , this.selectNote.note);
+                                this.controlTab.deleteNote(this.selectedBlock.section , this.selectedBlock.note);
                                 this.controlTab.render();
                             }
-                            s = this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
+                            s = this.selectNoteAndMoveIndicator(this.selectedBlock.section + 1, 0, this.selectedBlock.string);
                             if(!s){ // the current selection is the last section and the last note
-                                this.controlTab.addNote(this.selectNote.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
+                                this.controlTab.addNote(this.selectedBlock.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
                                 this.controlTab.render();
-                                this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
+                                this.selectNoteAndMoveIndicator(this.selectedBlock.section + 1, 0, this.selectedBlock.string);
                             }
                         }else{
-                            this.controlTab.addNote(this.selectNote.section, this.selectNote.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
+                            this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
                             this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
+                            this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note + 1, this.selectedBlock.string);
                         }
                     }else{
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note - 1)){
-                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note - 1);
+                        if(this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note - 1)){
+                            this.controlTab.deleteNote(this.selectedBlock.section, this.selectedBlock.note - 1);
                             this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
+                            this.selectNoteAndMoveIndicator(this.selectedBlock.section , this.selectedBlock.note - 1, this.selectedBlock.string);
                         }
                     }
                 }
             }
             if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
-                if(this.selectNote){
-                    if(this.selectNote.note === 0){
-                        if(this.selectNote.section > 0){
-                            let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
-                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
+                if(this.selectedBlock){
+                    if(this.selectedBlock.note === 0){
+                        if(this.selectedBlock.section > 0){
+                            let n = this.controlTab.getNoteNumberOfSection(this.selectedBlock.section - 1) - 1;
+                            this.selectNoteAndMoveIndicator(this.selectedBlock.section - 1, n ,this.selectedBlock.string);
                         }
                     }else{
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
-                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
+                        if(this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
+                            this.controlTab.deleteNote(this.selectedBlock.section, this.selectedBlock.note);
                             this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
+                            this.selectNoteAndMoveIndicator(this.selectedBlock.section , this.selectedBlock.note - 1, this.selectedBlock.string);
                         }else{
-                            this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note - 1 ,this.selectNote.string);
+                            this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note - 1 ,this.selectedBlock.string);
                         }
                     }
                 }
             }
             if((<string>key).toLowerCase() === "w" || (<string>key).toLowerCase() === "arrowup"){
-                if(this.selectNote){
-                    if(this.selectNote.string > 0){
-                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string - 1);
+                if(this.selectedBlock){
+                    if(this.selectedBlock.string > 0){
+                        this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note ,this.selectedBlock.string - 1);
                     }
                 }
             }
             if((<string>key).toLowerCase() === "s" || (<string>key).toLowerCase() === "arrowdown"){
-                if(this.selectNote){
-                    if(this.selectNote.string < 5){
-                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string + 1);
+                if(this.selectedBlock){
+                    if(this.selectedBlock.string < 5){
+                        this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note ,this.selectedBlock.string + 1);
                     }
                 }
             }
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
-                if(this.selectNote){
-                    this.selectNote.data[1][this.selectNote.string] = -1;
-                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                if(this.selectedBlock){
+                    this.selectedBlock.data[1][this.selectedBlock.string] = -1;
+                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.data);
                     this.controlTab.render();
                 }
             }
@@ -280,7 +280,7 @@ export class SLEditor {
         this.setIndicator(position);
     }
     private setSelectNote(section: number, note: number, string: number){
-        this.selectNote = {section: section, note: note, string: string, data: this.controlTab.getNoteData(section, note)};
+        this.selectedBlock = {section: section, note: note, string: string, data: this.controlTab.getNoteData(section, note)};
     }
     private setIndicator(position: number[]){
         this.indicator.cx = position[0]
@@ -295,14 +295,14 @@ export class SLEditor {
         }else{
             return;
         }
-        if(this.selectNote){
+        if(this.selectedBlock){
             let lengthArray = [1, 2, 4, 8, 16, 32];
             for(let i = factor ; i < lengthArray.length - 2 + factor; i++){
-                if(lengthArray[i] === this.selectNote.data[0]){
-                    this.selectNote.data[0] = lengthArray[i + 1 - factor * 2];
-                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
+                if(lengthArray[i] === this.selectedBlock.data[0]){
+                    this.selectedBlock.data[0] = lengthArray[i + 1 - factor * 2];
+                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.data);
                     this.controlTab.render();
-                    this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note, this.selectNote.string);
+                    this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
                     break;
                 }
             }
@@ -317,8 +317,8 @@ export class SLEditor {
             });
         }
     }
-    private cancelSingleSelect(){
-        this.selectNote = null;
+    private unselectNoteBlock(){
+        this.selectedBlock = null;
         this.setIndicator([-20, -20]);
     }
 }
