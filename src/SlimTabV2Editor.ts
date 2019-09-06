@@ -18,7 +18,7 @@ export class SLEditor {
     private inputBlock: number = 0;
     private dragNDropSection: Rect;
     private dragStartPos: number[];
-    private selectedNotes: SVGNote[];
+    private selectedSVGNotes: SVGNote[];
     private mouseDown: boolean = false;
     private mouseMove: boolean = false;
     private selectNotesIndicator: Rect[] = [];
@@ -40,6 +40,7 @@ export class SLEditor {
     private setEvents(){
         this.controlTab.on("noteclick", (section, note, string, position) => {
             this.setNoteClickEvent(section, note, string, position);
+            this.selectedSVGNotes = []
         });
         this.controlTab.on("keydown", (key) => {
             if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
@@ -152,11 +153,7 @@ export class SLEditor {
             this.dragNDropSection.style = {display: "none"};
             this.mouseDown = true;
             this.mouseMove = false;
-            if(this.selectNotesIndicator.length > 0){
-                this.selectNotesIndicator.forEach((elem, index, self)=>{
-                    elem.remove();
-                });
-            }
+            this.unselectSVGNotes();
         });
         //Mouse move event, handle with all quadrant of direction.
         this.controlTab.on("mousemove", (x, y) => {
@@ -209,24 +206,24 @@ export class SLEditor {
                 }
                 console.log("start point : " + x1+" "+ y1);
                 console.log("end point : " + x2+" "+y2);
-                this.selectedNotes = this.controlTab.areaSelect(x1, y1, x2, y2);
+                this.selectedSVGNotes = this.controlTab.areaSelect(x1, y1, x2, y2);
 
                 //Sort out the selected lines.
                 let selectedLines: number[] = [];
-                for(let i = 0; i < this.selectedNotes.length; i++){
-                    selectedLines.push(this.selectedNotes[i].line);
+                for(let i = 0; i < this.selectedSVGNotes.length; i++){
+                    selectedLines.push(this.selectedSVGNotes[i].line);
                 }
                 let uniqueSelectedLines = selectedLines.filter(function(elem, index, self){
                     return index == self.indexOf(elem);
                 });
 
-                if (this.selectedNotes.length > 0){
+                if (this.selectedSVGNotes.length > 0){
                     if(uniqueSelectedLines.length == 1){
                         //Draw rectangle to indicate the selected notes area.
                         //Indicator's left top note, which provideds position.
-                        let rectIndicatorLT = this.selectedNotes[0].blockGroup[0];
+                        let rectIndicatorLT = this.selectedSVGNotes[0].blockGroup[0];
                         //Indicator's right bottom note, which provideds position.
-                        let rectIndicatorRB = this.selectedNotes[this.selectedNotes.length-1].blockGroup[this.selectedNotes[this.selectedNotes.length-1].blockGroup.length-1];
+                        let rectIndicatorRB = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup.length-1];
                         this.selectNotesIndicator.push(this.controlTab.tabCanvas.layers.ui.createRect(
                             rectIndicatorLT.x - this.selectNotesIndicatorPadding, 
                             rectIndicatorLT.y - this.selectNotesIndicatorPadding, 
@@ -245,7 +242,7 @@ export class SLEditor {
                         };
                         let lineNotes: lineObj[] = [];
                         for(let i = 0; i < uniqueSelectedLines.length; i++){
-                            let pushNotes = this.selectedNotes.filter(function(elem, index, self){
+                            let pushNotes = this.selectedSVGNotes.filter(function(elem, index, self){
                                 return elem.line == uniqueSelectedLines[i]
                             });
                             lineNotes.push({lineIndex: uniqueSelectedLines[i], notes: pushNotes})
@@ -270,7 +267,6 @@ export class SLEditor {
                 }
             }
         });
-
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
         let np = this.controlTab.getNotePosition(section, note, string);
@@ -310,6 +306,15 @@ export class SLEditor {
                     break;
                 }
             }
+        }
+    }
+
+    private unselectSVGNotes(){
+        this.selectedSVGNotes = []
+        if(this.selectNotesIndicator.length > 0){
+            this.selectNotesIndicator.forEach((elem, index, self) =>{
+                elem.remove();
+            });
         }
     }
 }
