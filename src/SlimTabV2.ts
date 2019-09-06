@@ -167,6 +167,8 @@ export class SLTab {
         this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(noteRawData);
         this.setLinker(linkerData);
+        let ln = Math.ceil(this.notes.length / this.sectionPerLine);
+        utils.setAttributes(this.tabCanvas.domElement,{ height: `${this.lineStartPosition[1] + (this.stringPadding * 5 + this.lineDistance) * ln + 70}`});
     }
 
     on<k extends keyof eventCallBackInterface>(ename: k, cbk: eventCallBackInterface[k]) {

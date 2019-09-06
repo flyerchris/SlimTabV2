@@ -587,7 +587,7 @@ export class SLCanvas<T extends Layers> {
         this.layers = new layerType();
 
         this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-        utils.setStyle(<HTMLElement><unknown>this.domElement, {"user-select": "none"})
+        utils.setStyle(<HTMLElement><unknown>this.domElement, {"user-select": "none", "outline": "none"});
 
         this.layers.flattened.forEach(layer => this.domElement.appendChild(layer.domElement));
     }
