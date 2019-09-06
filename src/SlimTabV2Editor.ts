@@ -312,4 +312,8 @@ export class SLEditor {
             }
         }
     }
+    private cancelSingleSelect(){
+        this.selectNote = null;
+        this.setIndicator([-20, -20]);
+    }
 }
