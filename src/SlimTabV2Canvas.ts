@@ -7,7 +7,7 @@ interface SVGPrimitiveRenderer {
     createText(x: number, y: number, str: string, anchor: string): Text;
     createLine(x1: number, y1: number, x2: number, y2: number, width: number, color?: string): Line;
 }
-class noteBlock{
+export class NoteBlock{
     readonly domelement: HTMLElement;
     readonly word: Text;
     readonly wordBack: Text;
@@ -69,12 +69,12 @@ class noteBlock{
 }
 export class SVGNote{
     readonly domelement: HTMLElement;
-    readonly blockGroup: noteBlock[] = [];
+    readonly blockGroup: NoteBlock[] = [];
     readonly lineGroup: Line[] = [];
     private _section: number;
     private _note: number;
     private _line: number;
-    constructor(domelement: HTMLElement, blockGroup: noteBlock[], lineGroup: Line[]){
+    constructor(domelement: HTMLElement, blockGroup: NoteBlock[], lineGroup: Line[]){
         this.domelement = domelement;
         this.blockGroup = blockGroup;
         this.lineGroup = lineGroup;
@@ -466,7 +466,7 @@ class NoteLayer extends Layer {
     createNote(): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        const blockArray: noteBlock[] = [];
+        const blockArray: NoteBlock[] = [];
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const lg: Line[] = [];
         lg.push(this.createLine(0, 0, 0, 0, 1, "white", lineGroup));
@@ -484,7 +484,7 @@ class NoteLayer extends Layer {
             wordBack.style = {font: "12px Sans-serf"}
             word.style = {"font": "12px Sans-serif", "fill": "#fff"};
             blockGroup.append(wordGroup);
-            blockArray.push(new noteBlock(<HTMLElement><unknown>wordGroup, word, wordBack, extendRect));
+            blockArray.push(new NoteBlock(<HTMLElement><unknown>wordGroup, word, wordBack, extendRect));
         }
         note.append(blockGroup);
         this.noteElements.push(new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
@@ -587,7 +587,7 @@ export class SLCanvas<T extends Layers> {
         this.layers = new layerType();
 
         this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-        utils.setStyle(<HTMLElement><unknown>this.domElement, {"user-select": "none"})
+        utils.setStyle(<HTMLElement><unknown>this.domElement, {"user-select": "none", "outline": "none"});
 
         this.layers.flattened.forEach(layer => this.domElement.appendChild(layer.domElement));
     }
