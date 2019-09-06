@@ -30,6 +30,8 @@ export class SLTab {
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
+    private domElement: HTMLElement;
+    private height: number = 1000;
     
     /**
      * Callbacks
@@ -41,6 +43,11 @@ export class SLTab {
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
+        let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
+        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: `${this.height}`});
+        this.domElement = document.createElement("div");
+        this.domElement.append(this.tabCanvas.domElement);
+        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "600px", "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
         this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote", "mousedown", "mousemove", "mouseup"]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
@@ -122,7 +129,7 @@ export class SLTab {
     }
     
     attach(anchor: HTMLElement){
-        anchor.append(this.tabCanvas.domElement);
+        anchor.append(this.domElement);
     }
 
         /**
@@ -155,8 +162,6 @@ export class SLTab {
     }
 
     render() {
-        let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
-        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: "600"});
         this.setAllLine();
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
         this.setSectionIndicator(sectionPosition);
