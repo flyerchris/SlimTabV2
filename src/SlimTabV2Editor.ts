@@ -60,30 +60,55 @@ export class SLEditor {
                 this.inputBlock = 0;
             }
             if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
+                if(this.selectedSVGNotes.length > 0){
+                    let rightSideBlock = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0]
+                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string, data: this.controlTab.getNoteData(rightSideBlock.section, rightSideBlock.note)}
+                    this.unselectSVGNotes();
+                }
                 if(this.selectedBlock){
                     this.selectRight(this.selectedBlock, this.controlTab);
                 }
-                else if(this.selectedSVGNotes.length > 0){
-                    //this.selectNote = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0].
-                }
             }
             if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
+                if(this.selectedSVGNotes.length > 0){
+                    let leftSideBlock = this.selectedSVGNotes[0].blockGroup[0]
+                    this.selectedBlock = {section: leftSideBlock.section, note:leftSideBlock.note, string: leftSideBlock.string, data: this.controlTab.getNoteData(leftSideBlock.section, leftSideBlock.note)}
+                    this.unselectSVGNotes();
+                }
                 if(this.selectedBlock){
                     this.selectLeft(this.selectedBlock, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "w" || (<string>key).toLowerCase() === "arrowup"){
+                if(this.selectedSVGNotes.length > 0){
+                    let rightSideBlock = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0]
+                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string, data: this.controlTab.getNoteData(rightSideBlock.section, rightSideBlock.note)}
+                    this.unselectSVGNotes();
+                }
                 if(this.selectedBlock){
                     this.selectUp(this.selectedBlock, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "s" || (<string>key).toLowerCase() === "arrowdown"){
+                if(this.selectedSVGNotes.length > 0){
+                    let rightSideBlock = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0]
+                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string, data: this.controlTab.getNoteData(rightSideBlock.section, rightSideBlock.note)}
+                    this.unselectSVGNotes();
+                }
                 if(this.selectedBlock){
                     this.selectDown(this.selectedBlock, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
-                if(this.selectedBlock){
+                if(this.selectedSVGNotes.length > 0){
+                    for(let i = this.selectedSVGNotes.length -1; i >= 0; i--){
+                        console.log("delete " + this.selectedSVGNotes[i].section + " " + this.selectedSVGNotes[i].note)
+                        this.controlTab.deleteNote(this.selectedSVGNotes[i].section, this.selectedSVGNotes[i].note);
+                        this.controlTab.render();
+                    }
+                    this.unselectSVGNotes();
+                }
+                else if(this.selectedBlock){
                     this.deleteNoteBlock(this.selectedBlock, this.controlTab);
                 }
             }
