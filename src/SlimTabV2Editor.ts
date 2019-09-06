@@ -40,7 +40,7 @@ export class SLEditor {
     private setEvents(){
         this.controlTab.on("noteclick", (section, note, string, position) => {
             this.setNoteClickEvent(section, note, string, position);
-            this.selectedSVGNotes = []
+            this.unselectSVGNotes();
         });
         this.controlTab.on("keydown", (key) => {
             if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
@@ -61,72 +61,30 @@ export class SLEditor {
             }
             if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
                 if(this.selectNote){
-                    let s = this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
-                    if(!s){ // the current selection is the last note of the section
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
-                            // delete the blank note and move to next section in the second time pressing "right" key
-                            let pl = this.controlTab.getNoteNumberOfSection(this.selectNote.section);
-                            if(pl != 1){
-                                this.controlTab.deleteNote(this.selectNote.section , this.selectNote.note);
-                                this.controlTab.render();
-                            }
-                            s = this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
-                            if(!s){ // the current selection is the last section and the last note
-                                this.controlTab.addNote(this.selectNote.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
-                                this.controlTab.render();
-                                this.selectNoteAndMoveIndicator(this.selectNote.section + 1, 0, this.selectNote.string);
-                            }
-                        }else{
-                            this.controlTab.addNote(this.selectNote.section, this.selectNote.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
-                            this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note + 1, this.selectNote.string);
-                        }
-                    }else{
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note - 1)){
-                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note - 1);
-                            this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
-                        }
-                    }
+                    this.selectRight(this.selectNote, this.controlTab);
+                }
+                else if(this.selectedSVGNotes.length > 0){
+                    //this.selectNote = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0].
                 }
             }
             if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
                 if(this.selectNote){
-                    if(this.selectNote.note === 0){
-                        if(this.selectNote.section > 0){
-                            let n = this.controlTab.getNoteNumberOfSection(this.selectNote.section - 1) - 1;
-                            this.selectNoteAndMoveIndicator(this.selectNote.section - 1, n ,this.selectNote.string);
-                        }
-                    }else{
-                        if(this.controlTab.isBlankNote(this.selectNote.section, this.selectNote.note)){
-                            this.controlTab.deleteNote(this.selectNote.section, this.selectNote.note);
-                            this.controlTab.render();
-                            this.selectNoteAndMoveIndicator(this.selectNote.section , this.selectNote.note - 1, this.selectNote.string);
-                        }else{
-                            this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note - 1 ,this.selectNote.string);
-                        }
-                    }
+                    this.selectLeft(this.selectNote, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "w" || (<string>key).toLowerCase() === "arrowup"){
                 if(this.selectNote){
-                    if(this.selectNote.string > 0){
-                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string - 1);
-                    }
+                    this.selectUp(this.selectNote, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "s" || (<string>key).toLowerCase() === "arrowdown"){
                 if(this.selectNote){
-                    if(this.selectNote.string < 5){
-                        this.selectNoteAndMoveIndicator(this.selectNote.section, this.selectNote.note ,this.selectNote.string + 1);
-                    }
+                    this.selectDown(this.selectNote, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
                 if(this.selectNote){
-                    this.selectNote.data[1][this.selectNote.string] = -1;
-                    this.controlTab.setNoteData(this.selectNote.section, this.selectNote.note, this.selectNote.data);
-                    this.controlTab.render();
+                    this.deleteNoteBlock(this.selectNote, this.controlTab);
                 }
             }
             if((<string>key).toLowerCase() === "+"){
@@ -208,6 +166,7 @@ export class SLEditor {
                 console.log("end point : " + x2+" "+y2);
                 this.selectedSVGNotes = this.controlTab.areaSelect(x1, y1, x2, y2);
 
+
                 //Sort out the selected lines.
                 let selectedLines: number[] = [];
                 for(let i = 0; i < this.selectedSVGNotes.length; i++){
@@ -218,6 +177,7 @@ export class SLEditor {
                 });
 
                 if (this.selectedSVGNotes.length > 0){
+                    this.cancelSingleSelect();
                     if(uniqueSelectedLines.length == 1){
                         //Draw rectangle to indicate the selected notes area.
                         //Indicator's left top note, which provideds position.
@@ -265,6 +225,7 @@ export class SLEditor {
                     }
                     
                 }
+
             }
         });
     }
@@ -307,6 +268,73 @@ export class SLEditor {
                 }
             }
         }
+    }
+
+    private selectRight(selectNote: SingleNote, controlTab: SLTab){
+        let s = this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
+        if(!s){ // the current selection is the last note of the section
+            if(controlTab.isBlankNote(selectNote.section, selectNote.note)){
+                // delete the blank note and move to next section in the second time pressing "right" key
+                let pl = controlTab.getNoteNumberOfSection(selectNote.section);
+                if(pl != 1){
+                    controlTab.deleteNote(selectNote.section , selectNote.note);
+                    controlTab.render();
+                }
+                s = this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
+                if(!s){ // the current selection is the last section and the last note
+                    controlTab.addNote(selectNote.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
+                    controlTab.render();
+                    this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
+                }
+            }else{
+                controlTab.addNote(selectNote.section, selectNote.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
+                controlTab.render();
+                this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
+            }
+        }else{
+            if(selectNote.note - 1 >= 0){
+                if(controlTab.isBlankNote(selectNote.section, selectNote.note - 1)){
+                    controlTab.deleteNote(selectNote.section, selectNote.note - 1);
+                    controlTab.render();
+                    this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note - 1, selectNote.string);
+                }
+            }
+        }
+    }
+
+    private selectLeft(selectNote: SingleNote, controlTab: SLTab){
+        if(selectNote.note === 0){
+            if(selectNote.section > 0){
+                let n = controlTab.getNoteNumberOfSection(selectNote.section - 1) - 1;
+                this.selectNoteAndMoveIndicator(selectNote.section - 1, n ,selectNote.string);
+            }
+        }else{
+            if(controlTab.isBlankNote(selectNote.section, selectNote.note)){
+                controlTab.deleteNote(selectNote.section, selectNote.note);
+                controlTab.render();
+                this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note - 1, selectNote.string);
+            }else{
+                this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note - 1 ,selectNote.string);
+            }
+        }
+    }
+
+    private selectUp(selectNote: SingleNote, controlTab: SLTab){
+        if(selectNote.string > 0){
+            this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note ,selectNote.string - 1);
+        }
+    }
+
+    private selectDown(selectNote: SingleNote, controlTab: SLTab){
+        if(selectNote.string < 5){
+            this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note ,selectNote.string + 1);
+        }
+    }
+
+    private deleteNoteBlock(selectNote: SingleNote, controlTab: SLTab){
+        selectNote.data[1][selectNote.string] = -1;
+        controlTab.setNoteData(selectNote.section, selectNote.note, selectNote.data);
+        controlTab.render();
     }
 
     private unselectSVGNotes(){
