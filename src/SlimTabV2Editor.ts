@@ -283,8 +283,9 @@ export class SLEditor {
         this.selectedBlock = {section: section, note: note, string: string, data: this.controlTab.getNoteData(section, note)};
     }
     private setIndicator(position: number[]){
-        this.indicator.cx = position[0]
-        this.indicator.cy = position[1]
+        this.indicator.cx = position[0];
+        this.indicator.cy = position[1];
+        this.controlTab.scrollTo(position[1] - 166);
     }
     private changeNoteLength(operater: string){
         let factor: number;

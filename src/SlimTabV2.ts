@@ -31,7 +31,6 @@ export class SLTab {
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
     private domElement: HTMLElement;
-    private height: number = 1000;
     
     /**
      * Callbacks
@@ -44,7 +43,7 @@ export class SLTab {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
         let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
-        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`, height: `${this.height}`});
+        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`});
         this.domElement = document.createElement("div");
         this.domElement.append(this.tabCanvas.domElement);
         utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "600px", "overflow-y": "auto", "overflow-x": "hidden"});
@@ -177,6 +176,9 @@ export class SLTab {
         }
     }
 
+    scrollTo(val: number){
+        this.domElement.scrollTop = val;
+    }
     private setAllLine() {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine); // number of row you need
         let an = this.tabCanvas.layers.sheet.row.length; // number of row you have
