@@ -16,10 +16,11 @@ interface eventCallBackInterface {
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
     notes: section[];
+    domElement: HTMLElement;
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
     private lineWidth: number = 800;
-    private sectionPerLine: number = 2;
+    private sectionPerLine: number = 4;
     private stringPadding: number = 16; // distance between each string
     private linePerPage: number = 20;
     private lineMargin: number = 42; // only for left and right
@@ -30,7 +31,6 @@ export class SLTab {
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
-    private domElement: HTMLElement;
     
     /**
      * Callbacks

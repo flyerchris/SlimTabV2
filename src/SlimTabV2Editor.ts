@@ -128,6 +128,7 @@ export class SLEditor {
             this.shadowIndicator.cy = -20;
         });
         this.controlTab.on("mousedown", (x, y) => {
+            y += this.controlTab.domElement.scrollTop;
             if(this.dragNDropSection != null){
                 this.dragNDropSection.remove();
             }
@@ -140,6 +141,7 @@ export class SLEditor {
         });
         //Mouse move event, handle with all quadrant of direction.
         this.controlTab.on("mousemove", (x, y) => {
+            y += this.controlTab.domElement.scrollTop;
             if (this.mouseDown) {
                 if(Math.sqrt(Math.pow(x - this.dragStartPos[0], 2) + Math.pow(y - this.dragStartPos[1], 2)) > 2){
                     this.mouseMove = true;
@@ -164,6 +166,7 @@ export class SLEditor {
             }
         });
         this.controlTab.on("mouseup", (x, y) =>{
+            y += this.controlTab.domElement.scrollTop;
             this.mouseDown = false;
             if(this.mouseMove){
                 let x1: number;
@@ -271,7 +274,7 @@ export class SLEditor {
     private setIndicator(position: number[]){
         this.indicator.cx = position[0];
         this.indicator.cy = position[1];
-        this.controlTab.scrollTo(position[1] - 166);
+        if(position[0] > 0)this.controlTab.scrollTo(position[1] - 166);
     }
     private changeNoteLength(operater: string){
         let factor: number;
