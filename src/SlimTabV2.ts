@@ -19,7 +19,7 @@ export class SLTab {
     domElement: HTMLElement;
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
-    private lineWidth: number = 800;
+    private lineWidth: number = 1200;
     private sectionPerLine: number = 4;
     private stringPadding: number = 16; // distance between each string
     private linePerPage: number = 20;
@@ -46,7 +46,7 @@ export class SLTab {
         utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`});
         this.domElement = document.createElement("div");
         this.domElement.append(this.tabCanvas.domElement);
-        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "600px", "overflow-y": "auto", "overflow-x": "hidden"});
+        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "700px", "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
         this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote", "mousedown", "mousemove", "mouseup"]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
@@ -257,7 +257,7 @@ export class SLTab {
                 let note = this.notes[s][i];
                 let noteLength = this.lengthPerBeat / note[0];
                 let tail: number[];
-                if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a seperater or the note's length equals to seperater length
+                if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a beat or the note's length equals to a beat
                     tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1, beatLength);
                     accumulatedLength = 0;
                 }else{
@@ -283,11 +283,11 @@ export class SLTab {
         if(accumulatedLength == -1)basicLength = -8;
         if(accumulatedLength == 0){ // start of a seperate note
             if(noteLength == 8){
-                return [8, 0, 0];
+                return [basicLength, 0, 0];
             }else if(noteLength == 16){
-                return [8, 8, 0];
+                return [basicLength, basicLength, 0];
             }else if(noteLength == 32){
-                return [8, 8, 8];
+                return [basicLength, basicLength, basicLength];
             }
         }else{
             if(noteLength == 8){
@@ -319,6 +319,7 @@ export class SLTab {
     private setAllNoteElementData(data: caculatedNoteData[]){
         let noteElement = this.tabCanvas.layers.notes.noteElements
         let ne = data.length - noteElement.length;
+        let nullData: caculatedNoteData = [0, 0, 0, [-1, -1, -1, -1, -1, -1], [0, 0, 0], 0, 0];
         for(let i = 0; i < ne; i++){
             this.tabCanvas.layers.notes.createNote();
             noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
@@ -333,21 +334,21 @@ export class SLTab {
             utils.setStyle(noteElement[i].domelement,{ display: "unset"});
             if(i != data.length - 1){
                 if(data[i+1][0] > data[i][0]){
-                    this.setNoteElementData(noteElement[i], data[i], (data[i+1][0] - data[i][0]) * 0.7);
+                    this.setNoteElementData(noteElement[i], data[i], data[i + 1], (data[i+1][0] - data[i][0]) * 0.7);
                 }else{
-                    this.setNoteElementData(noteElement[i], data[i], 30);
+                    this.setNoteElementData(noteElement[i], data[i], data[i + 1], 30);
                 }
             }else{
-                this.setNoteElementData(noteElement[i], data[i], 30);
+                this.setNoteElementData(noteElement[i], data[i], nullData, 30);
             }
         }
         for(let i = data.length; i < noteElement.length; i++){
             utils.setStyle(noteElement[i].domelement,{ display: "none"});
         }
     }
-    private setNoteElementData(el: SVGNote, data: caculatedNoteData, xlength: number){
+    private setNoteElementData(el: SVGNote, data: caculatedNoteData, nexData:caculatedNoteData ,xlength: number){
         this.setElementPosition(el, data[0], data[1], data[4], data[5], data[6], xlength);
-        this.setChordVisiable(el, data[1], data[2], data[3]);
+        this.setChordVisiable(el, data[0], data[1], data[2], data[3], data[4], nexData[4]);
     }
     
     private setElementPosition(e: SVGNote, x:number, y:number, tail: number[], sectionIndex: number, noteIndex: number, xlength: number){
@@ -366,6 +367,9 @@ export class SLTab {
             e.blockGroup[i].extendRect.width = xlength;
             utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
         }
+        e.tail8.setPosition(x,y + this.stringPadding * 5 + 15);
+        e.tail16.setPosition(x,y + this.stringPadding * 5 + 10);
+        e.tail32.setPosition(x,y + this.stringPadding * 5 + 5);
         e.section = sectionIndex;
         e.note = noteIndex;
         e.line = ln;
@@ -377,7 +381,29 @@ export class SLTab {
             utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
         });
     }
-    private setChordVisiable(e:SVGNote, y: number, noteLength: number, data: number[]){
+    private setChordVisiable(e:SVGNote, x: number, y: number, noteLength: number, data: number[], tail: number[], nextTail: number[]){
+        let ap = true;
+        e.tail8.hide();
+        e.tail16.hide();
+        e.tail32.hide();
+        for(let i = 0 ; i < 3; i++){
+            if(tail[i] < 0 || nextTail[i] < 0){
+                ap = false;
+                break;
+            }
+        }
+        if(ap){
+            if(noteLength == 8){
+                e.tail8.show();
+            }else if(noteLength == 16){
+                e.tail16.show();
+            }else if(noteLength == 32){
+                e.tail32.show();
+            }
+            e.lineGroup[1].x2 = x;
+            e.lineGroup[2].x2 = x;
+            e.lineGroup[3].x2 = x;
+        }
         for(let i = 0 ; i < 6; i++){
             e.blockGroup[i].word.text = `${data[i]}`;
             e.blockGroup[i].wordBack.text = `${data[i]}`;

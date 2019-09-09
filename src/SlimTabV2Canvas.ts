@@ -71,6 +71,9 @@ export class SVGNote{
     readonly domelement: HTMLElement;
     readonly blockGroup: NoteBlock[] = [];
     readonly lineGroup: Line[] = [];
+    readonly tail8: Base8Tail;
+    readonly tail16: Base16Tail;
+    readonly tail32: Base32Tail;
     private _section: number;
     private _note: number;
     private _line: number;
@@ -78,6 +81,10 @@ export class SVGNote{
         this.domelement = domelement;
         this.blockGroup = blockGroup;
         this.lineGroup = lineGroup;
+        this.tail8 = new Base8Tail();
+        this.tail16 = new Base16Tail();
+        this.tail32 = new Base32Tail();
+        this.domelement.append(this.tail32.domElement, this.tail16.domElement, this.tail8.domElement);
     }
     set section(val: number){
         this._section = val;
@@ -96,6 +103,82 @@ export class SVGNote{
     }
     get line(): number{
         return this._line;
+    }
+}
+class Tail{
+    readonly domElement: SVGElement;
+    constructor(){
+        this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"g");
+        utils.setAttributes(this.domElement, {style: "fill: white; transform: scale(0.08, 0.08)"});
+        this.hide();
+    }
+    setPosition(x: number, y: number){
+        utils.setStyle(<HTMLElement><unknown>this.domElement,{"transform": `scale(0.08, 0.08) translate(${x / 0.08}px,${y / 0.08}px)`});
+    }
+    show(){
+        utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "unset"});
+    }
+    hide(){
+        utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "none"});
+    }
+}
+class Base8Tail extends Tail{
+    constructor(){
+        super();
+        this.domElement.innerHTML = `<defs>
+		<path id="SVGTAIL8_1" d="M-4.728,151.313l10.303,2.061l39.153-33.854c0,0,20.543-24.318,23.338-67.708L70.34,0H43.846L22.061,78.012
+			l-33.854,20.901L-4.728,151.313z"/>
+	</defs>
+	<clipPath id="SVGTAIL8_2">
+		<use xlink:href="#SVGTAIL8_1"  style="overflow:visible;"/>
+	</clipPath>
+	<path style="clip-path:url(#SVGTAIL8_2);" d="M67.352,64.184c2.698-19.84-2.806-39.01-7.124-58.173
+		c-0.107-0.476-0.722-0.837-1.42-1.603c0,3.411-0.317,6.266,0.054,9.029c1.69,12.576,0.707,25.062-2.478,37.175
+		c-5.494,20.897-15.163,39.32-35.394,49.69c-6.397,3.279-13.599,4.99-20.612,7.443l-0.168,42.842
+		c0.429-1.459,1.031-2.899,1.881-4.318c5.712-9.535,13.379-17.275,23.422-21.731c11.728-5.203,21.372-12.634,29.432-22.407
+		c0.486-0.59,1.154-1.029,2.017-1.782c-6.693,34.412-26.894,55.961-56.794,60.555l-0.186,47.379
+		c1.634-4.092,2.518-8.621,4.922-12.148c5.906-8.664,14.092-14.797,23.71-19.308c16.597-7.786,30.016-19.532,35.085-37.498
+        c3.198-11.333,4.22-23.682,3.872-35.506C67.182,90.594,65.534,77.557,67.352,64.184z"/>`;
+    }
+}
+
+class Base16Tail extends Tail{
+    constructor(){
+        super();
+        this.domElement.innerHTML = `<path d="M67.37,59.776c2.698-19.84-2.806-39.01-7.124-58.173C60.138,1.127,59.523,0.765,58.825,0c0,3.411-0.317,6.266,0.054,9.029
+        c1.69,12.576,0.707,25.062-2.478,37.175c-5.494,20.897-15.163,39.32-35.394,49.69c-6.397,3.279-13.599,4.99-20.612,7.443
+        l-0.168,42.842c0.429-1.459,1.031-2.899,1.881-4.318c5.712-9.535,13.379-17.275,23.422-21.731
+        c11.728-5.203,21.372-12.634,29.432-22.407c0.486-0.59,1.154-1.029,2.017-1.782c-6.693,34.412-26.894,55.961-56.794,60.555
+        L0,203.874c1.634-4.092,2.518-8.621,4.922-12.148c5.906-8.664,14.092-14.797,23.71-19.308c16.597-7.786,30.016-19.532,35.085-37.498
+        c3.198-11.333,4.22-23.682,3.872-35.506C67.2,86.185,65.551,73.148,67.37,59.776z"/>`
+    }
+}
+
+class Base32Tail extends Tail{
+    constructor(){
+        super();
+        this.domElement.innerHTML = `<path d="M67.183,59.776c2.698-19.84-2.806-39.01-7.124-58.173C59.952,1.127,59.337,0.765,58.639,0c0,3.411-0.317,6.266,0.054,9.029
+		c1.69,12.576,0.707,25.062-2.478,37.175c-5.494,20.897-15.163,39.32-35.394,49.69c-6.397,3.279-13.599,4.99-20.612,7.443
+		l-0.168,42.842c0.429-1.459,1.031-2.899,1.881-4.318c5.712-9.535,13.379-17.275,23.422-21.731
+		c11.728-5.203,21.372-12.634,29.432-22.407c0.486-0.59,1.154-1.029,2.017-1.782C50.101,130.352,29.9,151.901,0,156.495
+		l-0.186,47.379c1.634-4.092,2.518-8.621,4.922-12.148c5.906-8.664,14.092-14.797,23.71-19.308
+		c16.597-7.786,30.016-19.532,35.085-37.498c3.198-11.333,4.22-23.682,3.872-35.506C67.013,86.185,65.365,73.148,67.183,59.776z"/>
+	<g>
+		<defs>
+			<path id="SVGTAIL32_1" d="M-4.17,255.543l10.303,2.061l39.153-33.854c0,0,20.543-24.318,23.338-67.708l2.274-51.812H44.404
+				l-21.784,78.012l-33.854,20.901L-4.17,255.543z"/>
+		</defs>
+		<clipPath id="SVGTAIL32_2">
+			<use xlink:href="#SVGTAIL32_1"  style="overflow:visible;"/>
+		</clipPath>
+		<path style="clip-path:url(#SVGTAIL32_2);" d="M67.91,168.414c2.698-19.84-2.806-39.01-7.124-58.173
+			c-0.107-0.476-0.722-0.837-1.42-1.603c0,3.411-0.317,6.266,0.054,9.029c1.69,12.576,0.707,25.062-2.478,37.175
+			c-5.494,20.897-15.163,39.32-35.394,49.69c-6.397,3.279-13.599,4.99-20.612,7.443l-0.168,42.842
+			c0.429-1.459,1.031-2.899,1.881-4.318c5.712-9.535,13.379-17.275,23.422-21.731c11.728-5.203,21.372-12.634,29.432-22.407
+			c0.486-0.59,1.154-1.029,2.017-1.782c-6.693,34.412-26.894,55.96-56.794,60.555L0.54,312.512
+			c1.634-4.092,2.518-8.621,4.922-12.148c5.906-8.664,14.092-14.797,23.71-19.308c16.597-7.786,30.016-19.532,35.085-37.498
+			c3.198-11.333,4.22-23.682,3.872-35.506C67.74,194.823,66.092,181.786,67.91,168.414z"/>
+	</g>`;
     }
 }
 export class Layer implements SVGPrimitiveRenderer {
