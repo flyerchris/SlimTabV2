@@ -9,6 +9,8 @@ interface eventCallBackInterface {
     keydown: (key: string) => any;
     mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
     mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    noteshiftclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
+    notealtclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
     mousedown: (x: number, y: number) => any;
     mousemove: (x: number, y: number) => any;
     mouseup: (x: number, y: number) => any;
@@ -48,7 +50,7 @@ export class SLTab {
         this.domElement.append(this.tabCanvas.domElement);
         utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "700px", "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
-        this.callbacks = new Callbacks(["noteclick", "keydown", "mouseovernote", "mouseoutnote", "mousedown", "mousemove", "mouseup"]);
+        this.callbacks = new Callbacks(["noteclick", "noteshiftclick", "notealtclick", "keydown", "mouseovernote", "mouseoutnote", , "mousedown", "mousemove", "mouseup"]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
         this.tabCanvas.domElement.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -91,6 +93,13 @@ export class SLTab {
         return true;
     }
 
+    getSVGNote(section: number, note: number): SVGNote{
+        let noteElements = this.tabCanvas.layers.notes.noteElements;
+        return noteElements.find((elem) => {
+            return elem.section == section && elem.note == note
+        })
+    }
+
     getNotePosition(section: number, note: number, string: number = 0): [number, number]{
         let sum = 0;
         if(section == -1) section = this.notes.length -1;
@@ -131,6 +140,9 @@ export class SLTab {
         anchor.append(this.domElement);
     }
 
+    noteIndex(note: SVGNote){
+        return this.tabCanvas.layers.notes.noteElements.indexOf(note);
+    }
         /**
      * Drag and drog area select notes
      * Bad implement by now, the function search each note to find collision
@@ -159,7 +171,14 @@ export class SLTab {
         console.log(noteElements.slice(leftSelectedNote, rightSelectedNote+1));
         return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
-
+    endsSelect(head: number, tail: number){
+        if(head > tail){
+            let temp = tail;
+            tail = head;
+            head = temp;
+        }
+        return this.tabCanvas.layers.notes.noteElements.slice(head, tail+1);
+    }
     render() {
         this.setAllLine();
         let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
@@ -462,7 +481,15 @@ export class SLTab {
         let note = Number((ev.currentTarget as SVGGElement).dataset.note);
         let string = Number((ev.currentTarget as SVGElement).dataset.string);
         let position = [Number((ev.currentTarget as SVGElement).dataset.x), Number((ev.currentTarget as SVGElement).dataset.y)]
-        this.callbacks["noteclick"].callAll(section, note, string, position, ev.currentTarget);
+        if(ev.shiftKey){
+            this.callbacks["noteshiftclick"].callAll(section, note, string, position, ev.currentTarget);
+        }
+        else if(ev.altKey){
+            this.callbacks["notealtclick"].callAll(section, note, string, position, ev.currentTarget);
+        }
+        else{
+            this.callbacks["noteclick"].callAll(section, note, string, position, ev.currentTarget);
+        }
     }
     private onKeydown(ev: KeyboardEvent){
         this.callbacks["keydown"].callAll(ev.key);
