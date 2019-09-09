@@ -113,10 +113,10 @@ export class SLEditor {
                 }
             }
             if((<string>key).toLowerCase() === "+"){
-                this.changeNoteLength("-");
+                this.changeNoteLength("+");
             }
             if((<string>key).toLowerCase() === "-"){
-                this.changeNoteLength("+");
+                this.changeNoteLength("-");
             }
         });
         this.controlTab.on("mouseovernote", (section, note, string, position) => {
@@ -287,9 +287,10 @@ export class SLEditor {
         }
         if(this.selectedBlock){
             let lengthArray = [1, 2, 4, 8, 16, 32];
-            for(let i = factor ; i < lengthArray.length - 2 + factor; i++){
+            for(let i = 1 - factor ; i < lengthArray.length - factor; i++){
                 if(lengthArray[i] === this.selectedBlock.data[0]){
-                    this.selectedBlock.data[0] = lengthArray[i + 1 - factor * 2];
+                    this.selectedBlock.data[0] = lengthArray[i - 1 + factor * 2];
+                    console.log(this.selectedBlock.data[0], i - 1 + factor * 2);
                     this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.data);
                     this.controlTab.render();
                     this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
