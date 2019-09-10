@@ -11,6 +11,7 @@ interface eventCallBackInterface {
     mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
     noteshiftclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
     notealtclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
+    notectrlclcik: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
     mousedown: (x: number, y: number) => any;
     mousemove: (x: number, y: number) => any;
     mouseup: (x: number, y: number) => any;
