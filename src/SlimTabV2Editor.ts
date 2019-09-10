@@ -107,6 +107,16 @@ export class SLEditor {
                     this.selectDown(this.selectedBlock, this.controlTab);
                 }
             }
+            if((<string>key).toLowerCase() === "i" ){
+                if(this.selectedSVGNotes.length > 0){
+                    this.selectedBlock = {section: this.selectedSVGNotes[0].section, note: this.selectedSVGNotes[0].note, string: 0, data: this.controlTab.getNoteData(this.selectedSVGNotes[0].section, this.selectedSVGNotes[0].note)};
+                    this.unselectSVGNotes();
+                }
+                if(this.selectedBlock){
+                    this.insertEmptyNote(this.selectedBlock);
+                }
+                this.controlTab.render();
+            }
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
                 if(this.selectedSVGNotes.length > 0){
                     for(let i = this.selectedSVGNotes.length -1; i >= 0; i--){
@@ -300,6 +310,13 @@ export class SLEditor {
     private selectDown(selectNoteBlock: NoteBlockIndex, controlTab: SLTab){
         if(selectNoteBlock.string < 5){
             this.selectNoteAndMoveIndicator(selectNoteBlock.section, selectNoteBlock.note ,selectNoteBlock.string + 1);
+        }
+    }
+    private insertEmptyNote(selectedBlock: NoteBlockIndex){
+        if(!this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
+            this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, [4, [-1, -1, -1, -1, -1,-1], null]);
+            this.selectedBlock = {section: this.selectedBlock.section, note: this.selectedBlock.note, string: this.selectedBlock.string, data: [4, [-1, -1, -1, -1, -1, -1], null]}
+            this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note ,this.selectedBlock.string);
         }
     }
     private deleteNoteBlock(selectNoteBlock: NoteBlockIndex, controlTab: SLTab){
