@@ -50,12 +50,25 @@ export class SLTab {
         this.domElement.append(this.tabCanvas.domElement);
         utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "700px", "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
-        this.callbacks = new Callbacks(["noteclick", "noteshiftclick", "notealtclick", "keydown", "mouseovernote", "mouseoutnote", , "mousedown", "mousemove", "mouseup"]);
+        this.callbacks = new Callbacks([
+            "noteclick", 
+            "noteshiftclick", 
+            "notealtclick", 
+            "notectrlclick",
+            "keydown", 
+            "mouseovernote", 
+            "mouseoutnote", 
+            "mousedown", 
+            "mousemove", 
+            "mouseup",
+            "rightclick"
+        ]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
         this.tabCanvas.domElement.addEventListener("mousedown", this.onMouseDown.bind(this));
         this.tabCanvas.domElement.addEventListener("mousemove", this.onMouseMove.bind(this));
         this.tabCanvas.domElement.addEventListener("mouseup", this.onMouseUp.bind(this));
+        this.tabCanvas.domElement.addEventListener("contextmenu", this.onMouseRightClick.bind(this));//Right click
     }
 
     //todo: do a stricter check for these function
@@ -487,6 +500,9 @@ export class SLTab {
         else if(ev.altKey){
             this.callbacks["notealtclick"].callAll(section, note, string, position, ev.currentTarget);
         }
+        else if(ev.ctrlKey){
+            this.callbacks["notectrlclick"].callAll(section, note, string, position, ev.currentTarget);
+        }
         else{
             this.callbacks["noteclick"].callAll(section, note, string, position, ev.currentTarget);
         }
@@ -516,5 +532,8 @@ export class SLTab {
     }
     private onMouseUp(ev: MouseEvent){
         this.callbacks["mouseup"].callAll(Number(ev.x), Number(ev.y));
+    }
+    private onMouseRightClick(ev: MouseEvent){
+        this.callbacks["rightclick"].callAll(Number(ev.x), Number(ev.y));
     }
 }
