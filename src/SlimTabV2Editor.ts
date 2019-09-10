@@ -161,8 +161,14 @@ export class SLEditor {
         this.controlTab.on("mousemove", (x, y) => {
             y += this.controlTab.domElement.scrollTop;
             if (this.mouseDown) {
-                if(Math.sqrt(Math.pow(x - this.dragStartPos[0], 2) + Math.pow(y - this.dragStartPos[1], 2)) > 2){
+                if(Math.sqrt(Math.pow(x - this.dragStartPos[0], 2) + Math.pow(y - this.dragStartPos[1], 2)) > 1){
                     this.mouseMove = true;
+                    //Clear the empty note when clicking 
+                    if(this.selectedBlock && this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
+                        this.controlTab.deleteNote(this.selectedBlock.section , this.selectedBlock.note);
+                        this.unselectNoteBlock()
+                        this.controlTab.render()
+                    }
                 } 
 
                 if(this.mouseMove){
@@ -277,12 +283,18 @@ export class SLEditor {
                 this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
             }
         }else{
-            if(selectNote.note - 1 >= 0){
-                if(controlTab.isBlankNote(selectNote.section, selectNote.note - 1)){
-                    controlTab.deleteNote(selectNote.section, selectNote.note - 1);
-                    controlTab.render();
-                    this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note - 1, selectNote.string);
-                }
+            //Minor modified, for insert function debugging. HaK.
+            // if(selectNote.note - 1 >= 0){
+            //     if(controlTab.isBlankNote(selectNote.section, selectNote.note - 1)){
+            //         controlTab.deleteNote(selectNote.section, selectNote.note - 1);
+            //         controlTab.render();
+            //         this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note - 1, selectNote.string);
+            //     }
+            // }
+            if(controlTab.isBlankNote(selectNote.section, selectNote.note)){
+                controlTab.deleteNote(selectNote.section, selectNote.note);
+                controlTab.render();
+                this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note, selectNote.string);
             }
         }
     }
