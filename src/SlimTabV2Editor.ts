@@ -113,7 +113,9 @@ export class SLEditor {
                     this.unselectSVGNotes();
                 }
                 if(this.selectedBlock){
-                    this.insertEmptyNote(this.selectedBlock);
+                    let emptyNote = this.insertEmptyNote(this.selectedBlock);
+                    this.controlTab.render();
+                    this.selectNoteAndMoveIndicator(emptyNote.section, emptyNote.note ,emptyNote.string);
                 }
                 this.controlTab.render();
             }
@@ -324,12 +326,12 @@ export class SLEditor {
             this.selectNoteAndMoveIndicator(selectNoteBlock.section, selectNoteBlock.note ,selectNoteBlock.string + 1);
         }
     }
-    private insertEmptyNote(selectedBlock: NoteBlockIndex){
+    private insertEmptyNote(selectedBlock: NoteBlockIndex): NoteBlockIndex{
         if(!this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
             this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, [4, [-1, -1, -1, -1, -1,-1], null]);
             this.selectedBlock = {section: this.selectedBlock.section, note: this.selectedBlock.note, string: this.selectedBlock.string, data: [4, [-1, -1, -1, -1, -1, -1], null]}
-            this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note ,this.selectedBlock.string);
         }
+        return this.selectedBlock
     }
     private deleteNoteBlock(selectNoteBlock: NoteBlockIndex, controlTab: SLTab){
         selectNoteBlock.data[1][selectNoteBlock.string] = -1;
