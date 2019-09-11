@@ -86,6 +86,13 @@ export class SLTab {
         this.notes[section][note] = data;
     }
 
+    setStringDataOfNote(section: number, note: number, string: number, data: number){
+        console.log(this.notes);
+        if(string >=0 && string <= 5){
+            this.notes[section][note][1][string] = data;
+        }
+    }
+
     deleteNote(section: number, note: number){
         this.notes[section].splice(note, 1);
     }

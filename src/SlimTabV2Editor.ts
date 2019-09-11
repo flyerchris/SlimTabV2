@@ -7,7 +7,6 @@ interface NoteBlockIndex{
     section: number;
     note: number;
     string: number;
-    data: note;
 }
 
 export class SLEditor {
@@ -59,9 +58,7 @@ export class SLEditor {
                     }else{
                         this.inputBlock = Number(key);
                     }
-                    this.selectedBlock.data[1][this.selectedBlock.string] = this.inputBlock;
-                    // in fact you don't need to do this, but I wish to update date through api, rather change it directly.
-                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.data);
+                    this.controlTab.setStringDataOfNote(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string, this.inputBlock);
                     this.controlTab.render();
                 }
             }else{
@@ -70,7 +67,7 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "d" || (<string>key).toLowerCase() === "arrowright"){
                 if(this.selectedSVGNotes.length > 0){
                     let rightSideBlock = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0]
-                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string, data: this.controlTab.getNoteData(rightSideBlock.section, rightSideBlock.note)}
+                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string}
                     this.unselectSVGNotes();
                 }
                 if(this.selectedBlock){
@@ -80,7 +77,7 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "a" || (<string>key).toLowerCase() === "arrowleft"){
                 if(this.selectedSVGNotes.length > 0){
                     let leftSideBlock = this.selectedSVGNotes[0].blockGroup[0]
-                    this.selectedBlock = {section: leftSideBlock.section, note:leftSideBlock.note, string: leftSideBlock.string, data: this.controlTab.getNoteData(leftSideBlock.section, leftSideBlock.note)}
+                    this.selectedBlock = {section: leftSideBlock.section, note:leftSideBlock.note, string: leftSideBlock.string}
                     this.unselectSVGNotes();
                 }
                 if(this.selectedBlock){
@@ -90,7 +87,7 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "w" || (<string>key).toLowerCase() === "arrowup"){
                 if(this.selectedSVGNotes.length > 0){
                     let rightSideBlock = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0]
-                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string, data: this.controlTab.getNoteData(rightSideBlock.section, rightSideBlock.note)}
+                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string}
                     this.unselectSVGNotes();
                 }
                 if(this.selectedBlock){
@@ -100,7 +97,7 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "s" || (<string>key).toLowerCase() === "arrowdown"){
                 if(this.selectedSVGNotes.length > 0){
                     let rightSideBlock = this.selectedSVGNotes[this.selectedSVGNotes.length-1].blockGroup[0]
-                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string, data: this.controlTab.getNoteData(rightSideBlock.section, rightSideBlock.note)}
+                    this.selectedBlock = {section: rightSideBlock.section, note:rightSideBlock.note, string: rightSideBlock.string}
                     this.unselectSVGNotes();
                 }
                 if(this.selectedBlock){
@@ -109,7 +106,7 @@ export class SLEditor {
             }
             if((<string>key).toLowerCase() === "i" ){
                 if(this.selectedSVGNotes.length > 0){
-                    this.selectedBlock = {section: this.selectedSVGNotes[0].section, note: this.selectedSVGNotes[0].note, string: 0, data: this.controlTab.getNoteData(this.selectedSVGNotes[0].section, this.selectedSVGNotes[0].note)};
+                    this.selectedBlock = {section: this.selectedSVGNotes[0].section, note: this.selectedSVGNotes[0].note, string: 0};
                     this.unselectSVGNotes();
                 }
                 if(this.selectedBlock){
@@ -231,7 +228,7 @@ export class SLEditor {
         this.setIndicator(position);
     }
     private setSelectNote(section: number, note: number, string: number){
-        this.selectedBlock = {section: section, note: note, string: string, data: this.controlTab.getNoteData(section, note)};
+        this.selectedBlock = {section: section, note: note, string: string};
     }
     private setIndicator(position: number[]){
         this.indicator.cx = position[0];
@@ -249,11 +246,11 @@ export class SLEditor {
         }
         if(this.selectedBlock){
             let lengthArray = [1, 2, 4, 8, 16, 32];
+            let selectData = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
             for(let i = 1 - factor ; i < lengthArray.length - factor; i++){
-                if(lengthArray[i] === this.selectedBlock.data[0]){
-                    this.selectedBlock.data[0] = lengthArray[i - 1 + factor * 2];
-                    console.log(this.selectedBlock.data[0], i - 1 + factor * 2);
-                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.data);
+                if(lengthArray[i] === selectData[0]){
+                    selectData[0] = lengthArray[i - 1 + factor * 2];
+                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, selectData);
                     this.controlTab.render();
                     this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
                     break;
@@ -327,13 +324,12 @@ export class SLEditor {
     private insertEmptyNote(selectedBlock: NoteBlockIndex){
         if(!this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
             this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, [4, [-1, -1, -1, -1, -1,-1], null]);
-            this.selectedBlock = {section: this.selectedBlock.section, note: this.selectedBlock.note, string: this.selectedBlock.string, data: [4, [-1, -1, -1, -1, -1, -1], null]}
+            this.selectedBlock = {section: this.selectedBlock.section, note: this.selectedBlock.note, string: this.selectedBlock.string}
             this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note ,this.selectedBlock.string);
         }
     }
     private deleteNoteBlock(selectNoteBlock: NoteBlockIndex, controlTab: SLTab){
-        selectNoteBlock.data[1][selectNoteBlock.string] = -1;
-        controlTab.setNoteData(selectNoteBlock.section, selectNoteBlock.note, selectNoteBlock.data);
+        this.controlTab.setStringDataOfNote(selectNoteBlock.section, selectNoteBlock.note, selectNoteBlock.string, -1);
         controlTab.render();
     }
     private drawMultiSelectRect(selectedSVGNotes: SVGNote[]){
