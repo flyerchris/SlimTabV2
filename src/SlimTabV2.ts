@@ -31,6 +31,7 @@ export class SLTab {
     private sectionIndicatorElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
+    private height: number;
     
     /**
      * Callbacks
@@ -167,7 +168,10 @@ export class SLTab {
         this.setAllNoteElementData(noteRawData);
         this.setLinker(linkerData);
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
-        utils.setAttributes(this.tabCanvas.domElement,{ height: `${this.lineStartPosition[1] + (this.stringPadding * 5 + this.lineDistance) * ln + 70}`});
+        if(this.height != (this.lineStartPosition[1] + (this.stringPadding * 5 + this.lineDistance) * ln + 70)){
+            this.height = (this.lineStartPosition[1] + (this.stringPadding * 5 + this.lineDistance) * ln + 70);
+            utils.setAttributes(this.tabCanvas.domElement,{ height: `${this.height}`});
+        }
     }
 
     on<k extends keyof eventCallBackInterface>(ename: k, cbk: eventCallBackInterface[k]) {
@@ -433,7 +437,7 @@ export class SLTab {
 
     private setLinker(linkerData: number[][]){
         let lenumber = Math.floor(linkerData.length / 2);
-        let existNumber = this.linkerElement.length
+        let existNumber = this.tabCanvas.layers.background.linker.length;
         for(let i = 0; i < lenumber - existNumber; i++){
             this.tabCanvas.layers.background.createLinker();
         }

@@ -26,18 +26,22 @@ export class NoteBlock{
         this.extendRect = extendRect;
     }
     set x(val: number){
-        this._x = val;
-        this.word.x = val;
-        this.wordBack.x = val;
-        this.extendRect.x = val;
+        if(this._x !== val){
+            this._x = val;
+            this.word.x = val;
+            this.wordBack.x = val;
+            this.extendRect.x = val;
+        }
     }
     get x(){
         return this._x;
     }
     set y(val: number){
-        this._y = val;
-        this.word.y = val + 4;
-        this.wordBack.y = val + 4;
+        if(this._y !== val){
+            this._y = val;
+            this.word.y = val + 4;
+            this.wordBack.y = val + 4;
+        }
     }
     get y(){
         return this._y;
@@ -84,7 +88,7 @@ export class SVGNote{
         this.tail8 = new Base8Tail();
         this.tail16 = new Base16Tail();
         this.tail32 = new Base32Tail();
-        this.domelement.append(this.tail32.domElement, this.tail16.domElement, this.tail8.domElement);
+        //this.domelement.append(this.tail32.domElement, this.tail16.domElement, this.tail8.domElement);
     }
     set section(val: number){
         this._section = val;
@@ -107,19 +111,32 @@ export class SVGNote{
 }
 class Tail{
     readonly domElement: SVGElement;
+    private _x: number;
+    private _y: number;
+    private _isShow: boolean = true;
     constructor(){
         this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"g");
-        utils.setAttributes(this.domElement, {style: "fill: white; transform: scale(0.08, 0.08)"});
+        utils.setAttributes(this.domElement, {style: "fill: white;"});
         this.hide();
     }
     setPosition(x: number, y: number){
-        utils.setStyle(<HTMLElement><unknown>this.domElement,{"transform": `scale(0.08, 0.08) translate(${x / 0.08}px,${y / 0.08}px)`});
+        if(this._x !== x || this._y !== y){
+            utils.setStyle(<HTMLElement><unknown>this.domElement,{"transform": `translate(${x / 0.08}px,${y / 0.08}px)`});
+            this._x = x;
+            this._y = y;
+        }
     }
     show(){
-        utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "unset"});
+        if(!this._isShow){
+            this._isShow = true;
+            utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "unset"});
+        }
     }
     hide(){
-        utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "none"});
+        if(this._isShow){
+            this._isShow = false;
+            utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "none"});
+        }
     }
 }
 class Base8Tail extends Tail{
@@ -285,7 +302,10 @@ export class Rect extends SVGShape{
     constructor(domElement: SVGRectElement) {
         super(domElement);
     }
-
+    private _x: number;
+    private _y: number;
+    private _width: number;
+    private _height: number;
     setPos(x: number, y: number) {
         utils.setAttributes(this.domElement, {
             "x": `${x}`, "y": `${y}`
@@ -298,43 +318,55 @@ export class Rect extends SVGShape{
     }
 
     set x(val: number) {
-        utils.setAttributes(this.domElement, {
-            x: `${val}`
-        });
+        if(this._x !== val){
+            this._x = val;
+            utils.setAttributes(this.domElement, {
+                x: `${val}`
+            });
+        }
     }
 
     get x(): number {
-        return Number(this.domElement.getAttribute("x"));
+        return this._x;
     }
 
     set y(val: number){
-        utils.setAttributes(this.domElement, {
-            y: `${val}`
-        });
+        if(this._y !== val){
+            this._y = val;
+            utils.setAttributes(this.domElement, {
+                y: `${val}`
+            });
+        }
     }
 
     get y(): number{
-        return Number(this.domElement.getAttribute("y"));
+        return this._y;
     }
 
     set width(val: number){
-        utils.setAttributes(this.domElement, {
-            width: `${val}`
-        });
+        if(this._width !== val){
+            this._width = val;
+            utils.setAttributes(this.domElement, {
+                width: `${val}`
+            });
+        }
     }
 
     get width(): number{
-        return Number(this.domElement.getAttribute("width"));
+        return this._width;
     }
     
     set height(val: number){
-        utils.setAttributes(this.domElement, {
-            height: `${val}`
-        });
+        if(this._height !== val){
+            this._height = val;
+            utils.setAttributes(this.domElement, {
+                height: `${val}`
+            });
+        }
     }
 
     get height(): number{
-        return Number(this.domElement.getAttribute("height"));
+        return this._height;
     }
 
     set strokeWidth(val: number){
@@ -359,6 +391,10 @@ export class Rect extends SVGShape{
 }
 
 export class Ellipse extends SVGShape{
+    private _cx: number;
+    private _cy: number;
+    private _rx: number;
+    private _ry: number;
     constructor(domElement: SVGEllipseElement) {
         super(domElement);
     }
@@ -375,43 +411,55 @@ export class Ellipse extends SVGShape{
     }
 
     set cx(val: number){
-        utils.setAttributes(this.domElement, {
-            cx: `${val}`
-        });
+        if(this._cx != val){
+            this._cx = val;
+            utils.setAttributes(this.domElement, {
+                cx: `${val}`
+            });
+        }
     }
     
     get cx():number{
-        return Number(this.domElement.getAttribute("cx"));
+        return this._cx;
     }
 
     set cy(val: number){
-        utils.setAttributes(this.domElement, {
-            cy: `${val}`
-        });
+        if(this._cy != val){
+            this._cy = val;
+            utils.setAttributes(this.domElement, {
+                cy: `${val}`
+            });
+        }
     }
 
     get cy(): number{
-        return Number(this.domElement.getAttribute("cy"));
+        return this._cy;
     }
 
     set rx(val: number){
-        utils.setAttributes(this.domElement, {
-            rx: `${val}`
-        });
+        if(this._rx != val){
+            this._rx = val;
+            utils.setAttributes(this.domElement, {
+                rx: `${val}`
+            });
+        }
     }
 
     get rx(): number{
-        return Number(this.domElement.getAttribute("rx"));
+        return this._rx;
     }
 
     set ry(val: number){
-        utils.setAttributes(this.domElement, {
-            ry: `${val}`
-        });
+        if(this._ry != val){
+            this._ry = val;
+            utils.setAttributes(this.domElement, {
+                ry: `${val}`
+            });
+        }
     }
 
     get ry(): number{
-        return Number(this.domElement.getAttribute("ry"));
+        return this._ry;
     }
 
     set fill(val: string){
@@ -426,6 +474,10 @@ export class Ellipse extends SVGShape{
 }
 
 export class Line extends SVGShape{
+    private _x1: number;
+    private _x2: number;
+    private _y1: number;
+    private _y2: number;
     constructor(domElement: SVGElement) {
         super(domElement);
     }
@@ -438,33 +490,45 @@ export class Line extends SVGShape{
     }
 
     set x1(val: number){
-        utils.setAttributes(this.domElement, {
-            x1: `${val}`
-        });
+        if(this._x1 != val){
+            this._x1 = val;
+            utils.setAttributes(this.domElement, {
+                x1: `${val}`
+            });
+        }
     }
     get x1(): number{
         return Number(this.domElement.getAttribute("x1"));
     }
     set y1(val: number){
+        if(this._y1 != val){
+            this._y1 = val;
         utils.setAttributes(this.domElement, {
             y1: `${val}`
         });
+        }
     }
     get y1(): number{
         return Number(this.domElement.getAttribute("y1"));
     }
     set x2(val: number){
+        if(this._x2 != val){
+            this._x2 = val;
         utils.setAttributes(this.domElement, {
             x2: `${val}`
         });
+        }
     }
     get x2(): number{
         return Number(this.domElement.getAttribute("x2"));
     }
     set y2(val: number){
+        if(this._y2 != val){
+            this._y2 = val;
         utils.setAttributes(this.domElement, {
             y2: `${val}`
         });
+        }
     }
     get y2(): number{
         return Number(this.domElement.getAttribute("y2"));
@@ -488,6 +552,8 @@ export class Line extends SVGShape{
 }
 type anchor =  "center" | "left";
 export class Text extends SVGShape{
+    private _x: number;
+    private _y: number;
     constructor(domElement: SVGTextElement) {
         super(domElement);
     }
@@ -497,17 +563,23 @@ export class Text extends SVGShape{
         });
     }
     set x(val: number){
-        utils.setAttributes(this.domElement, {
-            x: `${val}`
-        });
+        if(this._x != val){
+            this._x = val;
+            utils.setAttributes(this.domElement, {
+                x: `${val}`
+            });
+        }
     }
     get x(): number{
         return Number(this.domElement.getAttribute("x"));
     }
     set y(val: number){
-        utils.setAttributes(this.domElement, {
-            y: `${val}`
-        });
+        if(this._y != val){
+            this._y = val;
+            utils.setAttributes(this.domElement, {
+                y: `${val}`
+            });
+        }
     }
     get y(): number{
         return Number(this.domElement.getAttribute("y"));
@@ -522,7 +594,9 @@ export class Text extends SVGShape{
     }
 
     set text(val: string){
-        this.domElement.innerHTML = `${val}`;
+        if(this.domElement.innerHTML !== val){
+            this.domElement.innerHTML = `${val}`;
+        }
     }
 
     get text(): string{
