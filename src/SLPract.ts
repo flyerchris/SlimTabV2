@@ -19,6 +19,7 @@ export class SLPract {
 
     constructor(controlTab: SLTab){
         this.controlTab = controlTab;
+        this.setEvents();
     }
 
     play (){
@@ -45,5 +46,13 @@ export class SLPract {
 
     private noteValeu2Time (noteValue: number): number{
         return (this.timeSignature.lower/noteValue)/(this.bpm/60)
+    }
+
+    private setEvents(){
+        this.controlTab.on("keydown", (key) => {
+            if((<string>key).toLowerCase() === " "){
+                this.play();
+            }
+        });
     }
 }
