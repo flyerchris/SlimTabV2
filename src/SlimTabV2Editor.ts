@@ -235,7 +235,7 @@ export class SLEditor {
     private setIndicator(position: number[]){
         this.indicator.cx = position[0];
         this.indicator.cy = position[1];
-        if(position[0] > 0)this.controlTab.scrollTo(position[1] - 166);
+        //if(position[0] > 0)this.controlTab.scrollTo(position[1] - 166);
     }
     private changeNoteLength(operater: string){
         let factor: number;

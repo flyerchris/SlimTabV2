@@ -26,6 +26,15 @@ let data: section[] = [
 nt.setData(data);
 let tabEditor = new SLEditor(nt);
 nt.attach(document.getElementById("slimtab"));
+document.addEventListener("keydown",(e) => {
+    let ka = [37, 38, 39, 40]; //left: 37, up: 38, right: 39, down: 40,
+    for(let i = 0; i < ka.length; i++){// why is there no "includes" methods in typescript = =?
+        if(ka[i] === e.keyCode){
+            e.preventDefault();
+            e.returnValue = false;  
+        }
+    }
+});
 nt.render();
 
 let da = new DataAdapter();
@@ -55,7 +64,10 @@ beepEle.onclick = function(event){
         bs = 0;
     }
 }
-//setInterval(function(){nt.instrumentNoteInput([8, [-1, -1, -1, 4, -1, 6], null])}, 1000);
+// let win = window;
+// (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);};
+// (window as any).gx = () => {clearInterval(s);}
+let s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);
 nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
 nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null], 0, 2);
 
