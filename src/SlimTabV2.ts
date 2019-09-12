@@ -35,6 +35,7 @@ export class SLTab {
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
     private height: number;
+    private rawData: caculatedNoteData[] = [];
     
     /**
      * Callbacks
@@ -96,7 +97,6 @@ export class SLTab {
     }
 
     setStringDataOfNote(section: number, note: number, string: number, data: number){
-        console.log(this.notes);
         if(string >=0 && string <= 5){
             this.notes[section][note][1][string] = data;
         }
@@ -212,9 +212,9 @@ export class SLTab {
     }
     render() {
         this.setAllLine();
-        let [noteRawData, linkerData, sectionPosition] = this.calNoteRawData();
+        let [rawDataLength, linkerData, sectionPosition] = this.calNoteRawData();
         this.setSectionIndicator(sectionPosition);
-        this.setAllNoteElementData(noteRawData);
+        this.setAllNoteElementData(rawDataLength);
         this.setLinker(linkerData);
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
         if(this.height != (this.lineStartPosition[1] + (this.stringPadding * 5 + this.lineDistance) * ln + 70)){
@@ -286,15 +286,15 @@ export class SLTab {
     /**
      * @return { caculatedNoteData[], number[][] } array of [x, y , length, block of every chord, tail length, section index, note index], linker data, section x position
      */
-    private calNoteRawData():[ caculatedNoteData[], number[][], [number[], number[]][] ]{
+    private calNoteRawData():[ number, number[][], [number[], number[]][] ]{
         let [x, y] = this.startPosition;
-        let rawData: caculatedNoteData[] = [];
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let linker = [];
         let sectionIndicator: [number[], number[]][] = [];
         let seperaterLength = 1 / 4;
         let accumulatedLength = 0;
-        rawData.push([0, 0, 0, null, null, 0, 0]); // give a initial data, remove it at the end of function
+        this.rawData.splice(0, 0, [0, 0, 0, null, null, 0, 0]);// give a initial data, remove it at the end of function
+        let ci = 1;
 
         for(let s = 0; s < this.notes.length; s++){ // section
             let line = Math.floor(s / this.sectionPerLine);
@@ -329,14 +329,15 @@ export class SLTab {
                 let noteLength = this.lengthPerBeat / note[0];
                 let tail: number[];
                 if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a beat or the note's length equals to a beat
-                    tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], -1, beatLength);
+                    tail = this.calculateTail(this.rawData[ci - 1][2], note[0], -1, beatLength);
                     accumulatedLength = 0;
                 }else{
-                    tail = this.calculateTail(rawData[rawData.length - 1][2], note[0], accumulatedLength, beatLength);
+                    tail = this.calculateTail(this.rawData[ci - 1][2], note[0], accumulatedLength, beatLength);
                     accumulatedLength += noteLength / this.lengthPerBeat;
                 }
                 let step = beatLength * this.lengthPerBeat / note[0];
-                rawData.push([x, y, note[0], note[1], tail, s, i]);
+                this.updateRawData(ci, x, y, note[0], note[1], tail, s, i);
+                ci++;
                 if(note[2] === "linkStart" || note[2] === "linkEnd"){
                     linker.push([x,y]);
                 }
@@ -344,8 +345,26 @@ export class SLTab {
             }
             x = nx;
         }
-        rawData.shift();
-        return [rawData, linker, sectionIndicator];
+        this.rawData.shift();
+        ci--;
+        return [ci, linker, sectionIndicator];
+    }
+
+    private updateRawData(arryIndex: number, x: number, y: number, noteLength: number, noteData: number[], tail: number[], section: number, note: number){
+        if(arryIndex > this.rawData.length){
+            console.error("array index erro, should not be greater than rawData.length")
+        }
+        if(arryIndex === this.rawData.length){
+            this.rawData.push([x, y, noteLength, noteData, tail, section, note]);
+        }else{
+            this.rawData[arryIndex][0] = x;
+            this.rawData[arryIndex][1] = y;
+            this.rawData[arryIndex][2] = noteLength;
+            this.rawData[arryIndex][3] = noteData;
+            this.rawData[arryIndex][4] = tail;
+            this.rawData[arryIndex][5] = section;
+            this.rawData[arryIndex][6] = note;
+        }
     }
 
     private calculateTail(lastNoteLength: number, noteLength: number, accumulatedLength: number, beatLength: number): number[]{
@@ -387,9 +406,10 @@ export class SLTab {
      * receive data from calNoteRawData and set elements
      * @param { [number, number, number, number[]][] } data 
      */
-    private setAllNoteElementData(data: caculatedNoteData[]){
+    private setAllNoteElementData(dataLength: number){
+        let data = this.rawData;
         let noteElement = this.tabCanvas.layers.notes.noteElements
-        let ne = data.length - noteElement.length;
+        let ne = dataLength - noteElement.length;
         let nullData: caculatedNoteData = [0, 0, 0, [-1, -1, -1, -1, -1, -1], [0, 0, 0], 0, 0];
         for(let i = 0; i < ne; i++){
             this.tabCanvas.layers.notes.createNote();
@@ -401,7 +421,7 @@ export class SLTab {
                 utils.setAttributes(wg.domelement, {"data-string": `${i}`});
             });
         }
-        for(let i = 0; i < data.length; i++){
+        for(let i = 0; i < dataLength; i++){
             utils.setStyle(noteElement[i].domelement,{ display: "unset"});
             if(i != data.length - 1){
                 if(data[i+1][0] > data[i][0]){
@@ -413,7 +433,7 @@ export class SLTab {
                 this.setNoteElementData(noteElement[i], data[i], nullData, 30);
             }
         }
-        for(let i = data.length; i < noteElement.length; i++){
+        for(let i = dataLength; i < noteElement.length; i++){
             utils.setStyle(noteElement[i].domelement,{ display: "none"});
         }
     }
