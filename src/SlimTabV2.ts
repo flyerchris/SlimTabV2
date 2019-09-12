@@ -232,6 +232,24 @@ export class SLTab {
     scrollTo(val: number){
         this.domElement.scrollTop = val;
     }
+    getSectionLeftTopPos(section: number): [number, number]{
+        if(section < this.notes.length){
+            return [this.tabCanvas.layers.ui.sectionIndicator[section].x, this.tabCanvas.layers.ui.sectionIndicator[section].y];
+        }
+        return [-1, -1]
+    }
+    getSectionWidth(section: number): number{
+        if(section < this.notes.length){
+            this.tabCanvas.layers.ui.sectionIndicator[section].width;
+        }
+        return 0;
+    }
+    getSectionHeight(section: number): number{
+        if(section < this.notes.length){
+            this.tabCanvas.layers.ui.sectionIndicator[section].height;
+        }
+        return 0;
+    }
     private setAllLine() {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine); // number of row you need
         let an = this.tabCanvas.layers.sheet.row.length; // number of row you have
