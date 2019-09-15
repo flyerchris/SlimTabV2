@@ -96,6 +96,12 @@ export class Ticker{
             this._registerDelay(value.func, value.delay, nextTime, value.loop)
         }
     }
+    _clearFuncs(){
+        this._funcs= [];
+    }
+    _clearExecuteFuncs(){
+        this._executeFuncs = [];
+    }
 
     static register(func: Function){
         this._ticker._register(func);
@@ -116,6 +122,14 @@ export class Ticker{
 
     static stop(){
         this._ticker._stop();
+    }
+
+    static clearFuncs(){
+        this._ticker._clearFuncs();
+    }
+
+    static clearDelayFuncs(){
+        this._ticker._clearExecuteFuncs();
     }
 
     static get systemTime():number {
