@@ -203,14 +203,11 @@ export class SLTab {
                     && noteElements[i].blockGroup[j].y >=y1 
                     && noteElements[i].blockGroup[j].y <=y2){
                     selectedNoteIds.push(i);
-                    console.log(i);
                 }
             }
         }
-        console.log(selectedNoteIds);
         leftSelectedNote = Math.min(...selectedNoteIds);
         rightSelectedNote = Math.max(...selectedNoteIds);
-        console.log(noteElements.slice(leftSelectedNote, rightSelectedNote+1));
         return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
     endsSelect(head: number, tail: number){

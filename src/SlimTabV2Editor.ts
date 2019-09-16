@@ -37,6 +37,29 @@ export class SLEditor {
         this.dragNDropSection = this.controlTab.tabCanvas.layers.ui.createRect(0, 0, 0, 0, 0, "rgba(255, 50, 0, 0.6)");
         this.setEvents();
     }
+    get SVGNote(): SVGNote{
+        return this.selectedSVGNote;
+    }
+
+    get SelectedNotes():SVGNote[]{
+        return this.selectedSVGNotes;
+    }
+
+    undisplayIndicator(){
+        this.indicator.style = {display: "none"};
+        this.shadowIndicator.style = {display: "none"};
+        this.selectNotesIndicator.forEach((elem, index, self) =>{
+            elem.style = {display: "none"}
+        });
+    }
+
+    displayIndicator(){
+        this.indicator.style = {display: "unset"};
+        this.shadowIndicator.style = {display: "unset"};
+        this.selectNotesIndicator.forEach((elem, index, self) =>{
+            elem.style = {display: "unset"}
+        });
+    }
     private setEvents(){
         this.controlTab.on("noteclick", (section, note, string, position) => {
             this.setNoteClickEvent(section, note, string, position);
@@ -119,7 +142,6 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
                 if(this.selectedSVGNotes.length > 0){
                     for(let i = this.selectedSVGNotes.length -1; i >= 0; i--){
-                        console.log("delete " + this.selectedSVGNotes[i].section + " " + this.selectedSVGNotes[i].note)
                         this.controlTab.deleteNote(this.selectedSVGNotes[i].section, this.selectedSVGNotes[i].note);
                         this.controlTab.render();
                     }
