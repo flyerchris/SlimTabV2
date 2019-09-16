@@ -64,10 +64,11 @@ beepEle.onclick = function(event){
         bs = 0;
     }
 }
-// let win = window;
-// (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);};
-// (window as any).gx = () => {clearInterval(s);}
-let s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);
+ let win = window;
+ let s: any;
+ (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);};
+ (window as any).gx = () => {clearInterval(s);}
+//s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);
 nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
 nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null], 0, 2);
 
