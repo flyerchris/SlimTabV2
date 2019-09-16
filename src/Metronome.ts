@@ -1,3 +1,4 @@
+type tickWeight = "normal" | "strong";
 export class Metronome {
     private audioContext: AudioContext;
     private nextTime: number;
@@ -7,6 +8,7 @@ export class Metronome {
     private timeOffset = 0.05;
     private sound: AudioBuffer;
     private currentTime: number = 0;
+    private scheduleOsc: AudioBufferSourceNode[] = [];
     constructor(bpm: number){
         this.audioContext = new AudioContext();
         if(bpm)this.bpm = bpm;
@@ -39,19 +41,25 @@ export class Metronome {
             clearInterval(this.tickTimer);
         }
         this.audioContext.suspend();
+        this.clearScheduleOsc();
         this.currentTime = this.audioContext.currentTime;
         this.tickTimer = null;
     }
     setBpm(bpm: number){
         this.bpm = bpm;
     }
-    scheduleTick(time: number, type: string = "light"){ // time in milli second
-        this.stopTick();
+    scheduleTick(time: number, type: tickWeight = "normal"){ // time in milli second
         let scheduleTime = this.currentTime + time;
-        this.makeSound(scheduleTime/1000);
+        this.scheduleOsc.push(this.makeSound(scheduleTime/1000));
     }
     play(){
         this.audioContext.resume();
+    }
+    private clearScheduleOsc(){
+        for(let i = 0; i < this.scheduleOsc.length; i++){
+            this.scheduleOsc[i].disconnect();
+        }
+        this.scheduleOsc = [];
     }
     private tick(){
         let at = this.audioContext.currentTime;
