@@ -109,6 +109,10 @@ export class SLTab {
         }
     }
 
+    getSectionData(section: number): note[]{
+        return this.notes[section];
+    }
+
     deleteNote(section: number, note: number){
         this.notes[section].splice(note, 1);
     }
