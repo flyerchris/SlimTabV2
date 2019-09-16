@@ -3,6 +3,7 @@ import { SLTab } from "./SlimTabV2"
 import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock} from "./SlimTabV2Canvas"
 import {Timer} from "./Timer"
 import {SLEditor} from "./SlimTabV2Editor"
+import {Metronome} from "./Metronome"
 
 interface TimeSignature{
     upper: number,
@@ -30,10 +31,15 @@ export class SLPract {
     private indicatorShapes: IndicatorShape[] = [];
     private playSwitch: boolean = false;
     private timer: Timer = new Timer();
+    private metronome: Metronome;
+    private playLag: number = 50/1000;
+    private selectedTimeSum = 0;
+    private metronomeOn: boolean = false;
 
-    constructor(controlTab: SLTab, editor: SLEditor){
+    constructor(controlTab: SLTab, editor: SLEditor, metronome: Metronome){
         this.controlTab = controlTab;
         this.editor = editor;
+        this.metronome = metronome;
         this.setEvents();
     }
 
@@ -42,6 +48,7 @@ export class SLPract {
             this.isRepeat = true;
             let sectionNotes = this.sortBySectionId(this.editor.SelectedNotes);
             let sectionLenSum: number = 0;
+            let sectionStartTime: number = 0;
             this.editor.undisplayIndicator();
 
             if(this.nowPlaySectionIndicator != null){
@@ -49,14 +56,32 @@ export class SLPract {
             }
             sectionNotes.forEach((elem, index, self) =>{
                 let sectionEnds = this.sectionTwoEnds(elem);
+                let sectionBeats: number = 0;
+                let preBeat: number = 0;
+
                 if(index == 0){
                     this.nowPlaySectionIndicator = this.controlTab.tabCanvas.layers.ui.createRect(sectionEnds.x1, sectionEnds.y1, sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1, 2, this.indicatorColor);
+                    //If the first note selected is note on the beat, calc a prebeat note value.
+                    if(elem[0].note != 0){
+                        let preSum: number = 0;
+                        let firstSection: note[] = this.controlTab.getSectionData(elem[0].section);
+                        for(let i = 0;i< elem[0].note; i++){
+                            preSum += this.timeSignature.upper/firstSection[i][0]
+                        } 
+                        if(preSum %1 != 0){
+                            preBeat = this.timeSignature.upper/(1 - (preSum%1));
+                        }
+                    }
+                    //The first click will be dragged at the metronome module, so give a lag to it
+                    if(!this.metronomeOn) sectionStartTime += this.playLag
                 }
                 let sectionLen: number = 0;
                 elem.forEach((note, i, s) =>{
                     let thisNote: note = this.controlTab.getNoteData(note.section, note.note);
                     sectionLen += this.noteValeu2Time(thisNote[0]);
+                    sectionBeats += this.timeSignature.upper/thisNote[0]
                 });
+
                 sectionLenSum += sectionLen
                 if(self.length == 1){
                     this.timer.registerDelay(this.stopNowPlayIndicator.bind(this), sectionLen*1000, 1);
@@ -69,14 +94,28 @@ export class SLPract {
                 else if(index == self.length -1){
                     this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
                 }
+                console.log("start")
+                console.log(sectionStartTime);
+                console.log(this.noteValeu2Time(preBeat));
+                console.log(sectionLen);
+                this.registerSectionMetronome(this.selectedTimeSum + sectionStartTime, sectionBeats, elem[0].note == 0, preBeat);
+                sectionStartTime +=  sectionLen;
             });
+            this.selectedTimeSum += sectionStartTime;
         }
         this.timer.start();
+        if(!this.metronomeOn){
+            this.metronome.play();
+            this.metronomeOn = true;
+        }
     }
     stop(){
         this.timer.stop();
         this.stopNowPlayIndicator();
         this.indicatorShapes = [];
+        this.metronome.stopTick();
+        this.metronomeOn = false;
+        this.selectedTimeSum = 0;
     }
 
     private pushNowPlayIndicator(){
@@ -90,7 +129,32 @@ export class SLPract {
     }
 
     private noteValeu2Time (noteValue: number): number{
-        return (this.timeSignature.lower/noteValue)/(this.bpm/60)
+        if(noteValue == 0) return 0;
+        else return (this.timeSignature.lower/noteValue)/(this.bpm/60);
+    }
+
+    private registerSectionMetronome(startTime: number, sectionBeats: number, firstClick: boolean, preBeat?: number){
+        if(preBeat == NaN){
+            preBeat = 0;
+        }
+        let pre = this.timeSignature.upper/preBeat
+        if(pre == Infinity) pre = 0;
+        //Metronome click first beat on the section
+        if(firstClick) {
+            this.metronome.scheduleTick(startTime*1000, 'strong');
+            // console.log('Di')
+            // console.log(startTime)
+        }
+        else {
+            this.metronome.scheduleTick((startTime + this.noteValeu2Time(preBeat))*1000, 'normal');
+            // console.log('pre do')
+            // console.log(startTime + this.noteValeu2Time(preBeat))
+        }
+        for(let i = 1; i < Math.floor(sectionBeats - pre); i++){
+            this.metronome.scheduleTick((startTime + i * this.noteValeu2Time(this.timeSignature.upper) + this.noteValeu2Time(preBeat))*1000, 'normal')
+            // console.log('do')
+            // console.log(startTime + i * this.noteValeu2Time(this.timeSignature.upper) + this.noteValeu2Time(preBeat))
+        }
     }
 
     private setEvents(){

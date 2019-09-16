@@ -83,4 +83,4 @@ document.getElementById('playstream').addEventListener('click', () => {
     stream.play();
 })
 console.log(nt)
-let pt = new SLPract(nt, tabEditor);
+let pt = new SLPract(nt, tabEditor, beep);
