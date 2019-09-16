@@ -48,7 +48,6 @@ export class Timer{
     }
 
     start(systemTime: number = 0){
-        console.log(this.executeFuncs)
         if(this._running){
             return;
         }
