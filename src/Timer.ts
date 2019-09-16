@@ -1,6 +1,4 @@
-
-
-export class Ticker{
+export class Timer{
     _running: boolean = false;
     _systemTime: number = 0;
     lastTime: number = 0;
