@@ -142,7 +142,6 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "delete" || (<string>key).toLowerCase() === "backspace"){
                 if(this.selectedSVGNotes.length > 0){
                     for(let i = this.selectedSVGNotes.length -1; i >= 0; i--){
-                        console.log("delete " + this.selectedSVGNotes[i].section + " " + this.selectedSVGNotes[i].note)
                         this.controlTab.deleteNote(this.selectedSVGNotes[i].section, this.selectedSVGNotes[i].note);
                         this.controlTab.render();
                     }

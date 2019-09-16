@@ -87,7 +87,6 @@ export class SLTab {
     }
 
     setStringDataOfNote(section: number, note: number, string: number, data: number){
-        console.log(this.notes);
         if(string >=0 && string <= 5){
             this.notes[section][note][1][string] = data;
         }
@@ -183,14 +182,11 @@ export class SLTab {
                     && noteElements[i].blockGroup[j].y >=y1 
                     && noteElements[i].blockGroup[j].y <=y2){
                     selectedNoteIds.push(i);
-                    console.log(i);
                 }
             }
         }
-        console.log(selectedNoteIds);
         leftSelectedNote = Math.min(...selectedNoteIds);
         rightSelectedNote = Math.max(...selectedNoteIds);
-        console.log(noteElements.slice(leftSelectedNote, rightSelectedNote+1));
         return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
     endsSelect(head: number, tail: number){

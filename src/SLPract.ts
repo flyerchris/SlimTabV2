@@ -48,7 +48,6 @@ export class SLPract {
                 this.nowPlaySectionIndicator.remove();
             }
             sectionNotes.forEach((elem, index, self) =>{
-                console.log(index);
                 let sectionEnds = this.sectionTwoEnds(elem);
                 if(index == 0){
                     this.nowPlaySectionIndicator = this.controlTab.tabCanvas.layers.ui.createRect(sectionEnds.x1, sectionEnds.y1, sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1, 2, this.indicatorColor);
