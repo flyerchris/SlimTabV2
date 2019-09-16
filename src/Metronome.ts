@@ -49,7 +49,7 @@ export class Metronome {
         this.bpm = bpm;
     }
     scheduleTick(time: number, type: tickWeight = "normal"){ // time in milli second
-        let scheduleTime = this.currentTime + time;
+        let scheduleTime = this.currentTime * 1000 + time;
         this.scheduleOsc.push(this.makeSound(scheduleTime/1000));
     }
     play(){
