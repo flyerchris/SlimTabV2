@@ -48,6 +48,7 @@ export class Timer{
     }
 
     start(systemTime: number = 0){
+        console.log(this.executeFuncs)
         if(this._running){
             return;
         }
@@ -63,6 +64,10 @@ export class Timer{
             this.timerId = null;
         }
         this._running = false;
+        this._systemTime = 0;
+        this.lastTime = 0;
+        this.clearFuncs();
+        this.clearDelayFuncs();
     }
 
     update(){
@@ -97,7 +102,6 @@ export class Timer{
     }
     clearDelayFuncs(){
         this.executeFuncs = [];
-        clearTimeout(this.timerId);
     }
 
     private registerDelayP(func: Function, delay: number, time: number, loop: number){
