@@ -46,14 +46,10 @@ LiCAP.enumerate().then((devs)=>{
 
 //da.setSendDataCallBack(nt.instrumentNoteInput.bind(nt));
 
-let beep: Metronome = null;
+let beep: Metronome = new Metronome(120);
 let bs = 0;
 let beepEle = document.getElementById("metronome");
-
 beepEle.onclick = function(event){
-    if(!beep){
-        beep = new Metronome(120);
-    }
     if(bs == 0){
         beep.startTick();
         beepEle.style.background = "#e99415";

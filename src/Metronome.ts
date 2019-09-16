@@ -6,6 +6,7 @@ export class Metronome {
     private bpm: number = 120;
     private timeOffset = 0.05;
     private sound: AudioBuffer;
+    private currentTime: number = 0;
     constructor(bpm: number){
         this.audioContext = new AudioContext();
         if(bpm)this.bpm = bpm;
@@ -29,7 +30,7 @@ export class Metronome {
             }, cycleTime * 1000 - this.timeOffset*1000);
             this.makeSound(at);
             this.audioContext.resume();
-        }
+        }    
     }
     stopTick(){
         if(this.tickTimer < 0){
@@ -37,10 +38,20 @@ export class Metronome {
         }else{
             clearInterval(this.tickTimer);
         }
+        this.audioContext.suspend();
+        this.currentTime = this.audioContext.currentTime;
         this.tickTimer = null;
     }
     setBpm(bpm: number){
         this.bpm = bpm;
+    }
+    scheduleTick(time: number, type: string = "light"){ // time in milli second
+        this.stopTick();
+        let scheduleTime = this.currentTime + time;
+        this.makeSound(scheduleTime/1000);
+    }
+    play(){
+        this.audioContext.resume();
     }
     private tick(){
         let at = this.audioContext.currentTime;
