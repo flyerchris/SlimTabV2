@@ -37,6 +37,29 @@ export class SLEditor {
         this.dragNDropSection = this.controlTab.tabCanvas.layers.ui.createRect(0, 0, 0, 0, 0, "rgba(255, 50, 0, 0.6)");
         this.setEvents();
     }
+    get SVGNote(): SVGNote{
+        return this.selectedSVGNote;
+    }
+
+    get SelectedNotes():SVGNote[]{
+        return this.selectedSVGNotes;
+    }
+
+    undisplayIndicator(){
+        this.indicator.style = {display: "none"};
+        this.shadowIndicator.style = {display: "none"};
+        this.selectNotesIndicator.forEach((elem, index, self) =>{
+            elem.style = {display: "none"}
+        });
+    }
+
+    displayIndicator(){
+        this.indicator.style = {display: "unset"};
+        this.shadowIndicator.style = {display: "unset"};
+        this.selectNotesIndicator.forEach((elem, index, self) =>{
+            elem.style = {display: "unset"}
+        });
+    }
     private setEvents(){
         this.controlTab.on("noteclick", (section, note, string, position) => {
             this.setNoteClickEvent(section, note, string, position);
