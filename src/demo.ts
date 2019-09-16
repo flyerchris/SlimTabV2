@@ -6,6 +6,7 @@ import { Metronome } from "./Metronome"
 import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
 import { LiCAPStream } from "./LiCAPStream"
+import {SLPract} from "./SLPract"
 let nt = new SLTab();
 let data: section[] = [
     [// section
@@ -72,3 +73,5 @@ let stream = new LiCAPStream();
 document.getElementById('playstream').addEventListener('click', () => {
     stream.play();
 })
+console.log(nt)
+let pt = new SLPract(nt, tabEditor);
