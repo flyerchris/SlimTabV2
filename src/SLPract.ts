@@ -94,10 +94,6 @@ export class SLPract {
                 else if(index == self.length -1){
                     this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
                 }
-                console.log("start")
-                console.log(sectionStartTime);
-                console.log(this.noteValeu2Time(preBeat));
-                console.log(sectionLen);
                 this.registerSectionMetronome(this.selectedTimeSum + sectionStartTime, sectionBeats, elem[0].note == 0, preBeat);
                 sectionStartTime +=  sectionLen;
             });
@@ -116,6 +112,7 @@ export class SLPract {
         this.metronome.stopTick();
         this.metronomeOn = false;
         this.selectedTimeSum = 0;
+        this.editor.displayIndicator();
     }
 
     private pushNowPlayIndicator(){
