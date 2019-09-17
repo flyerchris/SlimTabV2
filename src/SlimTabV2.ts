@@ -555,7 +555,11 @@ export class SLTab {
             this.tabCanvas.layers.background.createLinker();
         }
         for(let i = 0; i < lenumber; i++){
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.background.linker[i], {display: "unset"});
             this.setLinkerData(this.tabCanvas.layers.background.linker[i], linkerData[i*2], linkerData[i*2+1]);
+        }
+        for(let i = lenumber; i < this.tabCanvas.layers.background.linker.length; i++){
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.background.linker[i], {display: "none"});
         }
     }
     private setLinkerData(linkElement:SVGElement, start: number[], end: number[]){
