@@ -33,7 +33,7 @@ export class SLPract {
     private selectedTimeSum = 0;
     private metronomeOn: boolean = false;
     private playIter: number = 0;
-    private maxPracticeTimes: number = 2
+    private maxPracticeTimes: number = 2;
 
     constructor(controlTab: SLTab, editor: SLEditor, metronome: Metronome){
         this.controlTab = controlTab;
@@ -81,7 +81,7 @@ export class SLPract {
                     let preSum: number = 0;
                     let firstSection: note[] = this.controlTab.getSectionData(elem[0].section);
                     for(let i = 0;i< elem[0].note; i++){
-                        preSum += this.timeSignature.lower/firstSection[i][0]
+                        preSum += this.timeSignature.lower/firstSection[i][0];
                     } 
                     if(preSum %1 != 0){
                         preBeat = this.timeSignature.lower/(1 - (preSum%1));
@@ -95,7 +95,7 @@ export class SLPract {
                 sectionLen += this.noteValeu2Time(thisNote[0]);
                 sectionBeats += this.timeSignature.lower/thisNote[0];
             });
-            sectionLenSum += sectionLen
+            sectionLenSum += sectionLen;
             sectionMetronomeBeats.push(sectionBeats);
             
             if(self.length == 1){
@@ -145,7 +145,7 @@ export class SLPract {
     }
 
     private pushNowPlayIndicator(){
-        let nextShape = this.indicatorShapes.shift()
+        let nextShape = this.indicatorShapes.shift();
         this.nowPlaySectionIndicator.setPos(nextShape.x, nextShape.y);
         this.nowPlaySectionIndicator.setShape(nextShape.width, nextShape.height);
     }
@@ -203,25 +203,25 @@ export class SLPract {
         let ret: Array<SVGNote[]> = [];
         for(let i = 0; i < uniqueSelectedSections.length; i++){
             let pushNotes = notes.filter(function(elem, index, self){
-                return elem.section == uniqueSelectedSections[i]
+                return elem.section == uniqueSelectedSections[i];
             });
-            ret.push(pushNotes)
+            ret.push(pushNotes);
         }
         return ret;
     }
 
     private sectionTwoEnds(section: SVGNote[]): {x1: number, y1: number, x2: number, y2: number}{
-        let strings = section[0].blockGroup.length
+        let strings = section[0].blockGroup.length;
         let leftTopEnd = {x: section[0].blockGroup[0].x, y: section[0].blockGroup[0].y};
-        let rightBotEnd = {x: section[section.length -1].blockGroup[strings -1].x, y: section[section.length -1].blockGroup[strings -1].y}
+        let rightBotEnd = {x: section[section.length -1].blockGroup[strings -1].x, y: section[section.length -1].blockGroup[strings -1].y};
         if(section[0].note == 0){
             let thisSection = this.controlTab.tabCanvas.layers.ui.sectionIndicator[section[0].section];
             leftTopEnd = {x: thisSection.x, y: thisSection.y};
         }
         if(section[section.length -1].note == this.controlTab.notes[section[section.length -1].section].length -1){
             let thisSection = this.controlTab.tabCanvas.layers.ui.sectionIndicator[section[section.length -1].section];
-            rightBotEnd = {x: thisSection.x + thisSection.width, y: thisSection.y + thisSection.height}
+            rightBotEnd = {x: thisSection.x + thisSection.width, y: thisSection.y + thisSection.height};
         }
-        return {x1: leftTopEnd.x, y1: leftTopEnd.y, x2: rightBotEnd.x, y2: rightBotEnd.y}
+        return {x1: leftTopEnd.x, y1: leftTopEnd.y, x2: rightBotEnd.x, y2: rightBotEnd.y};
     }
 }
