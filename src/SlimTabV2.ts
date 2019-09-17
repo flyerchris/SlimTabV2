@@ -218,6 +218,9 @@ export class SLTab {
         }
         return this.tabCanvas.layers.notes.noteElements.slice(head, tail+1);
     }
+    headToEndSelect(head: number){
+        return this.tabCanvas.layers.notes.noteElements.slice(head, this.tabCanvas.layers.notes.noteElements.length);
+    }
     render() {
         this.setAllLine();
         let [rawDataLength, firstChange, linkerData, sectionPosition] = this.calNoteRawData();
