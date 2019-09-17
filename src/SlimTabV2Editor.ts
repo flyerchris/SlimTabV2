@@ -37,7 +37,7 @@ export class SLEditor {
         this.dragNDropSection = this.controlTab.tabCanvas.layers.ui.createRect(0, 0, 0, 0, 0, "rgba(255, 50, 0, 0.6)");
         this.setEvents();
     }
-    get SVGNote(): SVGNote{
+    get selectedNote(): SVGNote{
         return this.selectedSVGNote;
     }
 
