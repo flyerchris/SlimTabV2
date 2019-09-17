@@ -59,7 +59,7 @@ export class SLTab {
         this.domElement = document.createElement("div");
         this.domElement.append(this.tabCanvas.domElement);
         this.domElement.addEventListener("keydown",(e) => {
-            let ka = [37, 38, 39, 40]; //left: 37, up: 38, right: 39, down: 40,
+            let ka = [32, 37, 38, 39, 40]; //space: 32, left: 37, up: 38, right: 39, down: 40,
             for(let i = 0; i < ka.length; i++){// why is there no "includes" methods in typescript = =?
                 if(ka[i] === e.keyCode){
                     e.preventDefault();
