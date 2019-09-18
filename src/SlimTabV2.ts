@@ -290,7 +290,10 @@ export class SLTab {
         if(position.length > this.tabCanvas.layers.ui.sectionIndicator.length){
             let nsNumber = position.length - this.tabCanvas.layers.ui.sectionIndicator.length;
             for(let i = 0; i < nsNumber; i++){
-                this.tabCanvas.layers.ui.createSectionIndicator();
+                let nc = this.tabCanvas.layers.ui.createSectionIndicator();
+                nc.domElement.addEventListener("mousemove",this.onSectionHover.bind(this));
+                nc.domElement.addEventListener("mouseout",this.onSectionHout.bind(this));
+                nc.domElement.addEventListener("click",this.onSectionClick.bind(this));
             }
         }
         for(let i = 0; i < position.length; i++){
@@ -301,9 +304,6 @@ export class SLTab {
             this.tabCanvas.layers.ui.sectionIndicator[i].width = width
             this.tabCanvas.layers.ui.sectionIndicator[i].height = height
             utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i].domElement,{"data-section": `${i}`});
-            this.tabCanvas.layers.ui.sectionIndicator[i].domElement.addEventListener("mousemove",this.onSectionHover.bind(this));
-            this.tabCanvas.layers.ui.sectionIndicator[i].domElement.addEventListener("mouseout",this.onSectionHout.bind(this));
-            this.tabCanvas.layers.ui.sectionIndicator[i].domElement.addEventListener("click",this.onSectionClick.bind(this));
             //utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
