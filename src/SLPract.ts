@@ -20,11 +20,8 @@ interface IndicatorShape{
 export class SLPract {
     private controlTab: SLTab;
     private editor: SLEditor;
-    private inputBlock: number = 0;
-    private nowPlaySection: number = 0;
     private nowPlaySectionIndicator: Rect;
     private bpm: number = 120;
-    private loadSheets: any[];
     private timeSignature: TimeSignature = {upper: 4, lower: 4};
     private isRepeat: boolean = false;
     private indicatorColor: string = "rgba(255, 209, 81, 0.6)";
@@ -35,6 +32,8 @@ export class SLPract {
     private playLag: number = 50/1000;
     private selectedTimeSum = 0;
     private metronomeOn: boolean = false;
+    private playIter: number = 0;
+    private maxPracticeTimes: number = 2;
 
     constructor(controlTab: SLTab, editor: SLEditor, metronome: Metronome){
         this.controlTab = controlTab;
@@ -44,65 +43,89 @@ export class SLPract {
     }
 
     play (){
+        if(this.playIter == this.maxPracticeTimes || (this.playIter>0 && !this.isRepeat)) {
+            this.stop();
+            return
+        }
+
+        let sectionNotes: SVGNote[][];
         if(this.editor.SelectedNotes.length>0){//If selected more then one note swap to repeat playing mode
             this.isRepeat = true;
-            let sectionNotes = this.sortBySectionId(this.editor.SelectedNotes);
-            let sectionLenSum: number = 0;
-            let sectionStartTime: number = 0;
-            this.editor.undisplayIndicator();
-
-            if(this.nowPlaySectionIndicator != null){
-                this.nowPlaySectionIndicator.remove();
-            }
-            sectionNotes.forEach((elem, index, self) =>{
-                let sectionEnds = this.sectionTwoEnds(elem);
-                let sectionBeats: number = 0;
-                let preBeat: number = 0;
-
-                if(index == 0){
-                    this.nowPlaySectionIndicator = this.controlTab.tabCanvas.layers.ui.createRect(sectionEnds.x1, sectionEnds.y1, sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1, 2, this.indicatorColor);
-                    //If the first note selected is note on the beat, calc a prebeat note value.
-                    if(elem[0].note != 0){
-                        let preSum: number = 0;
-                        let firstSection: note[] = this.controlTab.getSectionData(elem[0].section);
-                        for(let i = 0;i< elem[0].note; i++){
-                            preSum += this.timeSignature.upper/firstSection[i][0]
-                        } 
-                        if(preSum %1 != 0){
-                            preBeat = this.timeSignature.upper/(1 - (preSum%1));
-                        }
-                    }
-                    //The first click will be dragged at the metronome module, so give a lag to it
-                    if(!this.metronomeOn) sectionStartTime += this.playLag
-                }
-                let sectionLen: number = 0;
-                elem.forEach((note, i, s) =>{
-                    let thisNote: note = this.controlTab.getNoteData(note.section, note.note);
-                    sectionLen += this.noteValeu2Time(thisNote[0]);
-                    sectionBeats += this.timeSignature.upper/thisNote[0]
-                });
-
-                sectionLenSum += sectionLen
-                if(self.length == 1){
-                    this.timer.registerDelay(this.stopNowPlayIndicator.bind(this), sectionLen*1000, 1);
-                }
-                else if(self.length > 1 && index < self.length -1){
-                    let nextSectionEnds = this.sectionTwoEnds(self[index+1]);
-                    this.indicatorShapes.push({x: nextSectionEnds.x1, y: nextSectionEnds.y1, width: nextSectionEnds.x2 - nextSectionEnds.x1, height: nextSectionEnds.y2 - nextSectionEnds.y1});
-                    this.timer.registerDelay(this.pushNowPlayIndicator.bind(this), sectionLenSum*1000, 1);
-                }
-                else if(index == self.length -1){
-                    this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
-                }
-                console.log("start")
-                console.log(sectionStartTime);
-                console.log(this.noteValeu2Time(preBeat));
-                console.log(sectionLen);
-                this.registerSectionMetronome(this.selectedTimeSum + sectionStartTime, sectionBeats, elem[0].note == 0, preBeat);
-                sectionStartTime +=  sectionLen;
-            });
-            this.selectedTimeSum += sectionStartTime;
+            sectionNotes = this.sortBySectionId(this.editor.SelectedNotes);
         }
+        else{
+            this.isRepeat = false;
+            let selection = this.controlTab.headToEndSelect(this.controlTab.noteIndex(this.editor.selectedNote));
+            sectionNotes = this.sortBySectionId(selection);
+        }
+        let sectionLenSum: number = 0;
+        let preBeat: number = 0;
+        
+        let sectionMetronomeBeats: number[] = [];
+
+        this.editor.undisplayIndicator();
+
+        sectionNotes.forEach((elem, index, self) =>{
+            let sectionEnds = this.sectionTwoEnds(elem);
+            let sectionBeats: number = 0;
+            if(index == 0){
+                if(this.nowPlaySectionIndicator  == null){
+                    this.nowPlaySectionIndicator = this.controlTab.tabCanvas.layers.ui.createRect(sectionEnds.x1, sectionEnds.y1, sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1, 2, this.indicatorColor);
+                }
+                else{
+                    this.nowPlaySectionIndicator.setPos(sectionEnds.x1, sectionEnds.y1);
+                    this.nowPlaySectionIndicator.setShape(sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1);
+                }
+                //If the first note selected is note on the beat, calc a prebeat note value.
+                if(elem[0].note != 0){
+                    let preSum: number = 0;
+                    let firstSection: note[] = this.controlTab.getSectionData(elem[0].section);
+                    for(let i = 0;i< elem[0].note; i++){
+                        preSum += this.timeSignature.lower/firstSection[i][0];
+                    } 
+                    if(preSum %1 != 0){
+                        preBeat = this.timeSignature.lower/(1 - (preSum%1));
+                    }
+                }
+            }
+
+            let sectionLen: number = 0;
+            elem.forEach((note, i, s) =>{
+                let thisNote: note = this.controlTab.getNoteData(note.section, note.note);
+                sectionLen += this.noteValeu2Time(thisNote[0]);
+                sectionBeats += this.timeSignature.lower/thisNote[0];
+            });
+            sectionLenSum += sectionLen;
+            sectionMetronomeBeats.push(sectionBeats);
+            
+            if(self.length == 1){
+                this.timer.registerDelay(this.stopNowPlayIndicator.bind(this), sectionLen*1000, 1);
+            }
+            else if(self.length > 1 && index < self.length -1){
+                let nextSectionEnds = this.sectionTwoEnds(self[index+1]);
+                this.indicatorShapes.push({x: nextSectionEnds.x1, y: nextSectionEnds.y1, width: nextSectionEnds.x2 - nextSectionEnds.x1, height: nextSectionEnds.y2 - nextSectionEnds.y1});
+                this.timer.registerDelay(this.pushNowPlayIndicator.bind(this), sectionLenSum*1000, 1);
+            }
+            if(index == self.length -1){
+                this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
+            }
+        });
+        let sectionStartTime: number = 0;
+
+        if(this.playIter == 0){
+            let repeatTime = 1;
+            if(this.isRepeat) repeatTime =this.maxPracticeTimes;
+            for(let i = 0 ; i < repeatTime; i++){
+                sectionMetronomeBeats.forEach((el, i, self) =>{
+                    if(this.selectedTimeSum == 0 && sectionStartTime == 0) sectionStartTime += this.playLag;
+                    let sectionDuration = el * 60 /this.bpm;
+                    this.registerSectionMetronome(this.selectedTimeSum + sectionStartTime, el, sectionNotes[i][0].note == 0, preBeat);
+                    sectionStartTime += sectionDuration;
+                })
+            }
+        }
+        this.selectedTimeSum += sectionStartTime;
+        this.playIter += 1;
         this.timer.start();
         if(!this.metronomeOn){
             this.metronome.play();
@@ -116,16 +139,22 @@ export class SLPract {
         this.metronome.stopTick();
         this.metronomeOn = false;
         this.selectedTimeSum = 0;
+        this.playIter = 0;
+        this.editor.displayIndicator();
+        this.playSwitch = false;
     }
 
     private pushNowPlayIndicator(){
-        let nextShape = this.indicatorShapes.shift()
+        let nextShape = this.indicatorShapes.shift();
         this.nowPlaySectionIndicator.setPos(nextShape.x, nextShape.y);
         this.nowPlaySectionIndicator.setShape(nextShape.width, nextShape.height);
     }
 
     private stopNowPlayIndicator(){
-        this.nowPlaySectionIndicator.remove();
+        if(this.nowPlaySectionIndicator != null){
+            this.nowPlaySectionIndicator.remove();
+            this.nowPlaySectionIndicator = null;
+        }
     }
 
     private noteValeu2Time (noteValue: number): number{
@@ -137,23 +166,17 @@ export class SLPract {
         if(preBeat == NaN){
             preBeat = 0;
         }
-        let pre = this.timeSignature.upper/preBeat
+        let pre = this.timeSignature.lower/preBeat
         if(pre == Infinity) pre = 0;
         //Metronome click first beat on the section
         if(firstClick) {
             this.metronome.scheduleTick(startTime*1000, 'strong');
-            // console.log('Di')
-            // console.log(startTime)
         }
         else {
             this.metronome.scheduleTick((startTime + this.noteValeu2Time(preBeat))*1000, 'normal');
-            // console.log('pre do')
-            // console.log(startTime + this.noteValeu2Time(preBeat))
         }
         for(let i = 1; i < Math.floor(sectionBeats - pre); i++){
-            this.metronome.scheduleTick((startTime + i * this.noteValeu2Time(this.timeSignature.upper) + this.noteValeu2Time(preBeat))*1000, 'normal')
-            // console.log('do')
-            // console.log(startTime + i * this.noteValeu2Time(this.timeSignature.upper) + this.noteValeu2Time(preBeat))
+            this.metronome.scheduleTick((startTime + i * this.noteValeu2Time(this.timeSignature.lower) + this.noteValeu2Time(preBeat))*1000, 'normal')
         }
     }
 
@@ -182,25 +205,25 @@ export class SLPract {
         let ret: Array<SVGNote[]> = [];
         for(let i = 0; i < uniqueSelectedSections.length; i++){
             let pushNotes = notes.filter(function(elem, index, self){
-                return elem.section == uniqueSelectedSections[i]
+                return elem.section == uniqueSelectedSections[i];
             });
-            ret.push(pushNotes)
+            ret.push(pushNotes);
         }
         return ret;
     }
 
     private sectionTwoEnds(section: SVGNote[]): {x1: number, y1: number, x2: number, y2: number}{
-        let strings = section[0].blockGroup.length
+        let strings = section[0].blockGroup.length;
         let leftTopEnd = {x: section[0].blockGroup[0].x, y: section[0].blockGroup[0].y};
-        let rightBotEnd = {x: section[section.length -1].blockGroup[strings -1].x, y: section[section.length -1].blockGroup[strings -1].y}
+        let rightBotEnd = {x: section[section.length -1].blockGroup[strings -1].x, y: section[section.length -1].blockGroup[strings -1].y};
         if(section[0].note == 0){
             let thisSection = this.controlTab.tabCanvas.layers.ui.sectionIndicator[section[0].section];
             leftTopEnd = {x: thisSection.x, y: thisSection.y};
         }
         if(section[section.length -1].note == this.controlTab.notes[section[section.length -1].section].length -1){
             let thisSection = this.controlTab.tabCanvas.layers.ui.sectionIndicator[section[section.length -1].section];
-            rightBotEnd = {x: thisSection.x + thisSection.width, y: thisSection.y + thisSection.height}
+            rightBotEnd = {x: thisSection.x + thisSection.width, y: thisSection.y + thisSection.height};
         }
-        return {x1: leftTopEnd.x, y1: leftTopEnd.y, x2: rightBotEnd.x, y2: rightBotEnd.y}
+        return {x1: leftTopEnd.x, y1: leftTopEnd.y, x2: rightBotEnd.x, y2: rightBotEnd.y};
     }
 }

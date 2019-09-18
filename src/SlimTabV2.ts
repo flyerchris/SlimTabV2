@@ -210,13 +210,16 @@ export class SLTab {
         rightSelectedNote = Math.max(...selectedNoteIds);
         return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
-    endsSelect(head: number, tail: number){
+    endsSelect(head: number, tail: number): SVGNote[]{
         if(head > tail){
             let temp = tail;
             tail = head;
             head = temp;
         }
         return this.tabCanvas.layers.notes.noteElements.slice(head, tail+1);
+    }
+    headToEndSelect(head: number): SVGNote[]{
+        return this.tabCanvas.layers.notes.noteElements.slice(head, this.tabCanvas.layers.notes.noteElements.length);
     }
     render() {
         this.setAllLine();
