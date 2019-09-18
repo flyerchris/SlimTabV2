@@ -239,6 +239,17 @@ export class SLEditor {
                 this.drawMultiSelectRect(this.selectedSVGNotes);
             }
         });
+        this.controlTab.on("sectionhover", (section) => {
+            this.controlTab.tabCanvas.layers.ui.hightLightSection(section);
+        });
+        this.controlTab.on("sectionhout", (section) => {
+            this.controlTab.tabCanvas.layers.ui.hideSectionIndicator(section);
+        });
+        this.controlTab.on("sectionclick",(section) => {
+            this.controlTab.addNote(section, -1, [4, [-1, -1, -1, -1, -1,-1], null]);
+            this.controlTab.render();
+            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, 0);
+        });
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
         let np = this.controlTab.getNotePosition(section, note, string);
