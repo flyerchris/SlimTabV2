@@ -5,6 +5,8 @@ import {Timer} from "./Timer"
 import {SLEditor} from "./SlimTabV2Editor"
 import {Metronome} from "./Metronome"
 
+
+// Assume Licap will give timestamp, string(channel), note, style. 
 interface TimeSignature{
     upper: number,
     lower: number
@@ -15,6 +17,13 @@ interface IndicatorShape{
     y: number,
     width: number,
     height: number
+}
+
+interface midiInput{
+    time: number,
+    channel: number,
+    note: number,
+    style: string
 }
 
 export class SLPract {
@@ -34,6 +43,13 @@ export class SLPract {
     private metronomeOn: boolean = false;
     private playIter: number = 0;
     private maxPracticeTimes: number = 2;
+    
+    private openStringTunes: number[] = [0, 12, 24, 36, 48,60];
+    private practiceStartTime: number = 0;
+    private deviceStartTime: number = 0;
+    private collectPractContent: any[];
+
+    private devices: number[] = [];
 
     constructor(controlTab: SLTab, editor: SLEditor, metronome: Metronome){
         this.controlTab = controlTab;
@@ -99,12 +115,12 @@ export class SLPract {
             sectionMetronomeBeats.push(sectionBeats);
             
             if(self.length == 1){
-                this.timer.registerDelay(this.stopNowPlayIndicator.bind(this), sectionLen*1000, 1);
+                this.timer.registerDelay(this.stopNowPlaySectionIndicator.bind(this), sectionLen*1000, 1);
             }
             else if(self.length > 1 && index < self.length -1){
                 let nextSectionEnds = this.sectionTwoEnds(self[index+1]);
                 this.indicatorShapes.push({x: nextSectionEnds.x1, y: nextSectionEnds.y1, width: nextSectionEnds.x2 - nextSectionEnds.x1, height: nextSectionEnds.y2 - nextSectionEnds.y1});
-                this.timer.registerDelay(this.pushNowPlayIndicator.bind(this), sectionLenSum*1000, 1);
+                this.timer.registerDelay(this.pushNowPlaySectionIndicator.bind(this), sectionLenSum*1000, 1);
             }
             if(index == self.length -1){
                 this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
@@ -134,7 +150,7 @@ export class SLPract {
     }
     stop(){
         this.timer.stop();
-        this.stopNowPlayIndicator();
+        this.stopNowPlaySectionIndicator();
         this.indicatorShapes = [];
         this.metronome.stopTick();
         this.metronomeOn = false;
@@ -144,13 +160,17 @@ export class SLPract {
         this.playSwitch = false;
     }
 
-    private pushNowPlayIndicator(){
+    bindDevice(){
+
+    }
+
+    private pushNowPlaySectionIndicator(){
         let nextShape = this.indicatorShapes.shift();
         this.nowPlaySectionIndicator.setPos(nextShape.x, nextShape.y);
         this.nowPlaySectionIndicator.setShape(nextShape.width, nextShape.height);
     }
 
-    private stopNowPlayIndicator(){
+    private stopNowPlaySectionIndicator(){
         if(this.nowPlaySectionIndicator != null){
             this.nowPlaySectionIndicator.remove();
             this.nowPlaySectionIndicator = null;
