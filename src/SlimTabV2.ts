@@ -59,7 +59,7 @@ export class SLTab {
         this.domElement = document.createElement("div");
         this.domElement.append(this.tabCanvas.domElement);
         this.domElement.addEventListener("keydown",(e) => {
-            let ka = [37, 38, 39, 40]; //left: 37, up: 38, right: 39, down: 40,
+            let ka = [32, 37, 38, 39, 40]; //space: 32, left: 37, up: 38, right: 39, down: 40,
             for(let i = 0; i < ka.length; i++){// why is there no "includes" methods in typescript = =?
                 if(ka[i] === e.keyCode){
                     e.preventDefault();
@@ -210,13 +210,16 @@ export class SLTab {
         rightSelectedNote = Math.max(...selectedNoteIds);
         return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
-    endsSelect(head: number, tail: number){
+    endsSelect(head: number, tail: number): SVGNote[]{
         if(head > tail){
             let temp = tail;
             tail = head;
             head = temp;
         }
         return this.tabCanvas.layers.notes.noteElements.slice(head, tail+1);
+    }
+    headToEndSelect(head: number): SVGNote[]{
+        return this.tabCanvas.layers.notes.noteElements.slice(head, this.tabCanvas.layers.notes.noteElements.length);
     }
     render() {
         this.setAllLine();
@@ -444,16 +447,18 @@ export class SLTab {
             });
         }
         if(firstChange > 0)firstChange -=1;
-        for(let i = firstChange; i < dataLength; i++){
-            utils.setStyle(noteElement[i].domelement,{ display: "unset"});
-            if(i != data.length - 1){
-                if(data[i+1].x > data[i].x){
-                    this.setNoteElementData(noteElement[i], data[i], data[i + 1], (data[i+1].x - data[i].x) * 0.7);
+        if(firstChange >= 0){
+            for(let i = firstChange; i < dataLength; i++){
+                utils.setStyle(noteElement[i].domelement,{ display: "unset"});
+                if(i != data.length - 1){
+                    if(data[i+1].x > data[i].x){
+                        this.setNoteElementData(noteElement[i], data[i], data[i + 1], (data[i+1].x - data[i].x) * 0.7);
+                    }else{
+                        this.setNoteElementData(noteElement[i], data[i], data[i + 1], 30);
+                    }
                 }else{
-                    this.setNoteElementData(noteElement[i], data[i], data[i + 1], 30);
+                    this.setNoteElementData(noteElement[i], data[i], nullData, 30);
                 }
-            }else{
-                this.setNoteElementData(noteElement[i], data[i], nullData, 30);
             }
         }
         for(let i = dataLength; i < noteElement.length; i++){
@@ -552,7 +557,11 @@ export class SLTab {
             this.tabCanvas.layers.background.createLinker();
         }
         for(let i = 0; i < lenumber; i++){
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.background.linker[i], {display: "unset"});
             this.setLinkerData(this.tabCanvas.layers.background.linker[i], linkerData[i*2], linkerData[i*2+1]);
+        }
+        for(let i = lenumber; i < this.tabCanvas.layers.background.linker.length; i++){
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.background.linker[i], {display: "none"});
         }
     }
     private setLinkerData(linkElement:SVGElement, start: number[], end: number[]){

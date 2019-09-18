@@ -7,6 +7,7 @@ export class Timer{
     timerId: number = null;
     executeFuncs: Array<ExecuteValue> = [];
 
+
     constructor(){}
 
     searchIndex(time: number){
@@ -59,7 +60,9 @@ export class Timer{
 
     stop(){
         if(this.timerId){
+            clearTimeout(this.timerId - 1);
             clearTimeout(this.timerId);
+            clearTimeout(this.timerId + 1);
             this.timerId = null;
         }
         this._running = false;
@@ -70,7 +73,7 @@ export class Timer{
     }
 
     update(){
-        let currentTime: number = new Date().getTime();
+        let currentTime: number = new Date().getTime(); 
         let delay: number = currentTime - this.lastTime;
         this._systemTime += delay;
         this.funcs.forEach((value: Function) =>{
@@ -78,7 +81,8 @@ export class Timer{
         });
         this.executeFunc();
         this.lastTime =currentTime;
-        this.timerId = setTimeout(this.update.bind(this), this.delay);
+        if(this._running)
+            this.timerId = setTimeout(this.update.bind(this), this.delay);
     }
 
     executeFunc(){
