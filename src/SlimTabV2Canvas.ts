@@ -706,11 +706,16 @@ class UILayer extends Layer {
         utils.setAttributes(this.domElement,{"data-layer": "UILayer"})
     }
     createSectionIndicator(){
-        let newSquare = this.createRect(0, 0, 0, 0, 0,"rgba(0, 255, 255, 0.13)");
-        newSquare.style = {display: "none"};
+        let newSquare = this.createRect(0, 0, 0, 0, 0,"rgba(0, 255, 255, 0)");
         //utils.setAttributes(newSquare, {style: "display: none"});
         this.sectionIndicator.push(newSquare);
         return newSquare;
+    }
+    hightLightSection(section: number){
+        utils.setAttributes(this.sectionIndicator[section].domElement, {fill: "rgba(0, 255, 255, 0.13)"});
+    }
+    hideSectionIndicator(section: number){
+        utils.setAttributes(this.sectionIndicator[section].domElement, {fill: "rgba(0, 255, 255, 0)"});
     }
 }
 
@@ -738,7 +743,7 @@ export class SLLayer extends Layers{
         this.ui = new UILayer();
     }
     get flattened(): Layer[] {
-        return [this.background, this.ui, this.sheet, this.notes, this.foreground];
+        return [this.background, this.sheet, this.ui, this.notes, this.foreground];
     }
 }
 

@@ -23,6 +23,9 @@ interface eventCallBackInterface {
     mousedown: (x: number, y: number) => any;
     mousemove: (x: number, y: number) => any;
     mouseup: (x: number, y: number) => any;
+    sectionhover: (section: number) => any;
+    sectionhout: (section: number) => any;
+    sectionclick: (section: number) => any;
 }
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
@@ -80,7 +83,10 @@ export class SLTab {
             "mousedown", 
             "mousemove", 
             "mouseup",
-            "rightclick"
+            "rightclick",
+            "sectionhover",
+            "sectionhout",
+            "sectionclick",
         ]);
         this.tabCanvas.domElement.addEventListener("focus", ()=>{});
         this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
@@ -122,7 +128,11 @@ export class SLTab {
             section = this.notes.length;
             this.notes.push([]);
         }
-        this.notes[section].splice(note, 0, data);
+        if(note === -1){
+            this.notes[section].splice(this.notes[section].length, 0, data);
+        }else{
+            this.notes[section].splice(note, 0, data);
+        }
     }
 
     
@@ -290,6 +300,10 @@ export class SLTab {
             this.tabCanvas.layers.ui.sectionIndicator[i].y = position[i][0][1]
             this.tabCanvas.layers.ui.sectionIndicator[i].width = width
             this.tabCanvas.layers.ui.sectionIndicator[i].height = height
+            utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i].domElement,{"data-section": `${i}`});
+            this.tabCanvas.layers.ui.sectionIndicator[i].domElement.addEventListener("mousemove",this.onSectionHover.bind(this));
+            this.tabCanvas.layers.ui.sectionIndicator[i].domElement.addEventListener("mouseout",this.onSectionHout.bind(this));
+            this.tabCanvas.layers.ui.sectionIndicator[i].domElement.addEventListener("click",this.onSectionClick.bind(this));
             //utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
@@ -447,16 +461,18 @@ export class SLTab {
             });
         }
         if(firstChange > 0)firstChange -=1;
-        for(let i = firstChange; i < dataLength; i++){
-            utils.setStyle(noteElement[i].domelement,{ display: "unset"});
-            if(i != data.length - 1){
-                if(data[i+1].x > data[i].x){
-                    this.setNoteElementData(noteElement[i], data[i], data[i + 1], (data[i+1].x - data[i].x) * 0.7);
+        if(firstChange >= 0){
+            for(let i = firstChange; i < dataLength; i++){
+                utils.setStyle(noteElement[i].domelement,{ display: "unset"});
+                if(i != data.length - 1){
+                    if(data[i+1].x > data[i].x){
+                        this.setNoteElementData(noteElement[i], data[i], data[i + 1], (data[i+1].x - data[i].x) * 0.7);
+                    }else{
+                        this.setNoteElementData(noteElement[i], data[i], data[i + 1], 30);
+                    }
                 }else{
-                    this.setNoteElementData(noteElement[i], data[i], data[i + 1], 30);
+                    this.setNoteElementData(noteElement[i], data[i], nullData, 30);
                 }
-            }else{
-                this.setNoteElementData(noteElement[i], data[i], nullData, 30);
             }
         }
         for(let i = dataLength; i < noteElement.length; i++){
@@ -624,5 +640,14 @@ export class SLTab {
     }
     private onMouseRightClick(ev: MouseEvent){
         this.callbacks["rightclick"].callAll(Number(ev.x), Number(ev.y));
+    }
+    private onSectionHover(ev: MouseEvent){
+        this.callbacks["sectionhover"].callAll(Number((ev.currentTarget as SVGElement).dataset.section));
+    }
+    private onSectionHout(ev: MouseEvent){
+        this.callbacks["sectionhout"].callAll(Number((ev.currentTarget as SVGElement).dataset.section));
+    }
+    private onSectionClick(ev: MouseEvent){
+        this.callbacks["sectionclick"].callAll(Number((ev.currentTarget as SVGElement).dataset.section));
     }
 }
