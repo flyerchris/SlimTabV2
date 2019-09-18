@@ -11,18 +11,8 @@ let nt = new SLTab();
 let data: section[] = [
     [// section
         // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
-        [4, [3, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
-        [8, [-1, 5, 2, -1, -1, -1], null],
+        
     ],
-    [
-        [8, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
-        [8, [-1, 5, 2, -1, -1, -1], null],
-        [8, [-1, 5, 2, -1, -1, -1], null],
-    ]
 ];
 nt.setData(data);
 let tabEditor = new SLEditor(nt);
@@ -45,7 +35,8 @@ LiCAP.enumerate().then((devs)=>{
     }
 });
 
-//da.addDataListener((data: note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
+da.addDataListener((data: note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
+
 
 let beep: Metronome = new Metronome(120);
 let bs = 0;
@@ -66,8 +57,8 @@ beepEle.onclick = function(event){
  (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);};
  (window as any).gx = () => {clearInterval(s);}
 //s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);
-nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
-nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null], 0, 2);
+//nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
+//nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null], 0, 2);
 
 
 function pad(num: string, size: number){ return ('000000000' + num).substr(-size); }
