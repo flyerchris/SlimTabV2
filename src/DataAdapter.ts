@@ -27,7 +27,7 @@ export class DataAdapter{
     private packNote(){
         let notes = [-1, -1, -1, -1, -1, -1];
         for(let i = 0; i < this.rawData.length; i++){
-            notes[this.rawData[i][0]] = 3;
+            notes[this.rawData[i][0]] = this.rawData[i][1];
         }
         if(this.noteRawData){
             let duration = this.rawData[0][2] - this.preTime;
@@ -39,7 +39,9 @@ export class DataAdapter{
                 let bl = Math.pow(2, Math.ceil(l2 - 0.5));
                 this.noteRawData[0] = this.lengthPerBeat * bl;
             }
+
             this.callbacks["data"].callAll(this.noteRawData);
+
         }
         this.preTime = this.rawData[0][2];
         this.noteRawData = [8, notes, null];
