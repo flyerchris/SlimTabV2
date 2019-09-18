@@ -106,7 +106,7 @@ export class SLPract {
                 this.indicatorShapes.push({x: nextSectionEnds.x1, y: nextSectionEnds.y1, width: nextSectionEnds.x2 - nextSectionEnds.x1, height: nextSectionEnds.y2 - nextSectionEnds.y1});
                 this.timer.registerDelay(this.pushNowPlayIndicator.bind(this), sectionLenSum*1000, 1);
             }
-            else if(index == self.length -1){
+            if(index == self.length -1){
                 this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
             }
         });
@@ -151,8 +151,10 @@ export class SLPract {
     }
 
     private stopNowPlayIndicator(){
-        this.nowPlaySectionIndicator.remove();
-        this.nowPlaySectionIndicator = null;
+        if(this.nowPlaySectionIndicator != null){
+            this.nowPlaySectionIndicator.remove();
+            this.nowPlaySectionIndicator = null;
+        }
     }
 
     private noteValeu2Time (noteValue: number): number{
