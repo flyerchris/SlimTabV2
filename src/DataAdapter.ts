@@ -1,16 +1,19 @@
+import { Callbacks } from "./utils"
+import { note } from "./SlimTabV2Types"
 export class DataAdapter{
     private rawData: [number, number, number][] = [];
     private preTime: number;
-    private noteRawData: [number, number[], any];
+    private noteRawData: note;
     private receiveInterval:number;
     private spb: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
     private lengthPerBeat: number = 4;
-    private sendData: Function;
+    private callbacks: Callbacks;
     
     constructor(bpm?: number){
         if(bpm){
             this.spb = 60 *1000 / bpm;
         }
+        this.callbacks = new Callbacks(["data"]);
     }
     receiveData(stringIndex: number, note: number, amp: number, time: number){
         this.rawData.push([stringIndex, note, time]);
@@ -18,8 +21,8 @@ export class DataAdapter{
             this.receiveInterval = setTimeout(this.packNote.bind(this),10);
         }
     }
-    setSendDataCallBack(cb: Function){
-        this.sendData = cb;
+    addDataListener(cb: (data: note) => any){
+        this.callbacks["data"].push(cb);
     }
     private packNote(){
         let notes = [-1, -1, -1, -1, -1, -1];
@@ -36,7 +39,7 @@ export class DataAdapter{
                 let bl = Math.pow(2, Math.ceil(l2 - 0.5));
                 this.noteRawData[0] = this.lengthPerBeat * bl;
             }
-            this.sendData(-1, this.noteRawData);
+            this.callbacks["data"].callAll(this.noteRawData);
         }
         this.preTime = this.rawData[0][2];
         this.noteRawData = [8, notes, null];

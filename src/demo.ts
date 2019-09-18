@@ -1,4 +1,4 @@
-import { section } from "./SlimTabV2Types"
+import { section, note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2";
 import { DataAdapter } from "./DataAdapter"
 import { LiCAP } from "./LiCAP"
@@ -45,7 +45,7 @@ LiCAP.enumerate().then((devs)=>{
     }
 });
 
-//da.setSendDataCallBack(nt.instrumentNoteInput.bind(nt));
+//da.addDataListener((data: note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
 
 let beep: Metronome = new Metronome(120);
 let bs = 0;
