@@ -25,7 +25,7 @@ export class DataAdapter{
     addPackListener(cb: (data: note) => any){
         this.callbacks["packNote"].push(cb);
     }
-    addDataListener(cb: () => any){
+    addDataListener(cb: (string: number, note: number, time: number) => any){
         this.callbacks["data"].push(cb);
     }
     getTime(): number{
