@@ -35,7 +35,7 @@ LiCAP.enumerate().then((devs)=>{
     }
 });
 
-da.addDataListener((data: note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
+da.addPackListener((data: note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
 
 
 let beep: Metronome = new Metronome(120);
