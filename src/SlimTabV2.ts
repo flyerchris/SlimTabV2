@@ -316,8 +316,7 @@ export class SLTab {
         let sectionIndicator: [number[], number[]][] = [];
         let seperaterLength = 1 / 4;
         let accumulatedLength = 0;
-        this.rawData.splice(0, 0, {x: 0, y: 0, length: 0, blocks: null, tail: null, section: 0, note: 0});// give a initial data, remove it at the end of function
-        let ci = 1;
+        let ci = 0;
         let first = -1;
 
         for(let s = 0; s < this.notes.length; s++){ // section
@@ -353,15 +352,19 @@ export class SLTab {
                 let noteLength = this.lengthPerBeat / note[0];
                 let tail: number[];
                 if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a beat or the note's length equals to a beat
-                    tail = this.calculateTail(this.rawData[ci - 1].length, note[0], -1, beatLength);
+                    let cdataLLength = 0;
+                    if(ci > 0) cdataLLength = this.rawData[ci - 1].length;
+                    tail = this.calculateTail(cdataLLength, note[0], -1, beatLength);
                     accumulatedLength = 0;
                 }else{
-                    tail = this.calculateTail(this.rawData[ci - 1].length, note[0], accumulatedLength, beatLength);
+                    let cdataLLength = 0;
+                    if(ci > 0) cdataLLength = this.rawData[ci - 1].length;
+                    tail = this.calculateTail(cdataLLength, note[0], accumulatedLength, beatLength);
                     accumulatedLength += noteLength / this.lengthPerBeat;
                 }
                 let step = beatLength * this.lengthPerBeat / note[0];
                 let updateNote = this.updateRawData(ci, x, y, note[0], note[1], tail, s, i);
-                if(updateNote>=0 && first < 0)first = updateNote - 1;// ci start from 1
+                if(updateNote>=0 && first < 0)first = updateNote;
                 ci++;
                 if(note[2] === "linkStart" || note[2] === "linkEnd"){
                     linker.push([x,y]);
@@ -370,8 +373,6 @@ export class SLTab {
             }
             x = nx;
         }
-        this.rawData.shift();
-        ci--;
         return [ci, first, linker, sectionIndicator];// ci = totoal section number, first = frist note that data has changed
     }
 
@@ -501,9 +502,9 @@ export class SLTab {
             e.blockGroup[i].extendRect.width = xlength;
             utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
         }
-        e.tail8.setPosition(x,y + this.stringPadding * 5 + 15);
-        e.tail16.setPosition(x,y + this.stringPadding * 5 + 10);
-        e.tail32.setPosition(x,y + this.stringPadding * 5 + 5);
+        e.tail8.setPosition(x + 0.4,y + this.stringPadding * 5 + 14);
+        e.tail16.setPosition(x + 0.4,y + this.stringPadding * 5 + 10);
+        e.tail32.setPosition(x + 0.4,y + this.stringPadding * 5 + 6);
         e.section = sectionIndex;
         e.note = noteIndex;
         e.line = ln;
@@ -527,11 +528,13 @@ export class SLTab {
             }
         }
         if(ap){
-            if(noteLength == 8){
+            if(noteLength <=4){
+
+            }else if(noteLength <= 8){
                 e.tail8.show();
-            }else if(noteLength == 16){
+            }else if(noteLength <= 16){
                 e.tail16.show();
-            }else if(noteLength == 32){
+            }else if(noteLength <= 32){
                 e.tail32.show();
             }
             e.lineGroup[1].x2 = x;
