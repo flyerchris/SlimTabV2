@@ -96,6 +96,9 @@ export class SLPract {
             this.stop();
             return
         }
+        if(this.playIter > 0){
+            let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
+        }
 
         let sectionNotes: SVGNote[][];
         if(this.editor.SelectedNotes.length>0){//If selected more then one note swap to repeat playing mode
@@ -199,7 +202,6 @@ export class SLPract {
         this.playFlag = false;
 
         let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
-        console.log(result);
     }
 
     bindDevice(){
@@ -314,13 +316,9 @@ export class SLPract {
 
     private practiceAnalyze(input: MidiInput[], devicePlayTime: number, deviceEndTime: number): AnalyzeResult[]{
         let loadedSheetMusic: NoteInfo[] = this.loadSheetNote();
-        console.log(devicePlayTime - this.deviceStartTime)
-        console.log(deviceEndTime - this.deviceStartTime)
-        console.log(loadedSheetMusic)
         let sheetMusic: NoteInfo[] = loadedSheetMusic.filter((elem, index, self) =>{
             return elem.noteTime>= devicePlayTime - this.deviceStartTime && elem.noteTime <= deviceEndTime -this.deviceStartTime;
         });
-        console.log(sheetMusic)
 
 
         let rets: AnalyzeResult[] = [];
@@ -330,7 +328,6 @@ export class SLPract {
                 return
             }
             let mappedNote = this.timeNoteMapping(elem.time - this.deviceStartTime, sheetMusic);
-            console.log(mappedNote)
             let timeResult: TimeResult;
             let noteResult: boolean;
 
@@ -369,12 +366,8 @@ export class SLPract {
 
     private timeNoteMapping(time: number, sheetMusic: NoteInfo[]): number{
         let lastTime = 0;
-        console.log("input " + time);
         for(let i = 0; i < sheetMusic.length; i++){
-            console.log("last time " + lastTime)
-            console.log("note time " + sheetMusic[i].noteTime)
             if(time > lastTime && time <= sheetMusic[i].noteTime){
-                console.log('in')
                 if(Math.abs(time - lastTime) > Math.abs(time - sheetMusic[i].noteTime)){
                     return i;
                 }
