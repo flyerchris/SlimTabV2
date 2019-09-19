@@ -290,7 +290,7 @@ export class SLEditor {
             let lengthArray = [1, 2, 4, 8, 16, 32];
             let selectData = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
             for(let i = 1 - factor ; i < lengthArray.length - factor; i++){
-                if(lengthArray[i] === selectData[0]){
+                if(lengthArray[i] >= selectData[0]){
                     selectData[0] = lengthArray[i - 1 + factor * 2];
                     this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, selectData);
                     this.controlTab.render();

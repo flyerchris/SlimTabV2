@@ -577,6 +577,7 @@ export class Text extends SVGShape{
 
 class NoteLayer extends Layer {
     noteElements: SVGNote[] = [];
+    dot: Ellipse[] = [];
     constructor(){
         super();
         this.domElement.innerHTML = `
