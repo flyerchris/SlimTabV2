@@ -245,10 +245,17 @@ export class SLEditor {
         this.controlTab.on("sectionhout", (section) => {
             this.controlTab.tabCanvas.layers.ui.hideSectionIndicator(section);
         });
-        this.controlTab.on("sectionclick",(section) => {
+        this.controlTab.on("sectionclick",(section, string) => {
+            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
+            if(this.selectedBlock &&
+            this.selectedBlock.section === section && 
+            this.selectedBlock.note === this.controlTab.getNoteNumberOfSection(section) - 1 &&
+            this.controlTab.isBlankNote(section, this.selectedBlock.note)){
+                return;
+            }
             this.controlTab.addNote(section, -1, [4, [-1, -1, -1, -1, -1,-1], null]);
             this.controlTab.render();
-            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, 0);
+            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
         });
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{

@@ -25,7 +25,7 @@ interface eventCallBackInterface {
     mouseup: (x: number, y: number) => any;
     sectionhover: (section: number) => any;
     sectionhout: (section: number) => any;
-    sectionclick: (section: number) => any;
+    sectionclick: (section: number, string: number) => any;
 }
 export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
@@ -163,6 +163,7 @@ export class SLTab {
             sum += this.notes[i].length;
         }
         sum += note;
+        if(!this.tabCanvas.layers.notes.noteElements[sum]) return [-1, -1];
         let sel = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string];
         return [sel.x, sel.y];
     }
@@ -648,6 +649,9 @@ export class SLTab {
         this.callbacks["sectionhout"].callAll(Number((ev.currentTarget as SVGElement).dataset.section));
     }
     private onSectionClick(ev: MouseEvent){
-        this.callbacks["sectionclick"].callAll(Number((ev.currentTarget as SVGElement).dataset.section));
+        let offsetY = ev.offsetY;
+        let y = Number((<SVGElement>ev.currentTarget).getAttribute("y"));
+        let string = Math.floor((offsetY - y)/this.stringPadding);
+        this.callbacks["sectionclick"].callAll(Number((ev.currentTarget as SVGElement).dataset.section), string);
     }
 }
