@@ -431,7 +431,7 @@ export class SLTab {
             if(noteLength <= 4){
 
             }else if(noteLength <= 8){
-                if(lastNoteLength == 8 || lastNoteLength == 16 || lastNoteLength == 32){
+                if(lastNoteLength >= 8){
                     return [step, 0, 0];
                 }
             }else if(noteLength <= 16){
@@ -620,8 +620,8 @@ export class SLTab {
         }
         for(let i = 0; i < lenumber; i++){
             utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.notes.dot[i].domElement, {display: "unset"});
-            this.tabCanvas.layers.notes.dot[i].cx = dotData[i][0] + 8;
-            this.tabCanvas.layers.notes.dot[i].cy = dotData[i][1] + 6 + this.stringPadding * 5;
+            this.tabCanvas.layers.notes.dot[i].cx = dotData[i][0] + 12;
+            this.tabCanvas.layers.notes.dot[i].cy = dotData[i][1] + 12 + this.stringPadding * 5;
         }
         for(let i = lenumber; i < this.tabCanvas.layers.notes.dot.length; i++){
             utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.notes.dot[i].domElement, {display: "none"});
