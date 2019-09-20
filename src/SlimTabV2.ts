@@ -418,30 +418,38 @@ export class SLTab {
         let basicLength = 8;
         if(accumulatedLength == -1)basicLength = -8;
         if(accumulatedLength == 0){ // start of a seperate note
-            if(noteLength == 8){
+            if(noteLength <= 4){
+
+            }else if(noteLength <= 8){
                 return [basicLength, 0, 0];
-            }else if(noteLength == 16){
+            }else if(noteLength <= 16){
                 return [basicLength, basicLength, 0];
-            }else if(noteLength == 32){
+            }else if(noteLength <= 32){
                 return [basicLength, basicLength, basicLength];
             }
         }else{
-            if(noteLength == 8){
+            if(noteLength <= 4){
+
+            }else if(noteLength <= 8){
                 if(lastNoteLength == 8 || lastNoteLength == 16 || lastNoteLength == 32){
                     return [step, 0, 0];
                 }
-            }else if(noteLength == 16){
-                if(lastNoteLength == 8 ){
+            }else if(noteLength <= 16){
+                if(lastNoteLength <= 4){
+
+                }else if(lastNoteLength <= 8 ){
                     return [step, basicLength, 0];
-                }else if(lastNoteLength == 16 || lastNoteLength == 32){
+                }else if(lastNoteLength <= 32){
                     return [step, step, 0];
                 }
-            }else if(noteLength == 32){
-                if(lastNoteLength == 8){
+            }else if(noteLength <= 32){
+                if(lastNoteLength <= 4){
+
+                }else if(lastNoteLength <= 8){
                     return [step, basicLength, basicLength];
-                }else if(lastNoteLength == 16){
+                }else if(lastNoteLength <= 16){
                     return [step, step, basicLength];
-                }else if(lastNoteLength == 32){
+                }else if(lastNoteLength <= 32){
                     return [step, step, step];
                 }
             }
@@ -612,8 +620,8 @@ export class SLTab {
         }
         for(let i = 0; i < lenumber; i++){
             utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.notes.dot[i].domElement, {display: "unset"});
-            this.tabCanvas.layers.notes.dot[i].cx = dotData[i][0] + 15;
-            this.tabCanvas.layers.notes.dot[i].cy = dotData[i][1] + 15  + this.stringPadding * 5;
+            this.tabCanvas.layers.notes.dot[i].cx = dotData[i][0] + 8;
+            this.tabCanvas.layers.notes.dot[i].cy = dotData[i][1] + 6 + this.stringPadding * 5;
         }
         for(let i = lenumber; i < this.tabCanvas.layers.notes.dot.length; i++){
             utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.notes.dot[i].domElement, {display: "none"});
