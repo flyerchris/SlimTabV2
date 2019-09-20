@@ -14,7 +14,7 @@ interface caculatedNoteData{
 //type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 interface eventCallBackInterface {
     noteclick: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
-    keydown: (key: string) => any;
+    keydown: (key: string, keyCode: number) => any;
     mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
     mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
     noteshiftclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
@@ -646,7 +646,7 @@ export class SLTab {
         }
     }
     private onKeydown(ev: KeyboardEvent){
-        this.callbacks["keydown"].callAll(ev.key);
+        this.callbacks["keydown"].callAll(ev.key, ev.keyCode);
     }
     private onMouseOverNote(ev: MouseEvent){
         let section = Number((ev.currentTarget as SVGGElement).dataset.section);

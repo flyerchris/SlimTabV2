@@ -72,7 +72,7 @@ export class SLEditor {
             this.selectedSVGNotes = this.controlTab.endsSelect(this.controlTab.noteIndex(this.selectedSVGNote), this.controlTab.noteIndex(this.controlTab.getSVGNote(section, note)))
             this.drawMultiSelectRect(this.selectedSVGNotes);
         });
-        this.controlTab.on("keydown", (key) => {
+        this.controlTab.on("keydown", (key, keyCode) => {
             if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
                 if(this.selectedBlock){
                     let tb = this.inputBlock * 10 + Number(key)
@@ -156,6 +156,17 @@ export class SLEditor {
             }
             if((<string>key).toLowerCase() === "-"){
                 this.changeNoteLength("-");
+            }
+            if(keyCode === 110){ // press "."
+                if(this.selectedBlock){
+                    let data = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
+                    if(Math.floor(data[0]) === data[0]){
+                        data[0] = 2 * data[0] / 3;
+                        this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, data);
+                        this.controlTab.render();
+                        this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
+                    }
+                }
             }
         });
         this.controlTab.on("mouseovernote", (section, note, string, position) => {
