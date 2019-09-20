@@ -246,6 +246,10 @@ export class SLEditor {
             this.controlTab.tabCanvas.layers.ui.hideSectionIndicator(section);
         });
         this.controlTab.on("sectionclick",(section, string) => {
+            if(this.selectedBlock && this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note) && this.controlTab.getNoteNumberOfSection(this.selectedBlock.section)>1){
+                this.controlTab.deleteNote(this.selectedBlock.section , this.selectedBlock.note);
+                this.controlTab.render();
+            }
             this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
             if(this.selectedBlock &&
             this.selectedBlock.section === section && 
