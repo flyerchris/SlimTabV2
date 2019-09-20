@@ -157,7 +157,7 @@ export class SLEditor {
             if((<string>key).toLowerCase() === "-"){
                 this.changeNoteLength("-");
             }
-            if(keyCode === 110){ // press "."
+            if(keyCode === 110 || keyCode === 190){ // press "."
                 if(this.selectedBlock){
                     let data = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
                     if(Math.floor(data[0]) === data[0]){
