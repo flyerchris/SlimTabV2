@@ -9,6 +9,7 @@ export class Note {
             this[0] = data[0];
             this[1] = data[1] || [-1, -1, -1, -1, -1, -1];
             this[2] = data[2] || null;
+            return;
         }
         this[0] = data.noteValue || 4;
         this[1] = data.stringContent || [-1, -1, -1, -1, -1, -1];
