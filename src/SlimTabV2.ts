@@ -185,6 +185,24 @@ export class SLTab {
     getSectionNumber(){
         return this.notes.length;
     }
+    insertSections(section: number, data: section[]): boolean{
+        if(section < -1 || section > this.notes.length){
+            return false;
+        }
+        if(section === -1)section = this.notes.length;
+        if(data.length == 0){
+            this.notes.splice(section, 0, [])
+        }else{
+            this.notes.splice(section, 0, ...data);
+        }
+        return true;
+    }
+    deleteSections(section: number, number: number = 1): section[]{
+        if(section < -1 || section >= this.notes.length){
+            return [];
+        }
+        return this.notes.splice(section, number);
+    }
     /**
      * add a note
      * @param { [number, number[], any] }   data, note length, [block number, index is string number,], user data
