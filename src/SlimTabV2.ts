@@ -239,7 +239,8 @@ export class SLTab {
                 if(noteElements[i].blockGroup[j].x >= x1 
                     && noteElements[i].blockGroup[j].x <= x2 
                     && noteElements[i].blockGroup[j].y >=y1 
-                    && noteElements[i].blockGroup[j].y <=y2){
+                    && noteElements[i].blockGroup[j].y <=y2 
+                    && noteElements[i].domelement.style.display != "none"){
                     selectedNoteIds.push(i);
                 }
             }
