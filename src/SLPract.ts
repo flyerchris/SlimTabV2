@@ -1,6 +1,6 @@
 import { note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
-import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock} from "./SlimTabV2Canvas"
+import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock, SLCanvas, SLLayer, Layer} from "./SlimTabV2Canvas"
 import {Timer} from "./Timer"
 import {SLEditor} from "./SlimTabV2Editor"
 import {Metronome} from "./Metronome"
@@ -67,6 +67,7 @@ export class SLPract {
     private isRepeat: boolean = false;
     private indicatorColor: string = "rgba(255, 209, 81, 0.6)";
     private indicatorShapes: IndicatorShape[] = [];
+
     private playFlag: boolean = false;
     private timer: Timer = new Timer();
     private metronome: Metronome;
@@ -77,7 +78,6 @@ export class SLPract {
     private maxPracticeTimes: number = 2;
     
     private openStringTunes: number[] = [40, 45, 50, 55, 59, 64]; //E2, A2, D3, G3, B3, E4
-    private practiceStartTime: number = 0;
     private deviceStartTime: number = 0;
     private collectPractContent: MidiInput[] = [];
 
@@ -426,6 +426,11 @@ export class SLPract {
             rets.push(ret);
         })
         return rets;
+    }
+
+    private drawAnalyze(target: Layer, playResults: AnalyzeResult[]){
+        playResults.forEach((result, index, self)=>{
+        })
     }
 
     private timeNoteMapping(time: number, sheetMusic: NoteInfo[]): number{
