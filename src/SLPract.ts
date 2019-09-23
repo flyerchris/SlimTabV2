@@ -26,6 +26,8 @@ interface MidiInput{
 }
 
 interface AnalyzeResult{
+    section: number,
+    note: number,
     noteId: number,
     channel: number,
     playedNote: number,
@@ -65,8 +67,13 @@ export class SLPract {
     private bpm: number = 120;
     private timeSignature: TimeSignature = {upper: 4, lower: 4};
     private isRepeat: boolean = false;
-    private indicatorColor: string = "rgba(255, 209, 81, 0.6)";
     private indicatorShapes: IndicatorShape[] = [];
+    private resultUIElements: Text[] = [];
+
+    //Color configs 
+    private indicatorColor: string = "rgba(255, 209, 81, 0.6)";
+    private correctResultColor: string = "rgba(0, 163, 250, 0.9)";
+    private wrongResultColor: string = "rgba(250, 80, 0, 0.9)";
 
     private playFlag: boolean = false;
     private timer: Timer = new Timer();
@@ -82,7 +89,7 @@ export class SLPract {
     private collectPractContent: MidiInput[] = [];
 
     private anlyzeMethod: AnlyzeMethod = "section";
-    private correctTolerance: number = 100;
+    private correctTolerance: number = 30;
 
     private devices: number[] = [];
 
@@ -152,10 +159,13 @@ export class SLPract {
             }
 
             let sectionLen: number = 0;
+
             elem.forEach((note, i, s) =>{
+                // console.log(note)
                 let thisNote: Note = this.controlTab.getNoteData(note.section, note.note);
-                sectionLen += this.noteValeu2Time(thisNote[0]);
-                sectionBeats += this.timeSignature.lower/thisNote[0];
+                // console.log(thisNote)
+                sectionLen += this.noteValeu2Time(thisNote.noteValue);
+                sectionBeats += this.timeSignature.lower/thisNote.noteValue;
             });
             sectionLenSum += sectionLen;
             sectionMetronomeBeats.push(sectionBeats);
@@ -212,7 +222,7 @@ export class SLPract {
         this.playFlag = false;
 
         let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
-        console.log(result)
+        this.drawAnalyzeUI(this.controlTab.tabCanvas.layers.ui, result);
     }
 
     bindDevice(){
@@ -231,8 +241,8 @@ export class SLPract {
         let noteId = 0;
         this.controlTab.notes.forEach((elem, i, self) =>{
             elem.forEach((el, j, s) =>{
-                loadedSheet.push({"section":i, "note": j,"noteId": noteId, "noteValue": el[0], 'noteTime': noteTime, 'stringContent': el[1], "style": el[2]});
-                noteTime += this.noteValeu2Time(el[0]) * 1000;
+                loadedSheet.push({"section":i, "note": j,"noteId": noteId, "noteValue": el.noteValue, 'noteTime': noteTime, 'stringContent': el[1], "style": el[2]});
+                noteTime += this.noteValeu2Time(el.noteValue) * 1000;
                 noteId += 1;
             });
         });
@@ -257,9 +267,9 @@ export class SLPract {
             }
             let sectionLen: number = 0;
             elem.forEach((note, i, s) =>{
-                let thisNote: note = this.controlTab.getNoteData(note.section, note.note);
-                sectionLen += this.noteValeu2Time(thisNote[0]);
-                sectionBeats += this.timeSignature.lower/thisNote[0];
+                let thisNote: Note = this.controlTab.getNoteData(note.section, note.note);
+                sectionLen += this.noteValeu2Time(thisNote.noteValue);
+                sectionBeats += this.timeSignature.lower/thisNote.noteValue;
             });
             sectionLenSum += sectionLen;
             
@@ -295,7 +305,7 @@ export class SLPract {
         let preBeat = 0;
         if(sectionNotes[0].note != 0){
             let preSum: number = 0;
-            let sectionNoteRaw: note[] = this.controlTab.getSectionData(sectionNotes[0].section);
+            let sectionNoteRaw: Note[] = this.controlTab.getSectionData(sectionNotes[0].section);
             for(let i = 0;i< sectionNotes[0].note; i++){
                 preSum += this.timeSignature.lower/sectionNoteRaw[i][0];
             } 
@@ -338,11 +348,15 @@ export class SLPract {
                 else{
                     this.stop();
                 }
+                this.clearAnalyzeUI();
             }
             if((<string>key).toLowerCase() === "q"){
                 this.onPluck({"channel": 0, "note": 0, "time": new Date().getTime()})
             }
         });
+        this.controlTab.on("mousedown", (x, y) =>{
+            this.clearAnalyzeUI();
+        })
     }
 
     private sortBySectionId(notes: SVGNote[]): Array<SVGNote[]>{
@@ -414,6 +428,8 @@ export class SLPract {
             }
 
             ret = {
+                "section": sheetMusic[mappedNote].section,
+                "note": sheetMusic[mappedNote].note,
                 "channel": elem.channel,
                 "playedNote": elem.note,
                 "sheetNote": sheetMusic[mappedNote].stringContent[elem.channel],
@@ -428,8 +444,34 @@ export class SLPract {
         return rets;
     }
 
-    private drawAnalyze(target: Layer, playResults: AnalyzeResult[]){
+    private drawAnalyzeUI(target: Layer, playResults: AnalyzeResult[]){
         playResults.forEach((result, index, self)=>{
+            let notePos_xy = this.controlTab.getNotePosition(result.section, result.note, result.channel);
+            let resultPosBias: number = 0;
+            let resultText = target.createText(notePos_xy[0], notePos_xy[1], result.playedNote.toString(), "middle");
+            if(result.timeResult == "correct" && result.noteResult){
+                resultText.fill = this.correctResultColor;
+            }
+            else{
+                resultText.fill = this.wrongResultColor;
+            }
+            
+            if(result.timeResult == "drag"){
+                resultPosBias = 30;
+            }
+            else if (result.timeResult == "rush"){
+                resultPosBias = -30;
+            }
+
+            resultText.x += resultPosBias;
+            
+            this.resultUIElements.push();
+        })
+    }
+
+    private clearAnalyzeUI(){
+        this.resultUIElements.forEach((elem, index, self)=>{
+            elem.remove();
         })
     }
 
