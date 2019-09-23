@@ -128,8 +128,8 @@ export class SLTab {
         return this.notes[section];
     }
 
-    deleteNote(section: number, note: number){
-        this.notes[section].splice(note, 1);
+    deleteNote(section: number, note: number, number: number = 1){
+        this.notes[section].splice(note, number);
     }
 
     addNote(section: number, note: number, data: Note){
@@ -138,7 +138,7 @@ export class SLTab {
             this.notes.push([]);
         }
         if(note === -1){
-            this.notes[section].splice(this.notes[section].length, 0, data);
+            this.notes[section].push(data);
         }else{
             this.notes[section].splice(note, 0, data);
         }
