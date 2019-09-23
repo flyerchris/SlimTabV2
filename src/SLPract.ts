@@ -38,7 +38,11 @@ interface AnalyzeResult{
     sheetStyle?: string,
     playedAmplitude?: number,
     sheetPlayedAmplitude?: number
-    
+}
+
+interface SectionBeatInfo{
+    beatCount: number,
+    preBeat: number
 }
 
 interface NoteInfo{
@@ -47,14 +51,12 @@ interface NoteInfo{
     noteId: number,
     noteValue: number,
     noteTime: number,
-    content: number[],
+    stringContent: number[],
     style?: any
 }
 
 type AnlyzeMethod = "section" | "whole";
 type TimeResult = "correct" | "rush" | "drag";
-
-
 
 export class SLPract {
     private controlTab: SLTab;
@@ -80,7 +82,7 @@ export class SLPract {
     private collectPractContent: MidiInput[] = [];
 
     private anlyzeMethod: AnlyzeMethod = "section";
-    private correctTolerance: number = 100;
+    private correctTolerance: number = 200;
 
     private devices: number[] = [];
 
@@ -116,7 +118,15 @@ export class SLPract {
         let sectionMetronomeBeats: number[] = [];
 
         this.editor.undisplayIndicator();
+        /**
+         * setPracticeSectionIndicator(whole selected note info)
+         * 
+         * 
+         * 
+         * 
+         */
 
+        //////////////////////////////
         sectionNotes.forEach((elem, index, self) =>{
             let sectionEnds = this.sectionTwoEnds(elem);
             let sectionBeats: number = 0;
@@ -178,7 +188,7 @@ export class SLPract {
         }
         this.selectedTimeSum += sectionStartTime;
         this.playIter += 1;
-        
+        //////////////////////////
         this.timer.start();
         if(!this.metronomeOn){
             this.metronome.play();
@@ -202,6 +212,7 @@ export class SLPract {
         this.playFlag = false;
 
         let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
+        console.log(result)
     }
 
     bindDevice(){
@@ -220,12 +231,50 @@ export class SLPract {
         let noteId = 0;
         this.controlTab.notes.forEach((elem, i, self) =>{
             elem.forEach((el, j, s) =>{
-                loadedSheet.push({"section":i, "note": j,"noteId": noteId, "noteValue": el[0], 'noteTime': noteTime, 'content': el[1], "style": el[2]});
+                loadedSheet.push({"section":i, "note": j,"noteId": noteId, "noteValue": el[0], 'noteTime': noteTime, 'stringContent': el[1], "style": el[2]});
                 noteTime += this.noteValeu2Time(el[0]) * 1000;
                 noteId += 1;
             });
         });
         return loadedSheet;
+    }
+    private playPracticeSectionIndicator(){
+        this.timer.start();
+    }
+    private setPracticeSectionIndicator(sectionNotes: SVGNote[][]){
+        let sectionLenSum: number = 0;
+        sectionNotes.forEach((elem, index, self) =>{
+            let sectionEnds = this.sectionTwoEnds(elem);
+            let sectionBeats: number = 0;
+            if(index == 0){
+                if(this.nowPlaySectionIndicator  == null){
+                    this.nowPlaySectionIndicator = this.controlTab.tabCanvas.layers.ui.createRect(sectionEnds.x1, sectionEnds.y1, sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1, 2, this.indicatorColor);
+                }
+                else{
+                    this.nowPlaySectionIndicator.setPos(sectionEnds.x1, sectionEnds.y1);
+                    this.nowPlaySectionIndicator.setShape(sectionEnds.x2 - sectionEnds.x1, sectionEnds.y2 - sectionEnds.y1);
+                }
+            }
+            let sectionLen: number = 0;
+            elem.forEach((note, i, s) =>{
+                let thisNote: note = this.controlTab.getNoteData(note.section, note.note);
+                sectionLen += this.noteValeu2Time(thisNote[0]);
+                sectionBeats += this.timeSignature.lower/thisNote[0];
+            });
+            sectionLenSum += sectionLen;
+            
+            if(self.length == 1){
+                this.timer.registerDelay(this.stopNowPlaySectionIndicator.bind(this), sectionLen*1000, 1);
+            }
+            else if(self.length > 1 && index < self.length -1){
+                let nextSectionEnds = this.sectionTwoEnds(self[index+1]);
+                this.indicatorShapes.push({x: nextSectionEnds.x1, y: nextSectionEnds.y1, width: nextSectionEnds.x2 - nextSectionEnds.x1, height: nextSectionEnds.y2 - nextSectionEnds.y1});
+                this.timer.registerDelay(this.pushNowPlaySectionIndicator.bind(this), sectionLenSum*1000, 1);
+            }
+            if(index == self.length -1){
+                this.timer.registerDelay(this.play.bind(this), sectionLenSum*1000, 1);
+            }
+        });
     }
 
     private pushNowPlaySectionIndicator(){
@@ -238,6 +287,21 @@ export class SLPract {
         if(this.nowPlaySectionIndicator != null){
             this.nowPlaySectionIndicator.remove();
             this.nowPlaySectionIndicator = null;
+        }
+    }
+
+    private getSetionBeats(sectionNotes: SVGNote[]){
+        // If the first note selected is note on the beat, calc a prebeat note value.
+        let preBeat = 0;
+        if(sectionNotes[0].note != 0){
+            let preSum: number = 0;
+            let sectionNoteRaw: note[] = this.controlTab.getSectionData(sectionNotes[0].section);
+            for(let i = 0;i< sectionNotes[0].note; i++){
+                preSum += this.timeSignature.lower/sectionNoteRaw[i][0];
+            } 
+            if(preSum %1 != 0){
+                preBeat = this.timeSignature.lower/(1 - (preSum%1));
+            }
         }
     }
 
@@ -342,7 +406,7 @@ export class SLPract {
                 timeResult = 'rush';
             }
 
-            if(elem.note == sheetMusic[mappedNote].content[elem.channel]){
+            if(elem.note == sheetMusic[mappedNote].stringContent[elem.channel]){
                 noteResult = true;
             }
             else{
@@ -352,7 +416,7 @@ export class SLPract {
             ret = {
                 "channel": elem.channel,
                 "playedNote": elem.note,
-                "sheetNote": sheetMusic[mappedNote].content[elem.channel],
+                "sheetNote": sheetMusic[mappedNote].stringContent[elem.channel],
                 "playedTime": elem.time - this.deviceStartTime,
                 "sheetTime": sheetMusic[mappedNote].noteTime,
                 "noteId": sheetMusic[mappedNote].noteId,
