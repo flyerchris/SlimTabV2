@@ -60,9 +60,7 @@ export class Timer{
 
     stop(){
         if(this.timerId){
-            clearTimeout(this.timerId - 1);
             clearTimeout(this.timerId);
-            clearTimeout(this.timerId + 1);
             this.timerId = null;
         }
         this._running = false;

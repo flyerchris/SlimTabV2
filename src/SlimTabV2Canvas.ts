@@ -573,6 +573,11 @@ export class Text extends SVGShape{
     get strokeWidth(): number{
         return Number(this.domElement.getAttribute("stroke-width"));
     }
+    set fill(val: string){
+        utils.setAttributes(this.domElement, {
+            fill: `${val}`
+        });
+    }
 }
 
 class NoteLayer extends Layer {
