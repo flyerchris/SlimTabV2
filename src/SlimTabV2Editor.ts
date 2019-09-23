@@ -1,4 +1,4 @@
-import { note } from "./SlimTabV2Types"
+import { Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
 import { utils } from "./utils";
 import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock} from "./SlimTabV2Canvas"
@@ -268,7 +268,7 @@ export class SLEditor {
             this.controlTab.isBlankNote(section, this.selectedBlock.note)){
                 return;
             }
-            this.controlTab.addNote(section, -1, [4, [-1, -1, -1, -1, -1,-1], null]);
+            this.controlTab.addNote(section, -1, new Note());
             this.controlTab.render();
             this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
         });
@@ -327,12 +327,12 @@ export class SLEditor {
                 }
                 s = this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
                 if(!s){ // the current selection is the last section and the last note
-                    controlTab.addNote(selectNote.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
+                    controlTab.addNote(selectNote.section + 1, 0, new Note());
                     controlTab.render();
                     this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
                 }
             }else{
-                controlTab.addNote(selectNote.section, selectNote.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
+                controlTab.addNote(selectNote.section, selectNote.note + 1, new Note());
                 controlTab.render();
                 this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
             }
@@ -380,7 +380,7 @@ export class SLEditor {
     }
     private insertEmptyNote(selectedBlock: NoteBlockIndex): NoteBlockIndex{
         if(!this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
-            this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, [4, [-1, -1, -1, -1, -1,-1], null]);
+            this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, new Note());
             this.selectedBlock = {section: this.selectedBlock.section, note: this.selectedBlock.note, string: this.selectedBlock.string};
         }
         return this.selectedBlock

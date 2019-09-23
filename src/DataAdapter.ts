@@ -1,9 +1,9 @@
 import { Callbacks } from "./utils"
-import { note } from "./SlimTabV2Types"
+import { Note } from "./SlimTabV2Types"
 export class DataAdapter{
     private rawData: [number, number, number][] = [];
     private preTime: number;
-    private noteRawData: note;
+    private noteRawData: Note;
     private receiveInterval:number;
     private spb: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
     private lengthPerBeat: number = 4;
@@ -22,7 +22,7 @@ export class DataAdapter{
         }
         this.callbacks["data"].callAll(stringIndex, note, time);
     }
-    addPackListener(cb: (data: note) => any){
+    addPackListener(cb: (data: Note) => any){
         this.callbacks["packNote"].push(cb);
     }
     addDataListener(cb: (string: number, note: number, time: number) => any){
@@ -51,7 +51,7 @@ export class DataAdapter{
 
         }
         this.preTime = this.rawData[0][2];
-        this.noteRawData = [8, notes, null];
+        this.noteRawData = new Note({noteValue: 8, stringContent: notes});
         this.rawData = [];
         this.receiveInterval = null;
     }

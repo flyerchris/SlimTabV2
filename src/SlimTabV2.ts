@@ -1,5 +1,5 @@
 import {utils, Callbacks} from "./utils"
-import { section, note } from "./SlimTabV2Types"
+import { section, Note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
 import { SLCanvas, SLLayer, SVGNote } from "./SlimTabV2Canvas"
 interface caculatedNoteData{
@@ -98,14 +98,23 @@ export class SLTab {
 
     //todo: do a stricter check for these function
     setData(data: [number, number[], any][][]) {
-        this.notes = data;
+        let na: Note[][] = [];
+        for(let i = 0; i < data.length; i++){
+            let newSection: Note[] = [];
+            for(let j = 0; j < data[i].length; j++){
+                let newNote = new Note({noteValue: data[i][j][0], stringContent: data[i][j][1], userData: data[i][j][2]});
+                newSection.push(newNote);
+            }
+            na.push(newSection);
+        }
+        this.notes = na;
     }
 
-    getNoteData(section: number, note: number): note{
+    getNoteData(section: number, note: number): Note{
         return this.notes[section][note];
     }
     
-    setNoteData(section: number, note: number, data: note){
+    setNoteData(section: number, note: number, data: Note){
         this.notes[section][note] = data;
     }
 
@@ -115,7 +124,7 @@ export class SLTab {
         }
     }
 
-    getSectionData(section: number): note[]{
+    getSectionData(section: number): Note[]{
         return this.notes[section];
     }
 
@@ -123,7 +132,7 @@ export class SLTab {
         this.notes[section].splice(note, 1);
     }
 
-    addNote(section: number, note: number, data: note){
+    addNote(section: number, note: number, data: Note){
         if(section >= this.notes.length){
             section = this.notes.length;
             this.notes.push([]);
@@ -182,7 +191,7 @@ export class SLTab {
      * @param { number }                    section, if give -1, note will be appended at last section. Index start from 0
      * @param { number }                    note, if give -1, note will be appended at last note. Index start from 0
      */
-    instrumentNoteInput(correction: Correction, data: note, section: number = -1, note: number = -1) {
+    instrumentNoteInput(correction: Correction, data: Note, section: number = -1, note: number = -1) {
         if(section == -1)section = this.notes.length - 1;
         if(note == -1)note = this.notes[section].length - 1;
         correction(this, data, section, note);
