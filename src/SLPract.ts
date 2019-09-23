@@ -396,10 +396,10 @@ export class SLPract {
             let noteResult: boolean;
 
             //Check if playing input is correct and return results.
-            if(Math.abs(elem.time - sheetMusic[mappedNote].noteTime) <= this.correctTolerance){
+            if(Math.abs((elem.time - this.deviceStartTime) - (sheetMusic[mappedNote].noteTime+this.playLag)) <= this.correctTolerance){
                 timeResult = "correct";
             }
-            else if(elem.time - sheetMusic[mappedNote].noteTime > 0){
+            else if((elem.time - this.deviceStartTime) - (sheetMusic[mappedNote].noteTime+this.playLag) > 0){
                 timeResult = "drag";
             }
             else{
