@@ -82,7 +82,7 @@ export class SLPract {
     private collectPractContent: MidiInput[] = [];
 
     private anlyzeMethod: AnlyzeMethod = "section";
-    private correctTolerance: number = 200;
+    private correctTolerance: number = 100;
 
     private devices: number[] = [];
 
