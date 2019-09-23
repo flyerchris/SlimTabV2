@@ -1,4 +1,4 @@
-import { note } from "./SlimTabV2Types"
+import { Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
 import { utils } from "./utils";
 import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock} from "./SlimTabV2Canvas"
@@ -72,7 +72,7 @@ export class SLEditor {
             this.selectedSVGNotes = this.controlTab.endsSelect(this.controlTab.noteIndex(this.selectedSVGNote), this.controlTab.noteIndex(this.controlTab.getSVGNote(section, note)))
             this.drawMultiSelectRect(this.selectedSVGNotes);
         });
-        this.controlTab.on("keydown", (key) => {
+        this.controlTab.on("keydown", (key, keyCode) => {
             if((<string>key).toLowerCase() !== " " && !isNaN(Number(key))){
                 if(this.selectedBlock){
                     let tb = this.inputBlock * 10 + Number(key)
@@ -156,6 +156,17 @@ export class SLEditor {
             }
             if((<string>key).toLowerCase() === "-"){
                 this.changeNoteLength("-");
+            }
+            if(keyCode === 110 || keyCode === 190){ // press "."
+                if(this.selectedBlock){
+                    let data = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
+                    if(Math.floor(data[0]) === data[0]){
+                        data[0] = 2 * data[0] / 3;
+                        this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, data);
+                        this.controlTab.render();
+                        this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
+                    }
+                }
             }
         });
         this.controlTab.on("mouseovernote", (section, note, string, position) => {
@@ -245,10 +256,21 @@ export class SLEditor {
         this.controlTab.on("sectionhout", (section) => {
             this.controlTab.tabCanvas.layers.ui.hideSectionIndicator(section);
         });
-        this.controlTab.on("sectionclick",(section) => {
-            this.controlTab.addNote(section, -1, [4, [-1, -1, -1, -1, -1,-1], null]);
+        this.controlTab.on("sectionclick",(section, string) => {
+            if(this.selectedBlock && this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note) && this.controlTab.getNoteNumberOfSection(this.selectedBlock.section)>1){
+                this.controlTab.deleteNote(this.selectedBlock.section , this.selectedBlock.note);
+                this.controlTab.render();
+            }
+            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
+            if(this.selectedBlock &&
+            this.selectedBlock.section === section && 
+            this.selectedBlock.note === this.controlTab.getNoteNumberOfSection(section) - 1 &&
+            this.controlTab.isBlankNote(section, this.selectedBlock.note)){
+                return;
+            }
+            this.controlTab.addNote(section, -1, new Note());
             this.controlTab.render();
-            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, 0);
+            this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
         });
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
@@ -283,7 +305,7 @@ export class SLEditor {
             let lengthArray = [1, 2, 4, 8, 16, 32];
             let selectData = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
             for(let i = 1 - factor ; i < lengthArray.length - factor; i++){
-                if(lengthArray[i] === selectData[0]){
+                if(lengthArray[i] >= selectData[0]){
                     selectData[0] = lengthArray[i - 1 + factor * 2];
                     this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, selectData);
                     this.controlTab.render();
@@ -305,12 +327,12 @@ export class SLEditor {
                 }
                 s = this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
                 if(!s){ // the current selection is the last section and the last note
-                    controlTab.addNote(selectNote.section + 1, 0, [4, [-1, -1, -1, -1, -1,-1], null]);
+                    controlTab.addNote(selectNote.section + 1, 0, new Note());
                     controlTab.render();
                     this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
                 }
             }else{
-                controlTab.addNote(selectNote.section, selectNote.note + 1, [4, [-1, -1, -1, -1, -1,-1], null]);
+                controlTab.addNote(selectNote.section, selectNote.note + 1, new Note());
                 controlTab.render();
                 this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
             }
@@ -358,7 +380,7 @@ export class SLEditor {
     }
     private insertEmptyNote(selectedBlock: NoteBlockIndex): NoteBlockIndex{
         if(!this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
-            this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, [4, [-1, -1, -1, -1, -1,-1], null]);
+            this.controlTab.addNote(this.selectedBlock.section, this.selectedBlock.note, new Note());
             this.selectedBlock = {section: this.selectedBlock.section, note: this.selectedBlock.note, string: this.selectedBlock.string};
         }
         return this.selectedBlock

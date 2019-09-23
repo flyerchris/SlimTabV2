@@ -1,4 +1,4 @@
-import { note } from "./SlimTabV2Types"
+import { Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
 import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock, SLCanvas, SLLayer, Layer} from "./SlimTabV2Canvas"
 import {Timer} from "./Timer"
@@ -141,7 +141,7 @@ export class SLPract {
                 //If the first note selected is note on the beat, calc a prebeat note value.
                 if(elem[0].note != 0){
                     let preSum: number = 0;
-                    let firstSection: note[] = this.controlTab.getSectionData(elem[0].section);
+                    let firstSection: Note[] = this.controlTab.getSectionData(elem[0].section);
                     for(let i = 0;i< elem[0].note; i++){
                         preSum += this.timeSignature.lower/firstSection[i][0];
                     } 
@@ -153,7 +153,7 @@ export class SLPract {
 
             let sectionLen: number = 0;
             elem.forEach((note, i, s) =>{
-                let thisNote: note = this.controlTab.getNoteData(note.section, note.note);
+                let thisNote: Note = this.controlTab.getNoteData(note.section, note.note);
                 sectionLen += this.noteValeu2Time(thisNote[0]);
                 sectionBeats += this.timeSignature.lower/thisNote[0];
             });

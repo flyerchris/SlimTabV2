@@ -1,9 +1,9 @@
 import { Callbacks } from "./utils"
-import { note } from "./SlimTabV2Types"
+import { Note } from "./SlimTabV2Types"
 export class DataAdapter{
     private rawData: [number, number, number][] = [];
     private preTime: number;
-    private noteRawData: note;
+    private noteRawData: Note;
     private receiveInterval:number;
     private spb: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
     private lengthPerBeat: number = 4;
@@ -13,16 +13,23 @@ export class DataAdapter{
         if(bpm){
             this.spb = 60 *1000 / bpm;
         }
-        this.callbacks = new Callbacks(["data"]);
+        this.callbacks = new Callbacks(["packNote", "data"]);
     }
     receiveData(stringIndex: number, note: number, amp: number, time: number){
         this.rawData.push([stringIndex, note, time]);
         if(!this.receiveInterval){
-            this.receiveInterval = setTimeout(this.packNote.bind(this),10);
+            this.receiveInterval = setTimeout(this.packNote.bind(this),20);
         }
+        this.callbacks["data"].callAll(stringIndex, note, time);
     }
-    addDataListener(cb: (data: note) => any){
+    addPackListener(cb: (data: Note) => any){
+        this.callbacks["packNote"].push(cb);
+    }
+    addDataListener(cb: (string: number, note: number, time: number) => any){
         this.callbacks["data"].push(cb);
+    }
+    getTime(): number{
+        return performance.now();
     }
     private packNote(){
         let notes = [-1, -1, -1, -1, -1, -1];
@@ -40,11 +47,11 @@ export class DataAdapter{
                 this.noteRawData[0] = this.lengthPerBeat * bl;
             }
 
-            this.callbacks["data"].callAll(this.noteRawData);
+            this.callbacks["packNote"].callAll(this.noteRawData);
 
         }
         this.preTime = this.rawData[0][2];
-        this.noteRawData = [8, notes, null];
+        this.noteRawData = new Note({noteValue: 8, stringContent: notes});
         this.rawData = [];
         this.receiveInterval = null;
     }

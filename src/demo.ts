@@ -1,4 +1,4 @@
-import { section, note } from "./SlimTabV2Types"
+import { section, Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2";
 import { DataAdapter } from "./DataAdapter"
 import { LiCAP } from "./LiCAP"
@@ -8,11 +8,30 @@ import { SLEditor } from "./SlimTabV2Editor"
 import { LiCAPStream } from "./LiCAPStream"
 import {SLPract} from "./SLPract"
 let nt = new SLTab();
-let data: section[] = [
+let data: [number, number[], any][][] = [
     [// section
         // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
-        
+        [8, [3, -1, -1, 4, -1, -1], null],
+        [4, [3, -1, -1, 4, -1, -1], null],
+        [32/3, [3, -1, -1, 4, -1, -1], null],
+        [8, [3, -1, -1, 4, -1, -1], null],
+        [4, [3, -1, -1, 4, -1, -1], null],
+        //[8, [3, -1, -1, 4, -1, -1], null]
     ],
+    // [// section
+    //     // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
+    //     [4, [3, 5, 2, -1, -1, -1], null],
+    //     [4, [-1, 5, 2, -1, -1, -1], null],
+    //     [4, [-1, 5, 2, -1, -1, -1], null],
+    //     [8, [-1, 5, 2, -1, -1, -1], null],
+    // ],
+    // [
+    //     [8, [-1, 5, 2, -1, -1, -1], null],
+    //     [4, [-1, 5, 2, -1, -1, -1], null],
+    //     [4, [-1, 5, 2, -1, -1, -1], null],
+    //     [8, [-1, 5, 2, -1, -1, -1], null],
+    //     [8, [-1, 5, 2, -1, -1, -1], null],
+    // ]
 ];
 nt.setData(data);
 let tabEditor = new SLEditor(nt);
@@ -35,8 +54,10 @@ LiCAP.enumerate().then((devs)=>{
     }
 });
 
-da.addDataListener((data: note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
-
+da.addPackListener((data: Note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
+da.addDataListener((string:number, note: number, time:number)=>{
+    console.log(string, note, time);
+})
 
 let beep: Metronome = new Metronome(120);
 let bs = 0;
@@ -54,10 +75,12 @@ beepEle.onclick = function(event){
 }
  let win = window;
  let s: any;
- (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);};
+ (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,new Note([8, [-1, -1, -1, 4, -1, 6], null]))}, 100);};
  (window as any).gx = () => {clearInterval(s);}
 //s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);
 //nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
+//nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
+// nt.instrumentNoteInput(instrumentCorrection,[8/3, [-1, -1, -1, 4, -1, 6], null]);
 //nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null], 0, 2);
 
 
