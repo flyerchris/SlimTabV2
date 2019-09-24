@@ -168,6 +168,7 @@ export class SLTab {
         if(section >= this.notes.length || section < -1 || note >= this.notes[section].length || note < -1 || string > 5 || string < 0){
             return [-1, -1];
         }
+        if(this.notes[section].length === 0 ) return [-1, -1];
         for(let i = 0; i < section; i++){
             sum += this.notes[i].length;
         }
@@ -185,16 +186,12 @@ export class SLTab {
     getSectionNumber(){
         return this.notes.length;
     }
-    insertSections(section: number, data: section[]): boolean{
+    insertSection(section: number, data: section): boolean{
         if(section < -1 || section > this.notes.length){
             return false;
         }
         if(section === -1)section = this.notes.length;
-        if(data.length == 0){
-            this.notes.splice(section, 0, [])
-        }else{
-            this.notes.splice(section, 0, ...data);
-        }
+        this.notes.splice(section, 0, data);
         return true;
     }
     deleteSections(section: number, number: number = 1): section[]{
