@@ -328,10 +328,11 @@ export class SLTab {
             let height = this.stringPadding * 5;
             this.tabCanvas.layers.ui.sectionIndicator[i].x = position[i][0][0]
             this.tabCanvas.layers.ui.sectionIndicator[i].y = position[i][0][1]
-            this.tabCanvas.layers.ui.sectionIndicator[i].width = width
-            this.tabCanvas.layers.ui.sectionIndicator[i].height = height
+            this.tabCanvas.layers.ui.sectionIndicator[i].width = width;
+            this.tabCanvas.layers.ui.sectionIndicator[i].height = height;
+            this.tabCanvas.layers.sheet.bar[i].x1 = position[i][0][0] + width;
+            this.tabCanvas.layers.sheet.bar[i].x2 = position[i][0][0] + width;
             utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i].domElement,{"data-section": `${i}`});
-            //utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i], {x: `${position[i][0][0]}`, y: `${position[i][0][1]}`, width: `${width}`, height: `${height}`});
         }
     }
 
@@ -371,8 +372,6 @@ export class SLTab {
             let sx: [number[], number[]] = [[x - 20, y], [0, y]]; // section position
             let nx = x + sectionWidth;
             sx[1][0] = nx - 20;
-            this.tabCanvas.layers.sheet.bar[s].x1 = nx - 20;
-            this.tabCanvas.layers.sheet.bar[s].x2 = nx - 20;
             sectionIndicator.push(sx);
             for(let i = 0; i < this.notes[s].length; i++){ // note
                 let note = this.notes[s][i];
