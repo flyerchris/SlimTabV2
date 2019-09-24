@@ -186,7 +186,7 @@ export class SLTab {
     getSectionNumber(){
         return this.notes.length;
     }
-    insertSection(section: number, data: section): boolean{
+    insertSection(section: number, data: section = []): boolean{
         if(section < -1 || section > this.notes.length){
             return false;
         }
