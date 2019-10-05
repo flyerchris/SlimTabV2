@@ -162,10 +162,12 @@ export class SLEditor {
                     let data = this.controlTab.getNoteData(this.selectedBlock.section, this.selectedBlock.note);
                     if(Math.floor(data[0]) === data[0]){
                         data[0] = 2 * data[0] / 3;
-                        this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, data);
-                        this.controlTab.render();
-                        this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
+                    }else{
+                        data[0] = data[0] * 3 / 2;
                     }
+                    this.controlTab.setNoteData(this.selectedBlock.section, this.selectedBlock.note, data);
+                    this.controlTab.render();
+                    this.selectNoteAndMoveIndicator(this.selectedBlock.section, this.selectedBlock.note, this.selectedBlock.string);
                 }
             }
         });
