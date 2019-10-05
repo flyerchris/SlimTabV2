@@ -45,7 +45,7 @@ export class SLTab {
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
     private height: number;
-    private rawData: caculatedNoteData[] = [];
+    private calData: caculatedNoteData[] = [];
     
     /**
      * Callbacks
@@ -259,9 +259,9 @@ export class SLTab {
     }
     render() {
         this.setAllLine();
-        let [rawDataLength, firstChange, linkerData, sectionPosition, dotData] = this.calNoteRawData();
+        let [calDataLength, firstChange, linkerData, sectionPosition, dotData] = this.calNotecalData();
         this.setSectionIndicator(sectionPosition);
-        this.setAllNoteElementData(rawDataLength, firstChange);
+        this.setAllNoteElementData(calDataLength, firstChange);
         this.setLinker(linkerData);
         this.setDot(dotData);
         let ln = Math.ceil(this.notes.length / this.sectionPerLine);
@@ -336,7 +336,7 @@ export class SLTab {
         }
     }
 
-    private calNoteRawData():[number, number, number[][], [number[], number[]][], number[][] ]{
+    private calNotecalData():[number, number, number[][], [number[], number[]][], number[][] ]{
         let [x, y] = this.startPosition;
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let linker = [];
@@ -379,17 +379,17 @@ export class SLTab {
                 let tail: number[];
                 if(accumulatedLength + noteLength / this.lengthPerBeat >= seperaterLength){ // the note is the end of a beat or the note's length equals to a beat
                     let cdataLLength = 0;
-                    if(ci > 0) cdataLLength = this.rawData[ci - 1].length;
+                    if(ci > 0) cdataLLength = this.calData[ci - 1].length;
                     tail = this.calculateTail(cdataLLength, note[0], -1, beatLength);
                     accumulatedLength = 0;
                 }else{
                     let cdataLLength = 0;
-                    if(ci > 0) cdataLLength = this.rawData[ci - 1].length;
+                    if(ci > 0) cdataLLength = this.calData[ci - 1].length;
                     tail = this.calculateTail(cdataLLength, note[0], accumulatedLength, beatLength);
                     accumulatedLength += noteLength / this.lengthPerBeat;
                 }
                 let step = beatLength * this.lengthPerBeat / note[0];
-                let updateNote = this.updateRawData(ci, x, y, note[0], note[1], tail, s, i);
+                let updateNote = this.updatecalData(ci, x, y, note[0], note[1], tail, s, i);
                 if(updateNote>=0 && first < 0)first = updateNote;
                 ci++;
                 if(note[2] === "linkStart" || note[2] === "linkEnd"){
@@ -405,24 +405,24 @@ export class SLTab {
         return [ci, first, linker, sectionIndicator, dot];// ci = totoal section number, first = frist note that data has changed
     }
 
-    private updateRawData(arryIndex: number, x: number, y: number, noteLength: number, noteData: number[], tail: number[], section: number, note: number): number{
-        if(arryIndex > this.rawData.length){
-            console.error("array index erro, should not be greater than rawData.length");
+    private updatecalData(arryIndex: number, x: number, y: number, noteLength: number, noteData: number[], tail: number[], section: number, note: number): number{
+        if(arryIndex > this.calData.length){
+            console.error("array index erro, should not be greater than calData.length");
             return -1;
         }
-        if(arryIndex === this.rawData.length){
-            this.rawData.push({x: x, y: y, length: noteLength, blocks: noteData.slice(0, 6), tail: tail.slice(0, tail.length), section: section, note: note});
+        if(arryIndex === this.calData.length){
+            this.calData.push({x: x, y: y, length: noteLength, blocks: noteData.slice(0, 6), tail: tail.slice(0, tail.length), section: section, note: note});
             return arryIndex;
         }
-        let data = this.rawData[arryIndex];
+        let data = this.calData[arryIndex];
         if(data.x != x || data.y != y || data.length != noteLength || data.section != section || data.note != note || !this.compareArray(data.blocks, noteData) || !this.compareArray(data.tail, tail)){ 
-            this.rawData[arryIndex].x = x;
-            this.rawData[arryIndex].y = y;
-            this.rawData[arryIndex].length = noteLength;
-            this.rawData[arryIndex].blocks = noteData.slice(0, 6);
-            this.rawData[arryIndex].tail = tail.slice(0, tail.length);
-            this.rawData[arryIndex].section = section;
-            this.rawData[arryIndex].note = note;
+            this.calData[arryIndex].x = x;
+            this.calData[arryIndex].y = y;
+            this.calData[arryIndex].length = noteLength;
+            this.calData[arryIndex].blocks = noteData.slice(0, 6);
+            this.calData[arryIndex].tail = tail.slice(0, tail.length);
+            this.calData[arryIndex].section = section;
+            this.calData[arryIndex].note = note;
             return arryIndex;
         }
         
@@ -481,11 +481,11 @@ export class SLTab {
         return [0, 0, 0];
     }
     /**
-     * receive data from calNoteRawData and set elements
+     * receive data from calNotecalData and set elements
      * @param { [number, number, number, number[]][] } data 
      */
     private setAllNoteElementData(dataLength: number, firstChange: number){
-        let data = this.rawData;
+        let data = this.calData;
         let noteElement = this.tabCanvas.layers.notes.noteElements
         let ne = dataLength - noteElement.length;
         let nullData: caculatedNoteData = {x: 0, y: 0, length: 0, blocks: [-1, -1, -1, -1, -1, -1], tail: [0, 0, 0], section: 0, note: 0}//[0, 0, 0, [-1, -1, -1, -1, -1, -1], [0, 0, 0], 0, 0];
