@@ -129,7 +129,9 @@ export class SLTab {
     }
 
     deleteNote(section: number, note: number, number: number = 1){
-        this.notes[section].splice(note, number);
+        let np = this.getNoteFlattenNumber(section, note);
+        let dn = this.notes[section].splice(note, number).length;
+        this.calData.splice(np, dn);
     }
 
     addNote(section: number, note: number, data: Note){
@@ -137,11 +139,12 @@ export class SLTab {
             section = this.notes.length;
             this.notes.push([]);
         }
-        if(note === -1){
-            this.notes[section].push(data);
-        }else{
-            this.notes[section].splice(note, 0, data);
+        if(note === -1 || note > this.notes[section].length){
+            note = this.notes[section].length;
         }
+        this.notes[section].splice(note, 0, data);
+        let np = this.getNoteFlattenNumber(section, note);
+        this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1});
     }
 
     
@@ -191,14 +194,36 @@ export class SLTab {
             return false;
         }
         if(section === -1)section = this.notes.length;
+        let isp = this.getNoteFlattenNumber(section, -1);
+        let isa: caculatedNoteData[] = [];
+        for(let i = 0; i < data.length; i++){
+            isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1});
+        }
         this.notes.splice(section, 0, data);
+        this.calData.splice(isp + 1, 0, ...isa);
         return true;
     }
     deleteSections(section: number, number: number = 1): section[]{
         if(section < -1 || section >= this.notes.length){
             return [];
         }
+        let dn = 0;
+        let dp = this.getNoteFlattenNumber(section, 0);
+        for(let i = section; i < section + number && i < this.noteIndex.length; i++) dn += this.notes[i].length;
+        this.calData.splice(dp, dn);
         return this.notes.splice(section, number);
+    }
+
+    getNoteFlattenNumber(section: number, note: number): number{
+        if(!this.notes[section]) return -1;
+        if(note === -1) note = this.notes[section].length - 1;
+        if(this.notes[section][note]){
+            let total = 0;
+            for(let i = 0; i < section; i++) total += this.notes[i].length;
+            total += note;
+            return total;
+        }
+        return -1;
     }
     /**
      * add a note
@@ -259,7 +284,7 @@ export class SLTab {
     }
     render() {
         this.setAllLine();
-        let [calDataLength, firstChange, linkerData, sectionPosition, dotData] = this.calNotecalData();
+        let [calDataLength, firstChange, linkerData, sectionPosition, dotData] = this.calNoteData();
         this.setSectionIndicator(sectionPosition);
         this.setAllNoteElementData(calDataLength, firstChange);
         this.setLinker(linkerData);
@@ -336,7 +361,7 @@ export class SLTab {
         }
     }
 
-    private calNotecalData():[number, number, number[][], [number[], number[]][], number[][] ]{
+    private calNoteData():[number, number, number[][], [number[], number[]][], number[][] ]{
         let [x, y] = this.startPosition;
         let sectionLength = this.beatPerSection / this.lengthPerBeat;
         let linker = [];
@@ -481,7 +506,7 @@ export class SLTab {
         return [0, 0, 0];
     }
     /**
-     * receive data from calNotecalData and set elements
+     * receive data from calNoteData and set elements
      * @param { [number, number, number, number[]][] } data 
      */
     private setAllNoteElementData(dataLength: number, firstChange: number){
