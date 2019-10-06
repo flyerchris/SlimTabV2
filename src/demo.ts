@@ -9,15 +9,7 @@ import { LiCAPStream } from "./LiCAPStream"
 import {SLPract} from "./SLPract"
 let nt = new SLTab();
 let data: [number, number[], any][][] = [
-    [// section
-        // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
-        [8, [3, -1, -1, 4, -1, -1], null],
-        [4, [3, -1, -1, 4, -1, -1], null],
-        [32/3, [3, -1, -1, 4, -1, -1], null],
-        [8, [3, -1, -1, 4, -1, -1], null],
-        [4, [3, -1, -1, 4, -1, -1], null],
-        //[8, [3, -1, -1, 4, -1, -1], null]
-    ],
+    []
     // [// section
     //     // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
     //     [4, [3, 5, 2, -1, -1, -1], null],
@@ -54,7 +46,13 @@ LiCAP.enumerate().then((devs)=>{
     }
 });
 
-da.addPackListener((data: Note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
+da.addPackListener((data: Note)=>{
+    if(data.userData === "undefined-value"){
+        nt.instrumentNoteInput(instrumentCorrection, data);
+    }else{  
+        nt.setNoteData(-1, -1, data);
+    }
+});
 da.addDataListener((string:number, note: number, time:number)=>{
     console.log(string, note, time);
 })

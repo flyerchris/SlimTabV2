@@ -47,12 +47,13 @@ export class DataAdapter{
                 let bl = Math.pow(2, Math.ceil(l2 - 0.5));
                 this.noteRawData[0] = Math.min(this.lengthPerBeat * bl, 32);
             }
+            this.noteRawData.userData = null;
             this.callbacks["packNote"].callAll(this.noteRawData);
-
         }
         this.preTime = this.rawData[0][2];
-        this.noteRawData = new Note({noteValue: 8, stringContent: notes});
+        this.noteRawData = new Note({noteValue: 8, stringContent: notes, userData: "undefined-value"});
         this.rawData = [];
         this.receiveInterval = null;
+        this.callbacks["packNote"].callAll(this.noteRawData);
     }
 }
