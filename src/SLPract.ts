@@ -57,7 +57,7 @@ interface NoteInfo{
     style?: any
 }
 
-type AnlyzeMethod = "section" | "whole";
+type AnlyzeMethod = "pluck"|"section" | "whole";
 type TimeResult = "correct" | "rush" | "drag";
 
 export class SLPract {
@@ -88,7 +88,8 @@ export class SLPract {
     private deviceStartTime: number = 0;
     private collectPractContent: MidiInput[] = [];
 
-    private anlyzeMethod: AnlyzeMethod = "section";
+    private anlyzeMethod: AnlyzeMethod = "pluck";
+    private loadedSheet: NoteInfo[] = [];
     private preMetronome: boolean = true;
     private correctTolerance: number = 30;
 
@@ -106,8 +107,17 @@ export class SLPract {
             this.stop();
             return
         }
+        
+        //Load the sheet from sltab 
+        this.loadedSheet = this.loadSheetNote();
+
+        //Clear practice UI
+        this.clearAnalyzeUI();
         if(this.playIter > 0){
-            let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
+            // let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
+            if(this.anlyzeMethod == "whole"){
+                let result = this.practiceAnalyze(this.collectPractContent);
+            }
         }
         if(this.playIter == 0){
             this.metronome.stopTick();
@@ -227,17 +237,31 @@ export class SLPract {
         this.editor.displayIndicator();
         this.playFlag = false;
 
-        let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
-        this.drawAnalyzeUI(this.controlTab.tabCanvas.layers.ui, result);
+        // let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
+        if(this.anlyzeMethod == "whole"){
+            let result = this.practiceAnalyze(this.collectPractContent);
+            this.drawAnalyzeUI(this.controlTab.tabCanvas.layers.ui, result);
+        }
     }
 
     bindDevice(){
 
     }
 
-    onPluck(input: MidiInput){
+    // onPluck(input: MidiInput){
+    //     if(this.playFlag){
+    //         this.collectPractContent.push(input);
+    //     }
+    // }
+    onPluck(channel: number, note: number, time: number){
+        let input: MidiInput = {"channel": channel, "note": note, "time": time};
         if(this.playFlag){
             this.collectPractContent.push(input);
+            if(this.anlyzeMethod == "pluck"){
+                let results: AnalyzeResult[] = this.practiceAnalyze([input]);
+                this.drawAnalyzeUI(this.controlTab.tabCanvas.layers.ui, results);
+            }
+
         }
     }
 
@@ -367,7 +391,8 @@ export class SLPract {
                 this.clearAnalyzeUI();
             }
             if((<string>key).toLowerCase() === "q"){
-                this.onPluck({"channel": 0, "note": 0, "time": new Date().getTime()})
+                // this.onPluck({"channel": 0, "note": 0, "time": new Date().getTime()})
+                this.onPluck(0, 0, new Date().getTime());
             }
         });
         this.controlTab.on("mousedown", (x, y) =>{
@@ -408,35 +433,38 @@ export class SLPract {
         return {x1: leftTopEnd.x, y1: leftTopEnd.y, x2: rightBotEnd.x, y2: rightBotEnd.y};
     }
 
-    private practiceAnalyze(input: MidiInput[], devicePlayTime: number, deviceEndTime: number): AnalyzeResult[]{
-        let loadedSheetMusic: NoteInfo[] = this.loadSheetNote();
-        let sheetMusic: NoteInfo[] = loadedSheetMusic.filter((elem, index, self) =>{
-            return elem.noteTime>= devicePlayTime - this.deviceStartTime && elem.noteTime <= deviceEndTime -this.deviceStartTime;
-        });
-
+    // private practiceAnalyze(input: MidiInput[], devicePlayTime: number, deviceEndTime: number): AnalyzeResult[]{
+    private practiceAnalyze(input: MidiInput[]): AnalyzeResult[]{
+        // let loadedSheetMusic: NoteInfo[] = this.loadSheetNote();
+        // let sheetMusic: NoteInfo[] = loadedSheetMusic.filter((elem, index, self) =>{
+        //     return elem.noteTime>= devicePlayTime - this.deviceStartTime && elem.noteTime <= deviceEndTime -this.deviceStartTime;
+        // });
+        if(input.length < 1) return [];
+        if(this.loadedSheet.length < 1) return [];
 
         let rets: AnalyzeResult[] = [];
         input.forEach((elem, index, self) => {
             let ret: AnalyzeResult;
-            if(elem.time < devicePlayTime || elem.time > deviceEndTime){
-                return
-            }
-            let mappedNote = this.timeNoteMapping(elem.time - this.deviceStartTime, sheetMusic);
+            // if(elem.time < devicePlayTime || elem.time > deviceEndTime){
+            //     return
+            // }
+            let mappedNote = this.timeNoteMapping(elem.time - this.deviceStartTime, this.loadedSheet);
             let timeResult: TimeResult;
             let noteResult: boolean;
+            console.log(mappedNote);
 
             //Check if playing input is correct and return results.
-            if(Math.abs((elem.time - this.deviceStartTime) - (sheetMusic[mappedNote].noteTime+this.playLag)) <= this.correctTolerance){
+            if(Math.abs((elem.time - this.deviceStartTime) - (this.loadedSheet[mappedNote].noteTime+this.playLag)) <= this.correctTolerance){
                 timeResult = "correct";
             }
-            else if((elem.time - this.deviceStartTime) - (sheetMusic[mappedNote].noteTime+this.playLag) > 0){
+            else if((elem.time - this.deviceStartTime) - (this.loadedSheet[mappedNote].noteTime+this.playLag) > 0){
                 timeResult = "drag";
             }
             else{
                 timeResult = 'rush';
             }
 
-            if(elem.note == sheetMusic[mappedNote].stringContent[elem.channel]){
+            if(elem.note == this.loadedSheet[mappedNote].stringContent[elem.channel]){
                 noteResult = true;
             }
             else{
@@ -444,14 +472,14 @@ export class SLPract {
             }
 
             ret = {
-                "section": sheetMusic[mappedNote].section,
-                "note": sheetMusic[mappedNote].note,
+                "section": this.loadedSheet[mappedNote].section,
+                "note": this.loadedSheet[mappedNote].note,
                 "channel": elem.channel,
                 "playedNote": elem.note,
-                "sheetNote": sheetMusic[mappedNote].stringContent[elem.channel],
+                "sheetNote": this.loadedSheet[mappedNote].stringContent[elem.channel],
                 "playedTime": elem.time - this.deviceStartTime,
-                "sheetTime": sheetMusic[mappedNote].noteTime,
-                "noteId": sheetMusic[mappedNote].noteId,
+                "sheetTime": this.loadedSheet[mappedNote].noteTime,
+                "noteId": this.loadedSheet[mappedNote].noteId,
                 "timeResult": timeResult,
                 "noteResult": noteResult
             }
@@ -481,7 +509,7 @@ export class SLPract {
 
             resultText.x += resultPosBias;
             
-            this.resultUIElements.push();
+            this.resultUIElements.push(resultText);
         })
     }
 
