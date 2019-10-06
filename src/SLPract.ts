@@ -89,6 +89,7 @@ export class SLPract {
     private collectPractContent: MidiInput[] = [];
 
     private anlyzeMethod: AnlyzeMethod = "section";
+    private preMetronome: boolean = true;
     private correctTolerance: number = 30;
 
     private devices: number[] = [];
@@ -107,6 +108,10 @@ export class SLPract {
         }
         if(this.playIter > 0){
             let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
+        }
+        if(this.playIter == 0){
+            this.metronome.stopTick();
+            this.timer.stop();
         }
 
         let sectionNotes: SVGNote[][];
@@ -191,6 +196,7 @@ export class SLPract {
                 sectionMetronomeBeats.forEach((el, i, self) =>{
                     if(this.selectedTimeSum == 0 && sectionStartTime == 0) sectionStartTime += this.playLag;
                     let sectionDuration = el * 60 /this.bpm;
+                    console.log(el)
                     this.registerSectionMetronome(this.selectedTimeSum + sectionStartTime, el, sectionNotes[i][0].note == 0, preBeat);
                     sectionStartTime += sectionDuration;
                 })
@@ -321,7 +327,7 @@ export class SLPract {
     }
 
     private registerSectionMetronome(startTime: number, sectionBeats: number, firstClick: boolean, preBeat?: number){
-        if(preBeat == NaN){
+        if(preBeat == null){
             preBeat = 0;
         }
         let pre = this.timeSignature.lower/preBeat
@@ -333,6 +339,7 @@ export class SLPract {
         else {
             this.metronome.scheduleTick((startTime + this.noteValeu2Time(preBeat))*1000, 'normal');
         }
+        console.log(sectionBeats - pre)
         for(let i = 1; i < Math.floor(sectionBeats - pre); i++){
             this.metronome.scheduleTick((startTime + i * this.noteValeu2Time(this.timeSignature.lower) + this.noteValeu2Time(preBeat))*1000, 'normal')
         }
@@ -343,7 +350,16 @@ export class SLPract {
             if((<string>key).toLowerCase() === " "){
                 this.playFlag = !this.playFlag;
                 if(this.playFlag){
-                    this.play();
+                    this.editor.undisplayIndicator();
+                    if(this.preMetronome){
+                        this.registerSectionMetronome(this.playLag, this.timeSignature.upper,true);
+                        this.timer.registerDelay(this.play.bind(this), this.timeSignature.upper*this.noteValeu2Time(this.timeSignature.lower)*1000);
+                        this.metronome.play();
+                        this.timer.start();
+                    }
+                    else{
+                        this.play();
+                    }
                 }
                 else{
                     this.stop();
