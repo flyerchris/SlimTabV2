@@ -10,6 +10,7 @@ interface caculatedNoteData{
     tail: number[];
     section: number;
     note: number;
+    hasSvg: boolean;
 }
 //type caculatedNoteData = [number, number, number, number[], number[], number, number]; //[x, y , length, block of every chord, tail length, section index, note index]
 interface eventCallBackInterface {
@@ -133,7 +134,8 @@ export class SLTab {
     deleteNote(section: number, note: number, number: number = 1){
         let np = this.getNoteFlattenNumber(section, note);
         let dn = this.notes[section].splice(note, number).length;
-        this.calData.splice(np, dn);
+        this.removeCalData(np, dn);
+        //this.calData.splice(np, dn);
     }
 
     addNote(section: number, note: number, data: Note){
@@ -146,7 +148,7 @@ export class SLTab {
         }
         this.notes[section].splice(note, 0, data);
         let np = this.getNoteFlattenNumber(section, note);
-        this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1});
+        this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
     }
 
     
@@ -199,7 +201,7 @@ export class SLTab {
         let isp = this.getNoteFlattenNumber(section, -1);
         let isa: caculatedNoteData[] = [];
         for(let i = 0; i < data.length; i++){
-            isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1});
+            isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
         }
         this.notes.splice(section, 0, data);
         this.calData.splice(isp + 1, 0, ...isa);
@@ -212,7 +214,8 @@ export class SLTab {
         let dn = 0;
         let dp = this.getNoteFlattenNumber(section, 0);
         for(let i = section; i < section + number && i < this.noteIndex.length; i++) dn += this.notes[i].length;
-        this.calData.splice(dp, dn);
+        this.removeCalData(dp, dn);
+        //this.calData.splice(dp, dn);
         return this.notes.splice(section, number);
     }
 
@@ -325,6 +328,10 @@ export class SLTab {
             this.tabCanvas.layers.ui.sectionIndicator[section].height;
         }
         return 0;
+    }
+    private removeCalData(removeIndex: number, num: number){
+        this.calData.splice(removeIndex, num);
+        this.tabCanvas.layers.notes.removeNote(removeIndex, num);
     }
     private setAllLine() {
         let ln = Math.ceil(this.notes.length / this.sectionPerLine); // number of row you need
@@ -440,7 +447,7 @@ export class SLTab {
             return -1;
         }
         if(arryIndex === this.calData.length){
-            this.calData.push({x: x, y: y, length: noteLength, blocks: noteData.slice(0, 6), tail: tail.slice(0, tail.length), section: section, note: note});
+            this.calData.push({x: x, y: y, length: noteLength, blocks: noteData.slice(0, 6), tail: tail.slice(0, tail.length), section: section, note: note, hasSvg: false});
             return arryIndex;
         }
         let data = this.calData[arryIndex];
@@ -517,16 +524,22 @@ export class SLTab {
         let data = this.calData;
         let noteElement = this.tabCanvas.layers.notes.noteElements
         let ne = dataLength - noteElement.length;
-        let nullData: caculatedNoteData = {x: 0, y: 0, length: 0, blocks: [-1, -1, -1, -1, -1, -1], tail: [0, 0, 0], section: 0, note: 0}//[0, 0, 0, [-1, -1, -1, -1, -1, -1], [0, 0, 0], 0, 0];
-        for(let i = 0; i < ne; i++){
-            this.tabCanvas.layers.notes.createNote();
-            noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
-                wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
-                wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
-                wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
-                wg.string = i;
-                utils.setAttributes(wg.domelement, {"data-string": `${i}`});
-            });
+        let nullData: caculatedNoteData = {x: 0, y: 0, length: 0, blocks: [-1, -1, -1, -1, -1, -1], tail: [0, 0, 0], section: 0, note: 0, hasSvg: null}//[0, 0, 0, [-1, -1, -1, -1, -1, -1], [0, 0, 0], 0, 0];
+        // for(let i = 0; i < ne; i++){
+        //     this.tabCanvas.layers.notes.createNote();
+        //     noteElement[noteElement.length - 1].blockGroup.forEach((wg, i) => {
+        //         wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
+        //         wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
+        //         wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
+        //         wg.string = i;
+        //         utils.setAttributes(wg.domelement, {"data-string": `${i}`});
+        //     });
+        // }
+        for(let i = 0; i < this.calData.length; i++){
+            if(!this.calData[i].hasSvg){
+                this.tabCanvas.layers.notes.createNote(i);
+                this.calData[i].hasSvg = true;
+            }
         }
         if(firstChange > 0)firstChange -=1;
         if(firstChange >= 0){
@@ -543,9 +556,9 @@ export class SLTab {
                 }
             }
         }
-        for(let i = dataLength; i < noteElement.length; i++){
-            utils.setStyle(noteElement[i].domelement,{ display: "none"});
-        }
+        // for(let i = dataLength; i < noteElement.length; i++){
+        //     utils.setStyle(noteElement[i].domelement,{ display: "none"});
+        // }
     }
     private setNoteElementData(el: SVGNote, data: caculatedNoteData, nexData:caculatedNoteData ,xlength: number){
         this.setElementPosition(el, data.x, data.y, data.tail, data.section, data.note, xlength);
