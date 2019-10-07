@@ -115,6 +115,8 @@ export class SLTab {
     }
     
     setNoteData(section: number, note: number, data: Note){
+        if(section === -1)section = this.notes.length - 1;
+        if(note === -1)note = this.notes[section].length - 1;
         this.notes[section][note] = data;
     }
 
@@ -234,6 +236,7 @@ export class SLTab {
     instrumentNoteInput(correction: Correction, data: Note, section: number = -1, note: number = -1) {
         if(section == -1)section = this.notes.length - 1;
         if(note == -1)note = this.notes[section].length - 1;
+        //if(note == -2 && this.notes[section].length >= 1)note = this.notes[section].length - 2;
         correction(this, data, section, note);
         this.render();
     }
@@ -421,6 +424,7 @@ export class SLTab {
                     linker.push([x,y]);
                 }
                 if(note[0] !== Math.floor(note[0])){
+                    //console.log(note[0]);
                     dot.push([x, y]);
                 }
                 x += step;
@@ -619,7 +623,7 @@ export class SLTab {
             e.lineGroup[0].y2 = 26 + y + this.stringPadding * 5;
             return;
         }
-        let hc: number = 6.5;
+        let hc: number = 0;
         // note bar should reach the top word
         for(let i = 1 ; i <= 6; i++){
             if(data[i-1] != -1){
@@ -627,7 +631,12 @@ export class SLTab {
                 break;
             }    
         }
-        e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
+        
+        if(hc === 0){
+            e.lineGroup[0].y2 = y + this.stringPadding * 5 + 26 ;
+        }else{
+            e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
+        }
     }
 
     private setLinker(linkerData: number[][]){
