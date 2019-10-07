@@ -619,7 +619,7 @@ export class SLTab {
             e.lineGroup[0].y2 = 26 + y + this.stringPadding * 5;
             return;
         }
-        let hc: number = 6.5;
+        let hc: number = 0;
         // note bar should reach the top word
         for(let i = 1 ; i <= 6; i++){
             if(data[i-1] != -1){
@@ -627,7 +627,12 @@ export class SLTab {
                 break;
             }    
         }
-        e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
+        
+        if(hc === 0){
+            e.lineGroup[0].y2 = y + this.stringPadding * 5 + 26 ;
+        }else{
+            e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
+        }
     }
 
     private setLinker(linkerData: number[][]){
