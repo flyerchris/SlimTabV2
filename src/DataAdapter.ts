@@ -1,18 +1,21 @@
 import { Callbacks } from "./utils"
 import { Note } from "./SlimTabV2Types"
+import { Timeline } from "./Timeline"
 export class DataAdapter{
     private rawData: [number, number, number][] = [];
     private preTime: number;
     private noteRawData: Note;
     private receiveInterval:number;
-    private spb: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
+    private bpm = 120;
     private lengthPerBeat: number = 4;
     private callbacks: Callbacks;
-    
-    constructor(bpm?: number){
+    private timeline: Timeline;
+
+    constructor(tl: Timeline, bpm?: number){
         if(bpm){
-            this.spb = 60 *1000 / bpm;
+            this.bpm = bpm;
         }
+        this.timeline = tl;
         this.callbacks = new Callbacks(["packNote", "data"]);
     }
     receiveData(stringIndex: number, note: number, amp: number, time: number){
@@ -31,13 +34,16 @@ export class DataAdapter{
     getTime(): number{
         return performance.now();
     }
+    get spb(): number{
+        return 60 * 1000 / this.bpm;
+    }
     private packNote(){
         let notes = [-1, -1, -1, -1, -1, -1];
         for(let i = 0; i < this.rawData.length; i++){
             notes[this.rawData[i][0]] = this.rawData[i][1];
         }
         if(this.noteRawData){
-            let duration = this.rawData[0][2] - this.preTime;
+            let duration = this.timeline.getElapseTime() - this.preTime;
             if(duration > this.spb * this.lengthPerBeat){
                 this.noteRawData[0] = 1;
             }else{
@@ -46,11 +52,11 @@ export class DataAdapter{
                 let bl = Math.pow(2, Math.ceil(l2 - 0.5));
                 this.noteRawData[0] = this.lengthPerBeat * bl;
             }
-
-            this.callbacks["packNote"].callAll(this.noteRawData);
-
+            if(this.timeline.getElapseTime() > 0){
+                this.callbacks["packNote"].callAll(this.noteRawData);
+            }
         }
-        this.preTime = this.rawData[0][2];
+        this.preTime = this.timeline.getElapseTime();
         this.noteRawData = new Note({noteValue: 8, stringContent: notes});
         this.rawData = [];
         this.receiveInterval = null;
