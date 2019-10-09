@@ -40,7 +40,7 @@ export class SLTab {
     private lineMargin: number = 42; // only for left and right
     private linePadding: [number, number] = [32, 14];
     private lineDistance: number = 90; // distance between each line
-    private sectionAddNoteNumber = 16;
+    private sectionAddNoteNumber = 8;
     private linkerElement: SVGElement[] = [];
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
@@ -381,12 +381,12 @@ export class SLTab {
             accumulatedLength = 0;
             for(let i = 0; i < this.sectionPerLine; i++){
                 if(this.notes[line * this.sectionPerLine + i]){
-                    lineTotalNote += this.notes[line * this.sectionPerLine + i].length + this.sectionAddNoteNumber;
+                    lineTotalNote += Math.max(this.notes[line * this.sectionPerLine + i].length, this.sectionAddNoteNumber);
                 }else{
                     lineTotalNote += this.sectionAddNoteNumber;
                 }
             }
-            let sectionWidth = this.lineWidth * (this.notes[s].length + this.sectionAddNoteNumber) / lineTotalNote;
+            let sectionWidth = this.lineWidth * (Math.max(this.notes[s].length, this.sectionAddNoteNumber)) / lineTotalNote;
             let sectionTotalBeat = 0;
             for(let i = 0; i < this.notes[s].length; i++){
                 sectionTotalBeat += this.lengthPerBeat /this.notes[s][i][0];
