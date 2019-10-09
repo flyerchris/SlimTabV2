@@ -1,22 +1,24 @@
 export class Timeline{
-    private _startTime: number;
-    offset: number = 0;
+    private startTime: number;
+    private offset: number = 0;
+    private _resetCount: number = 0;
 
     constructor(){
-        this._startTime = performance.now();
+        this.startTime = performance.now();
     }
 
     reset(offset: number = 0){
         this.offset = offset;
-        this._startTime = performance.now();
+        this.startTime = performance.now();
+        this._resetCount++;
     }
 
     getElapseTime(): number{
         return this.ajustedTime() - this.startTime;
     }
 
-    get startTime(): number{
-        return this._startTime;
+    get resetCount(): number{
+        return this._resetCount;
     }
 
     private ajustedTime(): number{
