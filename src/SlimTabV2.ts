@@ -584,6 +584,13 @@ export class SLTab {
     }
     private setChordVisiable(e:SVGNote, x: number, y: number, noteLength: number, data: number[], tail: number[], nextTail: number[]){
         let ap = true;
+        let hc: number = -1; // top chord which data is not -1
+        for(let i = 0 ; i < 6; i++){
+            if(data[i] != -1){
+                hc = i;
+                break;
+            }    
+        }
         e.tail8.hide();
         e.tail16.hide();
         e.tail32.hide();
@@ -594,14 +601,16 @@ export class SLTab {
             }
         }
         if(ap){
-            if(noteLength <=4){
+            if(hc != -1){
+                if(noteLength <=4){
 
-            }else if(noteLength <= 8){
-                e.tail8.show();
-            }else if(noteLength <= 16){
-                e.tail16.show();
-            }else if(noteLength <= 32){
-                e.tail32.show();
+                }else if(noteLength <= 8){
+                    e.tail8.show();
+                }else if(noteLength <= 16){
+                    e.tail16.show();
+                }else if(noteLength <= 32){
+                    e.tail32.show();
+                }
             }
             e.lineGroup[1].x2 = x;
             e.lineGroup[2].x2 = x;
@@ -623,19 +632,12 @@ export class SLTab {
             e.lineGroup[0].y2 = 26 + y + this.stringPadding * 5;
             return;
         }
-        let hc: number = 0;
-        // note bar should reach the top word
-        for(let i = 1 ; i <= 6; i++){
-            if(data[i-1] != -1){
-                hc = i;
-                break;
-            }    
-        }
         
-        if(hc === 0){
+        // note bar should reach the top word
+        if(hc === -1){
             e.lineGroup[0].y2 = y + this.stringPadding * 5 + 26 ;
         }else{
-            e.lineGroup[0].y2 = y + this.stringPadding * (hc - 1);
+            e.lineGroup[0].y2 = y + this.stringPadding * hc;
         }
     }
 
