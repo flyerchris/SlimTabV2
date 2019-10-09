@@ -7,7 +7,9 @@ import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
 import { LiCAPStream } from "./LiCAPStream"
 import {SLPract} from "./SLPract"
+import { Timeline } from "./Timeline"
 let nt = new SLTab();
+let tl = new Timeline();
 let data: [number, number[], any][][] = [
     []
     // [// section
@@ -39,7 +41,7 @@ document.addEventListener("keydown",(e) => {
 });
 nt.render();
 
-let da = new DataAdapter();
+let da = new DataAdapter(tl);
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
         devs[0].on("pick", da.receiveData.bind(da));
@@ -48,16 +50,18 @@ LiCAP.enumerate().then((devs)=>{
 
 da.addPackListener((data: Note)=>{
     if(data.userData === "undefined-value"){
+        nt.addNote(nt.getSectionNumber() -1 , -1, data);
+        nt.render();
+    }else{
+        nt.deleteNote(-1, -1);
         nt.instrumentNoteInput(instrumentCorrection, data);
-    }else{  
-        nt.setNoteData(-1, -1, data);
     }
 });
 da.addDataListener((string:number, note: number, time:number)=>{
-    console.log(string, note, time);
+    //console.log(string, note, time);
 })
 
-let beep: Metronome = new Metronome(120);
+let beep: Metronome = new Metronome(120, tl);
 let bs = 0;
 let beepEle = document.getElementById("metronome");
 beepEle.onclick = function(event){

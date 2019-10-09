@@ -14,6 +14,7 @@ export class Metronome {
     private tickCount: number = 0;
     private timeLine: Timeline;
     constructor(bpm: number, tl: Timeline){
+        this.timeLine = tl;
         this.audioContext = new AudioContext();
         if(bpm)this.bpm = bpm;
         this.gainNode = this.audioContext.createGain();
@@ -76,10 +77,6 @@ export class Metronome {
     private tick(){
         let at = this.audioContext.currentTime;
         let cycleTime = 60 / this.bpm;
-        if(this.tickCount === 4){
-            this.timeLine.reset();
-            this.timeLine.setOffset(at - this.nextTime);
-        }
         if(at > this.nextTime){
             this.timeOffset += 0.05;
             this.makeSound(at + this.timeOffset);
@@ -88,14 +85,19 @@ export class Metronome {
             this.makeSound(this.nextTime);
             this.nextTime += cycleTime;
         }
-        this.tickCount += 1;
+        at = this.audioContext.currentTime;
+        if(this.tickCount === 4){
+            this.timeLine.reset((at - this.nextTime) * 1000);
+        }
     }
-    private makeSound( startTime: number, sound: AudioBuffer = this.sound): AudioBufferSourceNode{
+    private makeSound( startTime: number, sound: AudioBuffer = this.sound2): AudioBufferSourceNode{
+        if(this.tickCount % 4 === 0)sound = this.sound;
         let osc = this.audioContext.createBufferSource();
         osc.buffer = sound;
         osc.connect(this.gainNode);
         osc.start(startTime);
         osc.stop(startTime + 0.05);
+        this.tickCount += 1;
         return osc;
     }
 }
