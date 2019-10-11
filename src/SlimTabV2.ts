@@ -131,13 +131,15 @@ export class SLTab {
     }
 
     deleteNote(section: number, note: number, number: number = 1){
+        if(section === -1)section = this.notes.length - 1;
+        if(note === -1)note = this.notes[section].length - 1;
         let np = this.getNoteFlattenNumber(section, note);
         let dn = this.notes[section].splice(note, number).length;
         this.calData.splice(np, dn);
     }
 
     addNote(section: number, note: number, data: Note){
-        if(section >= this.notes.length){
+        if(section === -1 || section >= this.notes.length){
             section = this.notes.length;
             this.notes.push([]);
         }
