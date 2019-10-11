@@ -49,6 +49,7 @@ export class Metronome {
         this.clearScheduleOsc();
         this.tickTimer = null;
         this.startTime = -1;
+        this.audioStartTime = -1;
         this.beatCount = 0;
     }
     setBpm(bpm: number){
@@ -59,8 +60,12 @@ export class Metronome {
             this.stopTick();
             this.mode = "schedule";
         }
+        if(this.startTime >= 0){
+            console.warn("Cannot schedule tick before stop tick(call stopTick())");
+            return;
+        }
         let scheduleTime = this.audioContext.currentTime * 1000 + time;
-        if(this.startTime < 0)this.audioStartTime = scheduleTime;
+        if(this.audioStartTime < 0)this.audioStartTime = scheduleTime;
         if(type === "normal"){
             this.scheduleOsc.push(this.makeSound(scheduleTime/1000));
         }else{
@@ -68,6 +73,11 @@ export class Metronome {
         }
     }
     play(): number{
+        if(this.startTime >= 0)return -1;
+        if(this.scheduleOsc.length < 1){
+            console.warn("no tick is scheduled");
+            return -1;
+        }
         this.startTime = this.audioStartTime - this.audioContext.currentTime*1000 + performance.now();
         this.audioContext.resume();
         return this.startTime;
