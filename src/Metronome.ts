@@ -1,4 +1,5 @@
 type tickWeight = "normal" | "strong";
+type mode = "click" | "schedule" | "";
 export class Metronome {
     private audioContext: AudioContext;
     private nextTime: number;
@@ -8,8 +9,11 @@ export class Metronome {
     private timeOffset = 0.05;
     private sound: AudioBuffer;
     private sound2: AudioBuffer;
-    private currentTime: number = 0;
+    private audioStartTime: number = -1; // start time in audioContext, unit in milli second
+    private startTime: number = -1; // start time in performance.now(), unit in milli second
+    private mode: mode = "";
     private scheduleOsc: AudioBufferSourceNode[] = [];
+    private beatCount = 0;
     constructor(bpm: number){
         this.audioContext = new AudioContext();
         if(bpm)this.bpm = bpm;
@@ -20,6 +24,8 @@ export class Metronome {
         this.base64toAudioBuffer(beep2).then(decodeBuffer => this.sound2 = decodeBuffer);
     }
     startTick(){
+        this.clearScheduleOsc();
+        this.mode = "click";
         if(!this.tickTimer){
             let cycleTime = 60 / this.bpm;
             this.audioContext.suspend();
@@ -31,7 +37,7 @@ export class Metronome {
             }, cycleTime * 1000 - this.timeOffset*1000);
             this.makeSound(at);
             this.audioContext.resume();
-        }    
+        }
     }
     stopTick(){
         if(this.tickTimer < 0){
@@ -41,22 +47,36 @@ export class Metronome {
         }
         this.audioContext.suspend();
         this.clearScheduleOsc();
-        this.currentTime = this.audioContext.currentTime;
         this.tickTimer = null;
+        this.startTime = -1;
+        this.beatCount = 0;
     }
     setBpm(bpm: number){
         this.bpm = bpm;
     }
     scheduleTick(time: number, type: tickWeight = "normal"){ // time in milli second
-        let scheduleTime = this.currentTime * 1000 + time;
+        if(this.mode === "click"){
+            this.stopTick();
+            this.mode = "schedule";
+        }
+        let scheduleTime = this.audioContext.currentTime * 1000 + time;
+        if(this.startTime < 0)this.audioStartTime = scheduleTime;
         if(type === "normal"){
             this.scheduleOsc.push(this.makeSound(scheduleTime/1000));
         }else{
             this.scheduleOsc.push(this.makeSound(scheduleTime/1000, this.sound2));
         }
     }
-    play(){
+    play(): number{
+        this.startTime = this.audioStartTime - this.audioContext.currentTime*1000 + performance.now();
         this.audioContext.resume();
+        console.log(this.startTime);
+        console.log(performance.now());
+        return this.startTime;
+    }
+
+    getStartTime(): number{
+        return this.startTime;
     }
     private base64toAudioBuffer(b64string: string): Promise<AudioBuffer>{
         return fetch(b64string)
@@ -80,6 +100,11 @@ export class Metronome {
             this.makeSound(this.nextTime);
             this.nextTime += cycleTime;
         }
+        at = this.audioContext.currentTime;
+        if(this.beatCount === 4){
+            // there, this.nextTime is the time of 5th beat after above process
+            this.startTime = performance.now() + (this.nextTime - at) * 1000;
+        }
     }
     private makeSound( startTime: number, sound: AudioBuffer = this.sound): AudioBufferSourceNode{
         let osc = this.audioContext.createBufferSource();
@@ -87,6 +112,7 @@ export class Metronome {
         osc.connect(this.gainNode);
         osc.start(startTime);
         osc.stop(startTime + 0.05);
+        this.beatCount ++;
         return osc;
     }
 }
