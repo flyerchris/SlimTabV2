@@ -70,8 +70,6 @@ export class Metronome {
     play(): number{
         this.startTime = this.audioStartTime - this.audioContext.currentTime*1000 + performance.now();
         this.audioContext.resume();
-        console.log(this.startTime);
-        console.log(performance.now());
         return this.startTime;
     }
 
