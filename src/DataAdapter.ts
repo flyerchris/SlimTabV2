@@ -1,18 +1,19 @@
 import { Callbacks } from "./utils"
 import { Note } from "./SlimTabV2Types"
 export class DataAdapter{
+    timeOffset: number = 0;
     private rawData: [number, number, number][] = [];
     private preTime: number;
     private noteRawData: Note;
     private receiveInterval:number;
-    private spb: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
+    private milliSecondPerBeat: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
     private lengthPerBeat: number = 4;
     private callbacks: Callbacks;
-    private chordInterval: number = 150;
+    private chordInterval: number = 60;
     
     constructor(bpm?: number){
         if(bpm){
-            this.spb = 60 *1000 / bpm;
+            this.milliSecondPerBeat = 60 *1000 / bpm;
         }
         this.callbacks = new Callbacks(["packNote", "data"]);
     }
@@ -32,21 +33,15 @@ export class DataAdapter{
     getTime(): number{
         return performance.now();
     }
+
     private packNote(){
         let notes = [-1, -1, -1, -1, -1, -1];
         for(let i = 0; i < this.rawData.length; i++){
             notes[this.rawData[i][0]] = this.rawData[i][1];
         }
         if(this.noteRawData){
-            let duration = this.rawData[0][2] - this.preTime;
-            if(duration > this.spb * this.lengthPerBeat){
-                this.noteRawData[0] = 1;
-            }else{
-                let l2 = Math.log(this.spb / duration) / Math.log(2);
-                let l3 = Math.log(this.spb / (3 * duration)) / Math.log(2) + 1;
-                let bl = Math.pow(2, Math.ceil(l2 - 0.5));
-                this.noteRawData[0] = Math.min(this.lengthPerBeat * bl, 32);
-            }
+            let nv = this.lengthPerBeat / (this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) - this.timeToBeatCount(this.preTime + this.timeOffset));
+            this.noteRawData.noteValue = nv;
             this.noteRawData.userData = null;
             this.callbacks["packNote"].callAll(this.noteRawData);
         }
@@ -55,5 +50,13 @@ export class DataAdapter{
         this.rawData = [];
         this.receiveInterval = null;
         this.callbacks["packNote"].callAll(this.noteRawData);
+    }
+
+    private timeToBeatCount(time: number){
+        let beat = time / this.milliSecondPerBeat;
+        let bd = Math.floor(beat);
+        let bc = beat - bd;
+        bc = Math.floor(bc * 4 + 0.5) / 4;
+        return bd + bc;
     }
 }

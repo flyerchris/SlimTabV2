@@ -42,7 +42,10 @@ nt.render();
 let da = new DataAdapter();
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
-        devs[0].on("pick", da.receiveData.bind(da));
+        devs[0].on("pick", (strIndex, note, amp, time)=>{
+            da.timeOffset = -beep.getStartTime();
+            da.receiveData(strIndex, note, amp, time);
+        });
     }
 });
 
@@ -56,7 +59,7 @@ da.addPackListener((data: Note)=>{
     }
 });
 da.addDataListener((string:number, note: number, time:number)=>{
-    console.log(string, note, time);
+    //console.log(string, note, time);
 })
 
 let beep: Metronome = new Metronome(120);
@@ -98,3 +101,9 @@ document.getElementById('playstream').addEventListener('click', () => {
 })
 console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
+// document.addEventListener("keydown",(ev)=>{
+//     if(ev.key == "r"){
+//         da.timeOffset = -beep.getStartTime();
+//         da.receiveData(1, 5, 2, ev.timeStamp);
+//     }
+// });
