@@ -48,9 +48,11 @@ LiCAP.enumerate().then((devs)=>{
 
 da.addPackListener((data: Note)=>{
     if(data.userData === "undefined-value"){
-        nt.instrumentNoteInput(instrumentCorrection, data);
+        nt.addNote(nt.getSectionNumber() -1 , -1, data);
+        nt.render();
     }else{  
-        nt.setNoteData(-1, -1, data);
+        nt.deleteNote(-1, -1);
+        nt.instrumentNoteInput(instrumentCorrection, data);
     }
 });
 da.addDataListener((string:number, note: number, time:number)=>{
