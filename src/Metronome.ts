@@ -116,6 +116,9 @@ export class Metronome {
     }
     private makeSound( startTime: number, sound: AudioBuffer = this.sound): AudioBufferSourceNode{
         let osc = this.audioContext.createBufferSource();
+        if(this.beatCount % 4 === 0 && this.mode === "click"){
+            sound = this.sound2;
+        }
         osc.buffer = sound;
         osc.connect(this.gainNode);
         osc.start(startTime);
