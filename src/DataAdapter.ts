@@ -2,18 +2,18 @@ import { Callbacks } from "./utils"
 import { Note } from "./SlimTabV2Types"
 export class DataAdapter{
     timeOffset: number = 0;
+    private bpm: number = 120;
     private rawData: [number, number, number][] = [];
     private preTime: number;
     private noteRawData: Note;
     private receiveInterval:number;
-    private milliSecondPerBeat: number = 60 * 1000 / 120; // second per beat, defalut value corresponds to 120 bpm
     private lengthPerBeat: number = 4;
     private callbacks: Callbacks;
     private chordInterval: number = 60;
     
     constructor(bpm?: number){
         if(bpm){
-            this.milliSecondPerBeat = 60 *1000 / bpm;
+            this.bpm = bpm;
         }
         this.callbacks = new Callbacks(["packNote", "data"]);
     }
@@ -32,6 +32,12 @@ export class DataAdapter{
     }
     getTime(): number{
         return performance.now();
+    }
+    get milliSecondPerBeat(){
+        return 60 *1000 / this.bpm;
+    }
+    setBpm(val: number){
+        this.bpm = val;
     }
 
     private packNote(){

@@ -65,6 +65,12 @@ da.addDataListener((string:number, note: number, time:number)=>{
 let beep: Metronome = new Metronome(120);
 let bs = 0;
 let beepEle = document.getElementById("metronome");
+let bpmDom = <HTMLInputElement>document.getElementById("metronome-bpm");
+bpmDom.addEventListener("change",() =>{
+    beep.setBpm(Number(bpmDom.value));
+    da.setBpm(Number(bpmDom.value));
+    console.log(bpmDom.value);
+});
 beepEle.onclick = function(event){
     if(bs == 0){
         beep.startTick();
@@ -101,9 +107,9 @@ document.getElementById('playstream').addEventListener('click', () => {
 })
 console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
-// document.addEventListener("keydown",(ev)=>{
-//     if(ev.key == "r"){
-//         da.timeOffset = -beep.getStartTime();
-//         da.receiveData(1, 5, 2, ev.timeStamp);
-//     }
-// });
+document.addEventListener("keydown",(ev)=>{
+    if(ev.key == "r"){
+        da.timeOffset = -beep.getStartTime();
+        da.receiveData(1, 5, 2, ev.timeStamp);
+    }
+});
