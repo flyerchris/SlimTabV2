@@ -323,7 +323,7 @@ export class SLEditor {
             if(controlTab.isBlankNote(selectNote.section, selectNote.note)){
                 // delete the blank note and move to next section in the second time pressing "right" key
                 let pl = controlTab.getNoteNumberOfSection(selectNote.section);
-                if(pl != 1){
+                if(pl > 1){
                     controlTab.deleteNote(selectNote.section , selectNote.note);
                     controlTab.render();
                 }

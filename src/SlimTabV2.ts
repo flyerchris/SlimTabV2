@@ -622,12 +622,12 @@ export class SLTab {
             e.lineGroup[3].x2 = x;
         }
         for(let i = 0 ; i < 6; i++){
-            e.blockGroup[i].word.text = `${data[i]}`;
-            e.blockGroup[i].wordBack.text = `${data[i]}`;
             if(data[i] == -1){
-                utils.setStyle(e.blockGroup[i].domelement, {display: "none"});
+                e.blockGroup[i].word.text = ``;
+                e.blockGroup[i].wordBack.text = ``;
             }else{
-                utils.setStyle(e.blockGroup[i].domelement, {display: "block"});
+                e.blockGroup[i].word.text = `${data[i]}`;
+                e.blockGroup[i].wordBack.text = `${data[i]}`;
             }
         }
         if(noteLength == 2){
