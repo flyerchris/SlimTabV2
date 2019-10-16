@@ -276,10 +276,12 @@ export class SLEditor {
         });
     }
     private selectNoteAndMoveIndicator(section: number, note: number, string: number): boolean{
+        let sp = this.controlTab.getSectionLeftTopPos(section);
         let np = this.controlTab.getNotePosition(section, note, string);
         if(np[0] === -1)return false;
         this.setSelectNote(section, note, string);
         this.setIndicator(np);
+        this.controlTab.adjustPostion(sp[1]);
         return true;
     }
     private setNoteClickEvent(section: number, note: number, string: number, position: number[]){

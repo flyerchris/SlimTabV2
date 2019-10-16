@@ -57,6 +57,7 @@ da.addPackListener((data: Note)=>{
         nt.deleteNote(-1, -1);
         nt.instrumentNoteInput(instrumentCorrection, data);
     }
+    nt.adjustPostion(nt.getSectionLeftTopPos(nt.getSectionNumber() - 1)[1]);
 });
 da.addDataListener((string:number, note: number, time:number)=>{
     //console.log(string, note, time);

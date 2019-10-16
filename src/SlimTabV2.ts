@@ -34,6 +34,7 @@ export class SLTab {
     domElement: HTMLElement;
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
+    readonly containerHeight: number = 700;
     private lineWidth: number = 1200;
     private sectionPerLine: number = 4;
     private stringPadding: number = 16; // distance between each string
@@ -71,7 +72,7 @@ export class SLTab {
                 }
             }
         });
-        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: "700px", "overflow-y": "auto", "overflow-x": "hidden"});
+        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: `${this.containerHeight}px`, "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
         this.callbacks = new Callbacks([
             "noteclick", 
@@ -328,6 +329,14 @@ export class SLTab {
             this.tabCanvas.layers.ui.sectionIndicator[section].height;
         }
         return 0;
+    }
+    adjustPostion(y: number){
+        if(y + 200 > this.domElement.scrollTop + this.containerHeight){
+            this.scrollTo(y - this.containerHeight + 200);
+        }
+        if(y - 60 < this.domElement.scrollTop){
+            this.scrollTo(y - 60);
+        }
     }
     private removeCalData(removeIndex: number, num: number){
         this.calData.splice(removeIndex, num);
