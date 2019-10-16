@@ -68,9 +68,9 @@ export class Metronome {
         let scheduleTime = this.audioContext.currentTime * 1000 + time;
         if(this.audioStartTime < 0)this.audioStartTime = scheduleTime;
         if(type === "normal"){
-            this.scheduleOsc.push(this.makeSound(scheduleTime/1000));
+            this.makeSound(scheduleTime/1000);
         }else{
-            this.scheduleOsc.push(this.makeSound(scheduleTime/1000, this.sound2));
+            this.makeSound(scheduleTime/1000, this.sound2);
         }
     }
     play(): number{
@@ -114,6 +114,7 @@ export class Metronome {
             // there, this.nextTime is the time of 5th beat after above process
             this.startTime = performance.now() + (this.nextTime - at) * 1000;
         }
+        if(this.scheduleOsc.length > 10)this.scheduleOsc.shift();
     }
     private makeSound( startTime: number, sound: AudioBuffer = this.sound): AudioBufferSourceNode{
         let osc = this.audioContext.createBufferSource();
@@ -125,6 +126,7 @@ export class Metronome {
         osc.start(startTime);
         osc.stop(startTime + 0.05);
         this.beatCount ++;
+        this.scheduleOsc.push(osc);
         return osc;
     }
 }
