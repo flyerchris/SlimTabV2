@@ -59,10 +59,21 @@ export class DataAdapter{
     }
 
     private timeToBeatCount(time: number){
+        let ratio = [3, 2];
+        let unit = this.milliSecondPerBeat/(2*(ratio[0] + ratio[1]));
+        let range = [unit * ratio[0]/2];
+        for(let i = 0; i < 3; i++)range.push(range[i] + ratio[(i+1)%2]*unit);
+
         let beat = time / this.milliSecondPerBeat;
         let bd = Math.floor(beat);
-        let bc = beat - bd;
-        bc = Math.floor(bc * 4 + 0.5) / 4;
-        return bd + bc;
+        let bcs = (beat - bd) * this.milliSecondPerBeat;
+        let bc = 4;
+        for(let i = 0; i < 4; i++){
+            if(bcs < range[i]){
+                bc = i;
+                break;
+            }
+        }
+        return bd + bc * 0.25;
     }
 }
