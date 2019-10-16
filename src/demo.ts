@@ -69,6 +69,7 @@ let bpmDom = <HTMLInputElement>document.getElementById("metronome-bpm");
 bpmDom.addEventListener("change",() =>{
     beep.setBpm(Number(bpmDom.value));
     da.setBpm(Number(bpmDom.value));
+    document.getElementById("bpm-display").innerHTML = bpmDom.value;
     console.log(bpmDom.value);
 });
 beepEle.onclick = function(event){
@@ -108,8 +109,9 @@ document.getElementById('playstream').addEventListener('click', () => {
 console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
-    if(ev.key == "r"){
+    if(ev.key == "r" || ev.key == "e"){
+        console.log(ev.timeStamp - beep.getStartTime() - 20);
         da.timeOffset = -beep.getStartTime();
-        da.receiveData(1, 5, 2, ev.timeStamp);
+        da.receiveData(1, 5, 2, ev.timeStamp - 20);
     }
 });
