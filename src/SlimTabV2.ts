@@ -331,8 +331,8 @@ export class SLTab {
         return 0;
     }
     adjustPostion(y: number){
-        if(y + 200 > this.domElement.scrollTop + this.containerHeight){
-            this.scrollTo(y - this.containerHeight + 200);
+        if(y + 220 > this.domElement.scrollTop + this.containerHeight){
+            this.scrollTo(y - this.containerHeight + 220);
         }
         if(y - 60 < this.domElement.scrollTop){
             this.scrollTo(y - 60);
