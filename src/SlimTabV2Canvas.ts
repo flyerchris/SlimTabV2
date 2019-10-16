@@ -632,7 +632,7 @@ class NoteLayer extends Layer {
         `;
         utils.setAttributes(this.domElement,{"data-layer": "NoteLayer"})
     }
-    createNote(): SVGElement {
+    createNote(insertIndex: number = -1): SVGElement {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockArray: NoteBlock[] = [];
@@ -656,9 +656,20 @@ class NoteLayer extends Layer {
             blockArray.push(new NoteBlock(<HTMLElement><unknown>wordGroup, word, wordBack, extendRect));
         }
         note.append(blockGroup);
-        this.noteElements.push(new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
+        if(insertIndex === -1)insertIndex = this.noteElements.length;
+        this.noteElements.splice(insertIndex, 0, new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
+        //this.noteElements.push(new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
         this.domElement.append(note);
         return note;
+    }
+
+    removeNote(noteIndex: number, num: number = 1){
+        for(let i = 0; i < num; i++){
+            if(this.noteElements[noteIndex + i])
+                this.domElement.removeChild(this.noteElements[noteIndex + i].domelement);
+        }
+        
+        this.noteElements.splice(noteIndex, num);
     }
 }
 
