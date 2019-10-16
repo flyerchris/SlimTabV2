@@ -62,7 +62,7 @@ export class SLEditor {
     }
     private setEvents(){
         this.controlTab.on("noteclick", (section, note, string, position) => {
-            this.setNoteClickEvent(section, note, string, position);
+            this.selectNoteAndMoveIndicator(section, note, string);
             this.selectedSVGNote = this.controlTab.getSVGNote(section, note);
             this.unselectSVGNotes();
         });
@@ -259,10 +259,6 @@ export class SLEditor {
             this.controlTab.tabCanvas.layers.ui.hideSectionIndicator(section);
         });
         this.controlTab.on("sectionclick",(section, string) => {
-            if(this.selectedBlock && this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note) && this.controlTab.getNoteNumberOfSection(this.selectedBlock.section)>1){
-                this.controlTab.deleteNote(this.selectedBlock.section , this.selectedBlock.note);
-                this.controlTab.render();
-            }
             this.selectNoteAndMoveIndicator(section, this.controlTab.getNoteNumberOfSection(section) - 1, string);
             if(this.selectedBlock &&
             this.selectedBlock.section === section && 
@@ -279,14 +275,19 @@ export class SLEditor {
         let sp = this.controlTab.getSectionLeftTopPos(section);
         let np = this.controlTab.getNotePosition(section, note, string);
         if(np[0] === -1)return false;
+        if(this.selectedBlock && (this.selectedBlock.section != section || this.selectedBlock.note != note)){
+            if(this.controlTab.getNoteNumberOfSection(this.selectedBlock.section) > 1 && this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
+                this.controlTab.deleteNote(this.selectedBlock.section, this.selectedBlock.note);
+                this.controlTab.render();
+                if(this.selectedBlock.section === section && this.selectedBlock.note < note) note--;
+                sp = this.controlTab.getSectionLeftTopPos(section);
+                np = this.controlTab.getNotePosition(section, note, string);
+            }
+        }
         this.setSelectNote(section, note, string);
         this.setIndicator(np);
         this.controlTab.adjustPostion(sp[1]);
         return true;
-    }
-    private setNoteClickEvent(section: number, note: number, string: number, position: number[]){
-        this.setSelectNote(section, note, string);
-        this.setIndicator(position);
     }
     private setSelectNote(section: number, note: number, string: number){
         this.selectedBlock = {section: section, note: note, string: string};
@@ -294,7 +295,6 @@ export class SLEditor {
     private setIndicator(position: number[]){
         this.indicator.cx = position[0];
         this.indicator.cy = position[1];
-        //if(position[0] > 0)this.controlTab.scrollTo(position[1] - 166);
     }
     private changeNoteLength(operater: string){
         let factor: number;
@@ -323,12 +323,6 @@ export class SLEditor {
         let s = this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
         if(!s){ // the current selection is the last note of the section
             if(controlTab.isBlankNote(selectNote.section, selectNote.note)){
-                // delete the blank note and move to next section in the second time pressing "right" key
-                let pl = controlTab.getNoteNumberOfSection(selectNote.section);
-                if(pl > 1){
-                    controlTab.deleteNote(selectNote.section , selectNote.note);
-                    controlTab.render();
-                }
                 s = this.selectNoteAndMoveIndicator(selectNote.section + 1, 0, selectNote.string);
                 if(!s){ // the current selection is the last section and the last note
                     controlTab.addNote(selectNote.section + 1, 0, new Note());
@@ -339,20 +333,6 @@ export class SLEditor {
                 controlTab.addNote(selectNote.section, selectNote.note + 1, new Note());
                 controlTab.render();
                 this.selectNoteAndMoveIndicator(selectNote.section, selectNote.note + 1, selectNote.string);
-            }
-        }else{
-            //Minor modified, for insert function debugging. HaK.
-            // if(selectNote.note - 1 >= 0){
-            //     if(controlTab.isBlankNote(selectNote.section, selectNote.note - 1)){
-            //         controlTab.deleteNote(selectNote.section, selectNote.note - 1);
-            //         controlTab.render();
-            //         this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note - 1, selectNote.string);
-            //     }
-            // }
-            if(controlTab.isBlankNote(selectNote.section, selectNote.note)){
-                controlTab.deleteNote(selectNote.section, selectNote.note);
-                controlTab.render();
-                this.selectNoteAndMoveIndicator(selectNote.section , selectNote.note, selectNote.string);
             }
         }
     }
