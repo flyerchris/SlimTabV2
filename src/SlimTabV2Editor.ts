@@ -338,18 +338,18 @@ export class SLEditor {
     }
     private selectLeft(selectNoteBlock: NoteBlockIndex, controlTab: SLTab){
         if(selectNoteBlock.note === 0){
-            if(selectNoteBlock.section > 0){
-                let n = controlTab.getNoteNumberOfSection(selectNoteBlock.section - 1) - 1;
-                this.selectNoteAndMoveIndicator(selectNoteBlock.section - 1, n ,selectNoteBlock.string);
+            if(controlTab.isBlankNote(selectNoteBlock.section, selectNoteBlock.note)){
+                if(selectNoteBlock.section > 0){
+                    debugger;
+                    this.selectNoteAndMoveIndicator(selectNoteBlock.section - 1, this.controlTab.getNoteNumberOfSection(selectNoteBlock.section - 1) - 1, selectNoteBlock.string);
+                }
+            }else{
+                controlTab.addNote(selectNoteBlock.section, 0, new Note());
+                controlTab.render();
+                this.selectNoteAndMoveIndicator(selectNoteBlock.section, 0, selectNoteBlock.string);
             }
         }else{
-            if(controlTab.isBlankNote(selectNoteBlock.section, selectNoteBlock.note)){
-                controlTab.deleteNote(selectNoteBlock.section, selectNoteBlock.note);
-                controlTab.render();
-                this.selectNoteAndMoveIndicator(selectNoteBlock.section , selectNoteBlock.note - 1, selectNoteBlock.string);
-            }else{
-                this.selectNoteAndMoveIndicator(selectNoteBlock.section, selectNoteBlock.note - 1 ,selectNoteBlock.string);
-            }
+            this.selectNoteAndMoveIndicator(selectNoteBlock.section, selectNoteBlock.note - 1 ,selectNoteBlock.string);
         }
     }
     private selectUp(selectNoteBlock: NoteBlockIndex, controlTab: SLTab){
