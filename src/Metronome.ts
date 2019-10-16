@@ -14,6 +14,7 @@ export class Metronome {
     private mode: mode = "";
     private scheduleOsc: AudioBufferSourceNode[] = [];
     private beatCount = 0;
+    private startTimeOffset = 0.05;// unit in second
     constructor(bpm: number){
         this.audioContext = new AudioContext();
         if(bpm)this.bpm = bpm;
@@ -29,7 +30,7 @@ export class Metronome {
         if(!this.tickTimer){
             let cycleTime = 60 / this.bpm;
             this.audioContext.suspend();
-            let at = this.audioContext.currentTime;
+            let at = this.audioContext.currentTime + this.startTimeOffset;
             this.nextTime = at + cycleTime;
             this.tickTimer = -1 * setTimeout(() => {
                 this.tick();
