@@ -48,7 +48,7 @@ export class DataAdapter{
         if(this.noteRawData){
             let bc = this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) - this.timeToBeatCount(this.preTime + this.timeOffset);
             let nv;
-            if(bc === 0){
+            if(bc <= 0){
                 nv = 16;
                 this.preTime = (this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) + 0.25) * this.milliSecondPerBeat - this.timeOffset;
             }else{
@@ -59,6 +59,7 @@ export class DataAdapter{
             this.noteRawData.userData = null;
             this.callbacks["packNote"].callAll(this.noteRawData);
         }else{
+            this.timeOffset = -this.rawData[0][2];
             this.preTime = this.rawData[0][2];
         }
         this.noteRawData = new Note({noteValue: 8, stringContent: notes, userData: "undefined-value"});
