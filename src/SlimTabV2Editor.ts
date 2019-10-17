@@ -340,7 +340,6 @@ export class SLEditor {
         if(selectNoteBlock.note === 0){
             if(controlTab.isBlankNote(selectNoteBlock.section, selectNoteBlock.note)){
                 if(selectNoteBlock.section > 0){
-                    debugger;
                     this.selectNoteAndMoveIndicator(selectNoteBlock.section - 1, this.controlTab.getNoteNumberOfSection(selectNoteBlock.section - 1) - 1, selectNoteBlock.string);
                 }
             }else{
