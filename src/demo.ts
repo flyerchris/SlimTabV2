@@ -51,7 +51,11 @@ LiCAP.enumerate().then((devs)=>{
 
 da.addPackListener((data: Note)=>{
     if(data.userData === "undefined-value"){
-        nt.addNote(nt.getSectionNumber() -1 , -1, data);
+        if(nt.isSectionFull(nt.getSectionNumber() -1)){
+            nt.addNote(-1 , -1, data);
+        }else{
+            nt.addNote(nt.getSectionNumber() -1 , -1, data);
+        }
         nt.render();
     }else{  
         nt.deleteNote(-1, -1);
@@ -111,8 +115,8 @@ console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
     if(ev.key == "r" || ev.key == "e"){
-        console.log(ev.timeStamp - beep.getStartTime() - 20);
+        console.log(ev.timeStamp - beep.getStartTime());
         da.timeOffset = -beep.getStartTime();
-        da.receiveData(1, 5, 2, ev.timeStamp - 20);
+        da.receiveData(1, 5, 2, ev.timeStamp);
     }
 });

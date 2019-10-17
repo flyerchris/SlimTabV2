@@ -338,6 +338,17 @@ export class SLTab {
             this.scrollTo(y - 60);
         }
     }
+
+    isSectionFull(section: number){
+        let stackLength = 0;// unit in beat
+        for(let i = 0; i < this.notes[section].length; i++){
+            stackLength += this.lengthPerBeat / this.notes[section][i][0];
+        }
+        if(stackLength >= this.beatPerSection){
+            return true;
+        }
+        return false;
+    }
     private removeCalData(removeIndex: number, num: number){
         this.calData.splice(removeIndex, num);
         this.tabCanvas.layers.notes.removeNote(removeIndex, num);
