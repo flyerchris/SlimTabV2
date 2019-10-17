@@ -9,7 +9,7 @@ export class DataAdapter{
     private receiveInterval:number;
     private lengthPerBeat: number = 4;
     private callbacks: Callbacks;
-    private chordInterval: number = 60;
+    private chordInterval: number = 50;
     
     constructor(bpm?: number){
         if(bpm){
@@ -46,12 +46,21 @@ export class DataAdapter{
             notes[this.rawData[i][0]] = this.rawData[i][1];
         }
         if(this.noteRawData){
-            let nv = this.lengthPerBeat / (this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) - this.timeToBeatCount(this.preTime + this.timeOffset));
+            let bc = this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) - this.timeToBeatCount(this.preTime + this.timeOffset);
+            let nv;
+            if(bc === 0){
+                nv = 16;
+                this.preTime = (this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) + 0.25) * this.milliSecondPerBeat - this.timeOffset;
+            }else{
+                nv = this.lengthPerBeat / bc;
+                this.preTime = this.rawData[0][2];
+            }
             this.noteRawData.noteValue = nv;
             this.noteRawData.userData = null;
             this.callbacks["packNote"].callAll(this.noteRawData);
+        }else{
+            this.preTime = this.rawData[0][2];
         }
-        this.preTime = this.rawData[0][2];
         this.noteRawData = new Note({noteValue: 8, stringContent: notes, userData: "undefined-value"});
         this.rawData = [];
         this.receiveInterval = null;
@@ -59,7 +68,7 @@ export class DataAdapter{
     }
 
     private timeToBeatCount(time: number){
-        let ratio = [3, 2];
+        let ratio = [3, 1];
         let unit = this.milliSecondPerBeat/(2*(ratio[0] + ratio[1]));
         let range = [unit * ratio[0]/2];
         for(let i = 0; i < 3; i++)range.push(range[i] + ratio[(i+1)%2]*unit);
