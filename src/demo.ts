@@ -115,8 +115,28 @@ console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
     if(ev.key == "r" || ev.key == "e"){
-        console.log(ev.timeStamp - beep.getStartTime());
+        //console.log(ev.timeStamp - beep.getStartTime());
         da.timeOffset = -beep.getStartTime();
         da.receiveData(1, 5, 2, ev.timeStamp);
     }
+    if(ev.key == "x"){
+        let dl = document.createElement("a");
+        dl.setAttribute("download", "tablature.txt");
+        dl.style.display = "none";
+        dl.setAttribute("href", `data:text/plain;charset=utf-8,${JSON.stringify(nt.notes)}`);
+        document.body.append(dl);
+        dl.click();
+        document.body.removeChild(dl);
+    }
 });
+let loadFileEle = <HTMLInputElement>document.getElementById("load-file")
+loadFileEle.addEventListener("change", (ev) => {
+    let reader = new FileReader();
+    reader.onload = (e)=>{
+        let ldata = <[number, number[], any][][]>JSON.parse(<string>(<FileReader>e.target).result);
+        nt.setData(ldata);
+        nt.render();
+    }
+    reader.readAsText(loadFileEle.files[0]);
+    loadFileEle.value="";
+})
