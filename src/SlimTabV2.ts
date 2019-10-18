@@ -100,6 +100,7 @@ export class SLTab {
 
     //todo: do a stricter check for these function
     setData(data: [number, number[], any][][]) {
+        this.clearData();
         let na: Note[][] = [];
         for(let i = 0; i < data.length; i++){
             let newSection: Note[] = [];
@@ -348,6 +349,12 @@ export class SLTab {
         }
         return false;
     }
+
+    private clearData(){
+        this.notes = [[]];
+        this.calData = [];
+        this.tabCanvas.layers.notes.removeNote(0, this.tabCanvas.layers.notes.noteElements.length);
+    }
     private removeCalData(removeIndex: number, num: number){
         this.calData.splice(removeIndex, num);
         this.tabCanvas.layers.notes.removeNote(removeIndex, num);
@@ -387,6 +394,12 @@ export class SLTab {
             this.tabCanvas.layers.sheet.bar[i].x1 = position[i][0][0] + width;
             this.tabCanvas.layers.sheet.bar[i].x2 = position[i][0][0] + width;
             utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i].domElement,{"data-section": `${i}`});
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.ui.sectionIndicator[i].domElement, {display: "unset"});
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.sheet.bar[i].domElement, {display: "unset"});
+        }
+        for(let i = position.length; i < this.tabCanvas.layers.ui.sectionIndicator.length; i++){
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.ui.sectionIndicator[i].domElement, {display: "none"});
+            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.sheet.bar[i].domElement, {display: "none"});
         }
     }
 

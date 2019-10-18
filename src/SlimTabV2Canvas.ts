@@ -692,7 +692,7 @@ class SheetLayer extends Layer {
             this.createLine(x, y + i*stringPadding, x + l, y + i * stringPadding, 2, "rgba(255, 255, 255, 0.24)", ng);
         }
         this.drawRowTitle(x - 30, y, ng);
-        this.createLine(x, y, x, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", this.domElement);
+        this.createLine(x, y, x, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", ng);
         for(let i= 0; i < sectionPerLine; i++){
             let nb = this.createLine(0, y, 0, y + stringPadding * 5, 2, "rgba(255, 255, 255, 0.24)", this.domElement);
             this.bar.push(nb);
