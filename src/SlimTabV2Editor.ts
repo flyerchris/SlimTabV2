@@ -275,7 +275,7 @@ export class SLEditor {
         let sp = this.controlTab.getSectionLeftTopPos(section);
         let np = this.controlTab.getNotePosition(section, note, string);
         if(np[0] === -1)return false;
-        if(this.selectedBlock && (this.selectedBlock.section != section || this.selectedBlock.note != note)){
+        if(this.selectedBlock && this.selectedBlock.section < this.controlTab.getSectionNumber() && (this.selectedBlock.section != section || this.selectedBlock.note != note)){
             if(this.controlTab.getNoteNumberOfSection(this.selectedBlock.section) > 1 && this.controlTab.isBlankNote(this.selectedBlock.section, this.selectedBlock.note)){
                 this.controlTab.deleteNote(this.selectedBlock.section, this.selectedBlock.note);
                 this.controlTab.render();
