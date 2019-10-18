@@ -47,12 +47,17 @@ export class DataAdapter{
             notes[this.rawData[i][0]] = this.rawData[i][1];
         }
         let rbc = this.timeToBeatCount(this.rawData[0][2] + this.timeOffset);
-        if(this.beatInnerCount[0] != Math.floor(rbc)){
-            this.beatInnerCount[0] = Math.floor(rbc);
-            this.beatInnerCount[1] = 0;
+        if(this.beatInnerCount[0] != Math.floor(rbc / 0.5) * 0.5){
+            this.beatInnerCount[0] = Math.floor(rbc / 0.5) * 0.5;
+            if(rbc !== Math.floor(rbc / 0.5) * 0.5){
+                this.beatInnerCount[1] = 1;
+            }else{
+                this.beatInnerCount[1] = 0;
+            }
         }
         this.beatInnerCount[1]++;
-        if(this.beatInnerCount[1] > 4){
+        if(this.beatInnerCount[1] > 2){
+            this.preTime = (this.beatInnerCount[0] + 0.25) * this.milliSecondPerBeat - this.timeOffset;
             this.receiveInterval = null;
             this.rawData = [];
             return;
