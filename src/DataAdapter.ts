@@ -10,6 +10,7 @@ export class DataAdapter{
     private lengthPerBeat: number = 4;
     private callbacks: Callbacks;
     private chordInterval: number = 50;
+    private beatInnerCount = [0, 0];
     
     constructor(bpm?: number){
         if(bpm){
@@ -45,8 +46,19 @@ export class DataAdapter{
         for(let i = 0; i < this.rawData.length; i++){
             notes[this.rawData[i][0]] = this.rawData[i][1];
         }
+        let rbc = this.timeToBeatCount(this.rawData[0][2] + this.timeOffset);
+        if(this.beatInnerCount[0] != Math.floor(rbc)){
+            this.beatInnerCount[0] = Math.floor(rbc);
+            this.beatInnerCount[1] = 0;
+        }
+        this.beatInnerCount[1]++;
+        if(this.beatInnerCount[1] > 4){
+            this.receiveInterval = null;
+            this.rawData = [];
+            return;
+        }
         if(this.noteRawData){
-            let bc = this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) - this.timeToBeatCount(this.preTime + this.timeOffset);
+            let bc = rbc - this.timeToBeatCount(this.preTime + this.timeOffset);
             let nv;
             if(bc <= 0){
                 nv = 16;
