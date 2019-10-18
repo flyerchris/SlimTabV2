@@ -136,6 +136,7 @@ loadFileEle.addEventListener("change", (ev) => {
     let reader = new FileReader();
     reader.onload = (e)=>{
         let ldata = <[number, number[], any][][]>JSON.parse(<string>(<FileReader>e.target).result);
+        tabEditor.resetIndicator();
         nt.setData(ldata);
         nt.render();
     }
