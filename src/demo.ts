@@ -119,17 +119,19 @@ document.addEventListener("keydown",(ev)=>{
         da.timeOffset = -beep.getStartTime();
         da.receiveData(1, 5, 2, ev.timeStamp);
     }
-    if(ev.key == "x"){
-        let dl = document.createElement("a");
-        dl.setAttribute("download", "tablature.txt");
-        dl.style.display = "none";
-        dl.setAttribute("href", `data:text/plain;charset=utf-8,${JSON.stringify(nt.notes)}`);
-        document.body.append(dl);
-        dl.click();
-        document.body.removeChild(dl);
-    }
 });
-let loadFileEle = <HTMLInputElement>document.getElementById("load-file")
+document.getElementById('save-file').addEventListener('click', saveFile);
+function saveFile(){
+    let dl = document.createElement("a");
+    dl.setAttribute("download", "tablature.txt");
+    dl.style.display = "none";
+    dl.setAttribute("href", `data:text/plain;charset=utf-8,${JSON.stringify(nt.notes)}`);
+    document.body.append(dl);
+    dl.click();
+    document.body.removeChild(dl);
+}
+let loadFileEle = <HTMLInputElement>document.getElementById("load-file");
+loadFileEle.style.display = "none";
 loadFileEle.addEventListener("change", (ev) => {
     let reader = new FileReader();
     reader.onload = (e)=>{
@@ -139,4 +141,7 @@ loadFileEle.addEventListener("change", (ev) => {
     }
     reader.readAsText(loadFileEle.files[0]);
     loadFileEle.value="";
-})
+});
+document.getElementById("load-f").addEventListener('click', () => {
+    loadFileEle.click();
+});

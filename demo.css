@@ -1,3 +1,9 @@
+#slimtab{
+    position: relative;
+    width: fit-content;
+    background: radial-gradient(#3E3E3E, #000);
+    user-select: none;
+}
 .li-con-btn{
     width: 112px;
     height: 31px;
@@ -5,7 +11,7 @@
     font-size: 12px;
     border-radius: 8px;
     position: absolute;
-    top: 25px;
+    top: 28px;
     right: 31px;
     z-index: 9;
     background: #00BE7C;
@@ -89,4 +95,23 @@
     font-size: 18px;
     line-height: 39px;
     color: #F4F4F4;
+}
+#menu {
+    position: absolute;
+    left: 170px;
+    top: 28px;
+}
+#menu > div{
+    cursor: context-menu;
+    font-family: Microsoft JhengHei;
+    width: 80px;
+    height: 20px;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    line-height: 20px;
+    background: #009933;
+    background-image: linear-gradient(180deg, #00AA66 0%, #009933 51%, #007933 95%);
+    display: inline-block;
+    border-radius: 2px;
 }
