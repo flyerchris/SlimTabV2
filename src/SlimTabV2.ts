@@ -239,8 +239,7 @@ export class SLTab {
      */
     instrumentNoteInput(correction: Correction, data: Note, section: number = -1, note: number = -1) {
         if(section == -1)section = this.notes.length - 1;
-        if(note == -1)note = this.notes[section].length - 1;
-        //if(note == -2 && this.notes[section].length >= 1)note = this.notes[section].length - 2;
+        if(note == -1)note = this.notes[section].length;
         correction(this, data, section, note);
         this.render();
     }

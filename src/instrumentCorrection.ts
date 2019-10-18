@@ -2,9 +2,9 @@ import { Correction } from "./SlimTabV2Interface"
 import { section, Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
 const instrumentCorrection: Correction = function(sltab: SLTab, addData: Note, section: number, note: number){
-    sltab.deleteNote(section, note + 1 , sltab.getNoteNumberOfSection(section));
+    sltab.deleteNote(section, note , sltab.getNoteNumberOfSection(section));
     let stackLength = 0;// unit in beat
-    for(let i = 0; i <= note; i++){
+    for(let i = 0; i < note; i++){
         stackLength += sltab.lengthPerBeat / sltab.notes[section][i][0];
     }
     if(stackLength >= sltab.beatPerSection){
@@ -14,10 +14,10 @@ const instrumentCorrection: Correction = function(sltab: SLTab, addData: Note, s
         let restLength = sltab.beatPerSection - stackLength;
         let addLength = sltab.lengthPerBeat / (sltab.lengthPerBeat / addData[0] - restLength);
         restLength = sltab.lengthPerBeat / restLength;
-        sltab.addNote(section, -1, new Note({noteValue: restLength, stringContent: addData[1], userData: "linkStart"}));
+        sltab.addNote(section, -1, new Note({noteValue: restLength, stringContent: addData[1], userData: ""}));
         sltab.insertSection(-1, []);
-        //instrumentCorrection(sltab, addData, section + 1, 0);
-        sltab.addNote(section + 1, -1, new Note({noteValue: addLength, stringContent: addData[1], userData: "linkEnd"})); 
+        instrumentCorrection(sltab, new Note({noteValue: addLength, stringContent: addData[1], userData: ""}), section + 1, 0);
+        return; 
     }else{
         let noteRestLength = 1 - stackLength % 1; // unit in beat
         if(noteRestLength === 1 || noteRestLength >= sltab.lengthPerBeat / addData[0]){
