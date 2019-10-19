@@ -47,6 +47,7 @@ export class SLTab {
     private startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
     private lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
     private height: number;
+    private width: number;
     private calData: caculatedNoteData[] = [];
     
     /**
@@ -59,8 +60,8 @@ export class SLTab {
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         Object.assign(this, data);
         this.tabCanvas = new SLCanvas<SLLayer>(SLLayer);
-        let width = this.lineWidth + this.linePadding[0]*2 + 42*2;
-        utils.setAttributes(this.tabCanvas.domElement,{width: `${width}`});
+        this.width = this.lineWidth + this.linePadding[0]*2 + 42*2;
+        utils.setAttributes(this.tabCanvas.domElement,{width: `${this.width}`});
         this.domElement = document.createElement("div");
         this.domElement.append(this.tabCanvas.domElement);
         this.domElement.addEventListener("keydown",(e) => {
@@ -72,7 +73,7 @@ export class SLTab {
                 }
             }
         });
-        utils.setStyle(this.domElement, {"width": `${width + 20}px`, height: `${this.containerHeight}px`, "overflow-y": "auto", "overflow-x": "hidden"});
+        utils.setStyle(this.domElement, {"width": `${this.width + 20}px`, height: `${this.containerHeight}px`, "overflow-y": "auto", "overflow-x": "hidden"});
         //if add new event, you should describe the callback in eventCallBackInterface above
         this.callbacks = new Callbacks([
             "noteclick", 
@@ -90,12 +91,13 @@ export class SLTab {
             "sectionhout",
             "sectionclick",
         ]);
-        this.tabCanvas.domElement.addEventListener("focus", ()=>{});
-        this.tabCanvas.domElement.addEventListener("keydown", this.onKeydown.bind(this));
-        this.tabCanvas.domElement.addEventListener("mousedown", this.onMouseDown.bind(this));
-        this.tabCanvas.domElement.addEventListener("mousemove", this.onMouseMove.bind(this));
-        this.tabCanvas.domElement.addEventListener("mouseup", this.onMouseUp.bind(this));
-        this.tabCanvas.domElement.addEventListener("contextmenu", this.onMouseRightClick.bind(this));//Right click
+        
+        utils.setAttributes(this.domElement, {tabindex: "-1"});
+        this.domElement.addEventListener("keydown", this.onKeydown.bind(this));
+        this.domElement.addEventListener("mousedown", this.onMouseDown.bind(this));
+        this.domElement.addEventListener("mousemove", this.onMouseMove.bind(this));
+        this.domElement.addEventListener("mouseup", this.onMouseUp.bind(this));
+        this.domElement.addEventListener("contextmenu", this.onMouseRightClick.bind(this));//Right click
     }
 
     //todo: do a stricter check for these function
@@ -247,6 +249,7 @@ export class SLTab {
     
     attach(anchor: HTMLElement){
         anchor.append(this.domElement);
+        utils.setStyle(anchor, {width: `${this.width + 20}px`});
     }
 
     noteIndex(note: SVGNote){
@@ -780,6 +783,7 @@ export class SLTab {
     private onSectionClick(ev: MouseEvent){
         let offsetY = ev.offsetY;
         let y = Number((<SVGElement>ev.currentTarget).getAttribute("y"));
+        if(offsetY < y)offsetY = ev.layerY;// for firefox
         let string = Math.floor((offsetY - y)/this.stringPadding);
         this.callbacks["sectionclick"].callAll(Number((ev.currentTarget as SVGElement).dataset.section), string);
     }
