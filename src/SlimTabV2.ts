@@ -334,8 +334,8 @@ export class SLTab {
         if(y + 220 > this.domElement.scrollTop + this.containerHeight){
             this.scrollTo(y - this.containerHeight + 220);
         }
-        if(y - 60 < this.domElement.scrollTop){
-            this.scrollTo(y - 60);
+        if(y - 80 < this.domElement.scrollTop){
+            this.scrollTo(y - 80);
         }
     }
 
@@ -565,7 +565,7 @@ export class SLTab {
                 this.calData[i].hasSvg = true;
                 noteElement[i].blockGroup.forEach((wg, i) => {
                     wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
-                    wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this));
+                    wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this), false);
                     wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
                     wg.string = i;
                     utils.setAttributes(wg.domelement, {"data-string": `${i}`});

@@ -4,6 +4,12 @@
     background: radial-gradient(#3E3E3E, #000);
     user-select: none;
 }
+#top-back{
+    position: absolute;
+    width: calc(100% - 30px);
+    height: 80px;
+    background-image: linear-gradient(black, black 50%, rgba(0,0,0,0) 90%);
+}
 .li-con-btn{
     width: 112px;
     height: 31px;
