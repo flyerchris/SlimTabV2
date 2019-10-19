@@ -14,12 +14,12 @@ export class Metronome {
     private mode: mode = "";
     private scheduleOsc: AudioBufferSourceNode[] = [];
     private beatCount = 0;
-    private startTimeOffset = 0.05;// unit in second
+    private startTimeOffset = 0.1;// unit in second
     constructor(bpm: number){
         this.audioContext = new AudioContext();
         if(bpm)this.bpm = bpm;
         this.gainNode = this.audioContext.createGain();
-        this.gainNode.gain.value = 0.6;
+        this.gainNode.gain.value = 1.5;
         this.gainNode.connect(this.audioContext.destination);
         this.base64toAudioBuffer(beep).then(decodeBuffer => this.sound = decodeBuffer);
         this.base64toAudioBuffer(beep2).then(decodeBuffer => this.sound2 = decodeBuffer);
