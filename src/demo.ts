@@ -123,7 +123,7 @@ document.addEventListener("keydown",(ev)=>{
 document.getElementById('save-file').addEventListener('click', saveFile);
 function saveFile(){
     let dl = document.createElement("a");
-    dl.setAttribute("download", "tablature.txt");
+    dl.setAttribute("download", "tablature.tab");
     dl.style.display = "none";
     dl.setAttribute("href", `data:text/plain;charset=utf-8,${JSON.stringify(nt.notes)}`);
     document.body.append(dl);

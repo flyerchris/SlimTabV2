@@ -99,9 +99,10 @@
 #menu {
     position: absolute;
     left: 170px;
-    top: 28px;
+    top: 31px;
 }
 #menu > div{
+    border-right: 1px solid #999999;
     cursor: context-menu;
     font-family: Microsoft JhengHei;
     width: 80px;
@@ -110,8 +111,8 @@
     font-size: 12px;
     text-align: center;
     line-height: 20px;
-    background: #009933;
-    background-image: linear-gradient(180deg, #00AA66 0%, #009933 51%, #007933 95%);
-    display: inline-block;
-    border-radius: 2px;
+    float: left;
+}
+#menu > div:hover{
+    background-image: radial-gradient(#008888, #005555 40%, #000000 90%);
 }
