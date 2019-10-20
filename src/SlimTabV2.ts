@@ -781,9 +781,8 @@ export class SLTab {
         this.callbacks["sectionhout"].callAll(Number((ev.currentTarget as SVGElement).dataset.section));
     }
     private onSectionClick(ev: MouseEvent){
-        let offsetY = ev.offsetY;
+        let offsetY = ev.clientY - this.domElement.getBoundingClientRect().top + this.domElement.scrollTop;
         let y = Number((<SVGElement>ev.currentTarget).getAttribute("y"));
-        if(offsetY < y)offsetY = ev.layerY;// for firefox
         let string = Math.floor((offsetY - y)/this.stringPadding);
         this.callbacks["sectionclick"].callAll(Number((ev.currentTarget as SVGElement).dataset.section), string);
     }
