@@ -8,11 +8,13 @@ export interface LiCAPDevice {
      * @param cbk callback
      */
     on(ename: string, cbk: (...args: any[]) => void): void;
+    resetTimer(): void;
 }
 
 export class LiCAP implements LiCAPDevice {
     private device: WebMidi.MIDIInput;
     private callbacks: Callbacks;
+    private startTime: number;
 
     /**
      * ctor
@@ -21,6 +23,7 @@ export class LiCAP implements LiCAPDevice {
     private constructor(device: WebMidi.MIDIInput) {
         this.device = device;
         this.callbacks = new Callbacks(["pick"]);
+        this.startTime = performance.now();
         
         this.device.onmidimessage = this.onMessage.bind(this);
     }
@@ -31,6 +34,9 @@ export class LiCAP implements LiCAPDevice {
         }
     }
 
+    resetTimer(){
+        this.startTime = performance.now();
+    }
     /**
      * isSupported
      * Check if LiCAP is supported by computer or not
@@ -50,7 +56,7 @@ export class LiCAP implements LiCAPDevice {
             let access = await navigator.requestMIDIAccess();
         
             for(let input of access.inputs.values()) {
-                // console.log(input.name);
+                console.log(input.name);
                 if(input.name.match(/LiCAP MIDI Device/)) {
                     ret.push(new LiCAP(input));
                     console.log(`use ${input.name}`);
@@ -73,7 +79,7 @@ export class LiCAP implements LiCAPDevice {
                 break;
             case 9:
                 // note on
-                this.callbacks["pick"].callAll(stringIdx, e.data[1]-string_base_id[stringIdx], e.data[2] / 255, e.timeStamp);// string idex, note, amp, time stamp
+                this.callbacks["pick"].callAll(stringIdx, e.data[1]-string_base_id[stringIdx], e.data[2] / 255, performance.now()-this.startTime);// string idex, note, amp, time stamp
                 break;
         }
         

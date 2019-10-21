@@ -243,7 +243,7 @@ export class Layer implements SVGPrimitiveRenderer {
 }
 
 
-class SVGShape {
+export class SVGShape {
     protected _domElement: SVGElement;
     constructor(domElement: SVGElement) {
         this._domElement = domElement;
@@ -375,7 +375,7 @@ export class Ellipse extends SVGShape{
         if(this._cx != val){
             this._cx = val;
             utils.setAttributes(this.domElement, {
-                cx: `${val}`
+                "cx": `${val}`
             });
         }
     }
@@ -388,7 +388,7 @@ export class Ellipse extends SVGShape{
         if(this._cy != val){
             this._cy = val;
             utils.setAttributes(this.domElement, {
-                cy: `${val}`
+                "cy": `${val}`
             });
         }
     }

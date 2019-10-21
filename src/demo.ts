@@ -1,7 +1,7 @@
 import { section, Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2";
 import { DataAdapter } from "./DataAdapter"
-import { LiCAP } from "./LiCAP"
+import { LiCAP, LiCAPDevice } from "./LiCAP"
 import { Metronome } from "./Metronome"
 import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
@@ -10,12 +10,7 @@ import {SLPract} from "./SLPract"
 let nt = new SLTab();
 let data: [number, number[], any][][] = [
     [// section
-        // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
-        [8, [3, -1, -1, 4, -1, -1], null],
-        [4, [3, -1, -1, 4, -1, -1], null],
-        [32/3, [3, -1, -1, 4, -1, -1], null],
-        [8, [3, -1, -1, 4, -1, -1], null],
-        [4, [3, -1, -1, 4, -1, -1], null],
+
         //[8, [3, -1, -1, 4, -1, -1], null]
     ],
     // [// section
@@ -48,18 +43,24 @@ document.addEventListener("keydown",(e) => {
 nt.render();
 
 let da = new DataAdapter();
+let device: LiCAPDevice;
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
         devs[0].on("pick", da.receiveData.bind(da));
+        device = devs[0]
     }
 });
+
+
+
+let beep: Metronome = new Metronome(120);
+let pt = new SLPract(nt, tabEditor, beep);
 
 da.addPackListener((data: Note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
 da.addDataListener((string:number, note: number, time:number)=>{
     console.log(string, note, time);
+    pt.onPluck(string, note, performance.now() - 30 - 50 /*play lag*/);
 })
-
-let beep: Metronome = new Metronome(120);
 let bs = 0;
 let beepEle = document.getElementById("metronome");
 beepEle.onclick = function(event){
@@ -90,11 +91,15 @@ nt.on("noteclick", (sectionIdx, noteIdx, stringIdx) => {
     document.getElementById("section-idx").innerText = pad(String(sectionIdx+1), 3) + ".";
 })
 
+nt.on("keydown", (key) => {
+    if((<string>key).toLowerCase() === " "){
+        setTimeout(() => device.resetTimer(), 2000);
+    }
+})
+
 
 let stream = new LiCAPStream();
-
 document.getElementById('playstream').addEventListener('click', () => {
     stream.play();
 })
 console.log(nt)
-let pt = new SLPract(nt, tabEditor, beep);

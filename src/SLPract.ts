@@ -1,6 +1,6 @@
 import { Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2"
-import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock, SLCanvas, SLLayer, Layer} from "./SlimTabV2Canvas"
+import { Rect, Ellipse, Text, Line, SVGNote, NoteBlock, SLCanvas, SLLayer, Layer, SVGShape} from "./SlimTabV2Canvas"
 import {Timer} from "./Timer"
 import {SLEditor} from "./SlimTabV2Editor"
 import {Metronome} from "./Metronome"
@@ -68,12 +68,13 @@ export class SLPract {
     private timeSignature: TimeSignature = {upper: 4, lower: 4};
     private isRepeat: boolean = false;
     private indicatorShapes: IndicatorShape[] = [];
-    private resultUIElements: Text[] = [];
+    private resultUIElements: SVGShape[] = [];
 
     //Color configs 
     private indicatorColor: string = "rgba(255, 209, 81, 0.6)";
     private correctResultColor: string = "rgba(0, 163, 250, 0.9)";
     private wrongResultColor: string = "rgba(250, 80, 0, 0.9)";
+    private whiteColor: string = "rgba(255, 255, 255, 0.9)";
 
     private playFlag: boolean = false;
     private timer: Timer = new Timer();
@@ -82,7 +83,7 @@ export class SLPract {
     private selectedTimeSum = 0;
     private metronomeOn: boolean = false;
     private playIter: number = 0;
-    private maxPracticeTimes: number = 2;
+    private maxPracticeTimes: number = 1;
     
     private openStringTunes: number[] = [40, 45, 50, 55, 59, 64]; //E2, A2, D3, G3, B3, E4
     private deviceStartTime: number = 0;
@@ -91,7 +92,7 @@ export class SLPract {
     private anlyzeMethod: AnlyzeMethod = "pluck";
     private loadedSheet: NoteInfo[] = [];
     private preMetronome: boolean = true;
-    private correctTolerance: number = 30;
+    private correctTolerance: number = 100;
 
     private devices: number[] = [];
 
@@ -222,7 +223,7 @@ export class SLPract {
         }
 
         //Start practicer analyze section.
-        this.deviceStartTime = new Date().getTime();
+        this.deviceStartTime = performance.now();
 
 
     }
@@ -392,7 +393,7 @@ export class SLPract {
             }
             if((<string>key).toLowerCase() === "q"){
                 // this.onPluck({"channel": 0, "note": 0, "time": new Date().getTime()})
-                this.onPluck(0, 0, new Date().getTime());
+                this.onPluck(0, 0, performance.now());
             }
         });
         this.controlTab.on("mousedown", (x, y) =>{
@@ -451,9 +452,10 @@ export class SLPract {
             let mappedNote = this.timeNoteMapping(elem.time - this.deviceStartTime, this.loadedSheet);
             let timeResult: TimeResult;
             let noteResult: boolean;
-            console.log(mappedNote);
 
             //Check if playing input is correct and return results.
+            console.log(elem.time - this.deviceStartTime)
+            console.log(performance.now() - this.deviceStartTime)
             if(Math.abs((elem.time - this.deviceStartTime) - (this.loadedSheet[mappedNote].noteTime+this.playLag)) <= this.correctTolerance){
                 timeResult = "correct";
             }
@@ -490,26 +492,38 @@ export class SLPract {
 
     private drawAnalyzeUI(target: Layer, playResults: AnalyzeResult[]){
         playResults.forEach((result, index, self)=>{
-            let notePos_xy = this.controlTab.getNotePosition(result.section, result.note, result.channel);
+            let [x, y]=  this.controlTab.getNotePosition(result.section, result.note, result.channel);
+            let noteValue = this.controlTab.getNoteData(result.section, result.note).noteValue;
+
             let resultPosBias: number = 0;
-            let resultText = target.createText(notePos_xy[0], notePos_xy[1], result.playedNote.toString(), "middle");
-            if(result.timeResult == "correct" && result.noteResult){
-                resultText.fill = this.correctResultColor;
-            }
-            else{
-                resultText.fill = this.wrongResultColor;
-            }
-            
             if(result.timeResult == "drag"){
-                resultPosBias = 30;
+                resultPosBias = 1/(noteValue / this.timeSignature.lower) * 30;
             }
             else if (result.timeResult == "rush"){
-                resultPosBias = -30;
+                resultPosBias = 1/(noteValue / this.timeSignature.lower) * (-30);
             }
+            
+            let resultEllipse = target.createEllipse(x + resultPosBias , y, 8, 8);
+            let resultText = target.createText(x + resultPosBias, y + 5, result.playedNote.toString(), "middle");
+            if(result.timeResult == "correct" && result.noteResult){
+                resultText.fill = this.correctResultColor;
+                resultEllipse.fill = this.correctResultColor;
+            }
+            else{
+                // resultText.fill = this.wrongResultColor;
+                resultText.fill = this.whiteColor;
+                resultEllipse.fill = this.wrongResultColor;
+            }
+            
+            
 
-            resultText.x += resultPosBias;
+            // console.log(resultEllipse.cx)
+            // resultText.x += resultPosBias;
+            // resultEllipse.cx += resultPosBias;
+            // console.log(resultEllipse.cx)
             
             this.resultUIElements.push(resultText);
+            this.resultUIElements.push(resultEllipse);
         })
     }
 
