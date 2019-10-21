@@ -9,10 +9,7 @@ import { LiCAPStream } from "./LiCAPStream"
 import {SLPract} from "./SLPract"
 let nt = new SLTab();
 let data: [number, number[], any][][] = [
-    [// section
-
-        //[8, [3, -1, -1, 4, -1, -1], null]
-    ],
+    []
     // [// section
     //     // [4, [3, -1, -1, 4, -1, -1], null],// note length, [block number, index is string number,], user data
     //     [4, [3, 5, 2, -1, -1, -1], null],
@@ -44,25 +41,43 @@ nt.render();
 
 let da = new DataAdapter();
 let device: LiCAPDevice;
+let beep: Metronome = new Metronome(120);
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
-        devs[0].on("pick", da.receiveData.bind(da));
-        device = devs[0]
+        devs[0].on("pick", (strIndex, note, amp, time)=>{
+            da.timeOffset = -beep.getStartTime();
+            da.receiveData(strIndex, note, amp, time);
+        });
     }
 });
 
-
-
-let beep: Metronome = new Metronome(120);
-let pt = new SLPract(nt, tabEditor, beep);
-
-da.addPackListener((data: Note)=>{nt.instrumentNoteInput(instrumentCorrection,data)});
+da.addPackListener((data: Note)=>{
+    if(data.userData === "undefined-value"){
+        if(nt.isSectionFull(nt.getSectionNumber() -1)){
+            nt.addNote(-1 , -1, data);
+        }else{
+            nt.addNote(nt.getSectionNumber() -1 , -1, data);
+        }
+        nt.render();
+    }else{  
+        nt.deleteNote(-1, -1);
+        nt.instrumentNoteInput(instrumentCorrection, data);
+    }
+    nt.adjustPostion(nt.getSectionLeftTopPos(nt.getSectionNumber() - 1)[1]);
+});
 da.addDataListener((string:number, note: number, time:number)=>{
     console.log(string, note, time);
     pt.onPluck(string, note, performance.now() - 30 - 50 /*play lag*/);
 })
 let bs = 0;
 let beepEle = document.getElementById("metronome");
+let bpmDom = <HTMLInputElement>document.getElementById("metronome-bpm");
+bpmDom.addEventListener("change",() =>{
+    beep.setBpm(Number(bpmDom.value));
+    da.setBpm(Number(bpmDom.value));
+    document.getElementById("bpm-display").innerHTML = bpmDom.value;
+    console.log(bpmDom.value);
+});
 beepEle.onclick = function(event){
     if(bs == 0){
         beep.startTick();
@@ -103,3 +118,37 @@ document.getElementById('playstream').addEventListener('click', () => {
     stream.play();
 })
 console.log(nt)
+let pt = new SLPract(nt, tabEditor, beep);
+document.addEventListener("keydown",(ev)=>{
+    if(ev.key == "r" || ev.key == "e"){
+        //console.log(ev.timeStamp - beep.getStartTime());
+        da.timeOffset = -beep.getStartTime();
+        da.receiveData(1, 5, 2, ev.timeStamp);
+    }
+});
+document.getElementById('save-file').addEventListener('click', saveFile);
+function saveFile(){
+    let dl = document.createElement("a");
+    dl.setAttribute("download", "tablature.tab");
+    dl.style.display = "none";
+    dl.setAttribute("href", `data:text/plain;charset=utf-8,${JSON.stringify(nt.notes)}`);
+    document.body.append(dl);
+    dl.click();
+    document.body.removeChild(dl);
+}
+let loadFileEle = <HTMLInputElement>document.getElementById("load-file");
+loadFileEle.style.display = "none";
+loadFileEle.addEventListener("change", (ev) => {
+    let reader = new FileReader();
+    reader.onload = (e)=>{
+        let ldata = <[number, number[], any][][]>JSON.parse(<string>(<FileReader>e.target).result);
+        tabEditor.resetIndicator();
+        nt.setData(ldata);
+        nt.render();
+    }
+    reader.readAsText(loadFileEle.files[0]);
+    loadFileEle.value="";
+});
+document.getElementById("load-f").addEventListener('click', () => {
+    loadFileEle.click();
+});

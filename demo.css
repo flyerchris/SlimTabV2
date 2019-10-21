@@ -1,3 +1,15 @@
+#slimtab{
+    position: relative;
+    width: fit-content;
+    background: radial-gradient(#3E3E3E, #000);
+    user-select: none;
+}
+#top-back{
+    position: absolute;
+    width: calc(100% - 30px);
+    height: 80px;
+    background-image: linear-gradient(black, black 50%, rgba(0,0,0,0) 90%);
+}
 .li-con-btn{
     width: 112px;
     height: 31px;
@@ -5,7 +17,7 @@
     font-size: 12px;
     border-radius: 8px;
     position: absolute;
-    top: 25px;
+    top: 28px;
     right: 31px;
     z-index: 9;
     background: #00BE7C;
@@ -71,7 +83,6 @@
 .panel-rhythm{
     border-radius: 8px;
     background: #A3A3A3;
-    height: 39px; 
     width: 107px;
     display: grid;
     grid-template-columns: 50% 50%;
@@ -81,4 +92,33 @@
     font-size: 18px;
     color: #F4F4F4;
     text-align: center;
+}
+#metronome-bpm {
+    width: 40px;
+    text-align: center;
+    background: none;
+    border: none;
+    font-size: 18px;
+    line-height: 39px;
+    color: #F4F4F4;
+}
+#menu {
+    position: absolute;
+    left: 170px;
+    top: 31px;
+}
+#menu > div{
+    border-right: 1px solid #999999;
+    cursor: context-menu;
+    font-family: Microsoft JhengHei;
+    width: 80px;
+    height: 20px;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    line-height: 20px;
+    float: left;
+}
+#menu > div:hover{
+    background-image: radial-gradient(#008888, #005555 40%, #000000 90%);
 }
