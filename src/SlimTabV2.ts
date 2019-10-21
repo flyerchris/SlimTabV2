@@ -461,9 +461,11 @@ export class SLTab {
                 let updateNote = this.updatecalData(ci, x, y, note[0], note[1], tail, s, i);
                 if(updateNote>=0)changeSet.add(updateNote).add(updateNote - 1);
                 ci++;
-                if(note[2] === "linkStart" || note[2] === "linkEnd"){
-                    linker.push([x,y]);
-                }
+                let userDataArray = [];
+                if(note[2]) userDataArray = note[2].split(" ");
+                if(userDataArray.includes("linkEnd")) linker.push([x,y]);
+                if(userDataArray.includes("linkStart")) linker.push([x,y]);
+
                 if(note[0] !== Math.floor(note[0])){
                     //console.log(note[0]);
                     dot.push([x, y]);
