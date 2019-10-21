@@ -1,3 +1,5 @@
+import { AudioContextAdapter } from "./AudioContexAdapter";
+
 export class LiCAPStream {
     private ctx: AudioContext;
     private wsL: WebSocket;
@@ -7,7 +9,7 @@ export class LiCAPStream {
 
 
     constructor() {
-        this.ctx = new AudioContext();
+        this.ctx = new AudioContextAdapter();
         this.sampleRate = 32000;
         this.startAt = 0;
 

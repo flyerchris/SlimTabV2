@@ -1,3 +1,4 @@
+import { AudioContextAdapter } from "./AudioContexAdapter"
 type tickWeight = "normal" | "strong";
 type mode = "click" | "schedule" | "";
 export class Metronome {
@@ -16,7 +17,7 @@ export class Metronome {
     private beatCount = 0;
     private startTimeOffset = 0.1;// unit in second
     constructor(bpm: number){
-        this.audioContext = new AudioContext();
+        this.audioContext = new AudioContextAdapter();
         if(bpm)this.bpm = bpm;
         this.gainNode = this.audioContext.createGain();
         this.gainNode.gain.value = 1.5;
@@ -29,7 +30,6 @@ export class Metronome {
         this.mode = "click";
         if(!this.tickTimer){
             let cycleTime = 60 / this.bpm;
-            this.audioContext.suspend();
             let at = this.audioContext.currentTime + this.startTimeOffset;
             this.nextTime = at + cycleTime;
             this.tickTimer = -1 * setTimeout(() => {
@@ -90,7 +90,15 @@ export class Metronome {
     private base64toAudioBuffer(b64string: string): Promise<AudioBuffer>{
         return fetch(b64string)
         .then(res => res.arrayBuffer())
-        .then(buffer => this.audioContext.decodeAudioData(buffer))
+        .then((buffer) => {
+            return new Promise<AudioBuffer>((resolve, reject)=>{
+                this.audioContext.decodeAudioData(buffer, (value) =>{
+                    resolve(value);
+                }, () => {
+                    reject();
+                });// safari cannot recognize decodeAudioData as Promise = =
+            });
+        });
     }
     private clearScheduleOsc(){
         for(let i = 0; i < this.scheduleOsc.length; i++){
