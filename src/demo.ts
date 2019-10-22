@@ -6,7 +6,9 @@ import { Metronome } from "./Metronome"
 import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
 import { LiCAPStream } from "./LiCAPStream"
-import {SLPract} from "./SLPract"
+import { SLPract } from "./SLPract"
+
+
 let nt = new SLTab();
 let data: [number, number[], any][][] = [
     []
@@ -106,13 +108,6 @@ nt.on("noteclick", (sectionIdx, noteIdx, stringIdx) => {
     document.getElementById("section-idx").innerText = pad(String(sectionIdx+1), 3) + ".";
 })
 
-nt.on("keydown", (key) => {
-    if((<string>key).toLowerCase() === " "){
-        setTimeout(() => device.resetTimer(), 2000);
-    }
-})
-
-
 let stream = new LiCAPStream();
 document.getElementById('playstream').addEventListener('click', () => {
     stream.play();
@@ -120,6 +115,9 @@ document.getElementById('playstream').addEventListener('click', () => {
 console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
+    if((ev.key).toLowerCase() === " "){
+        setTimeout(() => device.resetTimer(), 2000);
+    }
     if(ev.key == "r" || ev.key == "e"){
         //console.log(ev.timeStamp - beep.getStartTime());
         da.timeOffset = -beep.getStartTime();
