@@ -661,8 +661,8 @@ export class SLTab {
                 e.blockGroup[i].word.text = ``;
                 e.blockGroup[i].wordBack.text = ``;
             }else{
-                e.blockGroup[i].word.text = `${data[i]+1}`;
-                e.blockGroup[i].wordBack.text = `${data[i]+1}`;
+                e.blockGroup[i].word.text = `${data[i]}`;
+                e.blockGroup[i].wordBack.text = `${data[i]}`;
             }
         }
         if(noteLength == 2){
