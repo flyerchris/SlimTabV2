@@ -77,6 +77,7 @@ export class SLPract {
     private whiteColor: string = "rgba(255, 255, 255, 0.9)";
 
     private playFlag: boolean = false;
+    private startFlag: boolean = false;
     private timer: Timer = new Timer();
     private metronome: Metronome;
     private playLag: number = 50/1000;
@@ -104,6 +105,8 @@ export class SLPract {
     }
 
     play (){
+        this.startFlag = true;
+        this.controlTab.inEdit = false;
         if(this.playIter == this.maxPracticeTimes || (this.playIter>0 && !this.isRepeat)) {
             this.stop();
             return
@@ -143,10 +146,6 @@ export class SLPract {
         this.editor.undisplayIndicator();
         /**
          * setPracticeSectionIndicator(whole selected note info)
-         * 
-         * 
-         * 
-         * 
          */
 
         //////////////////////////////
@@ -237,6 +236,8 @@ export class SLPract {
         this.playIter = 0;
         this.editor.displayIndicator();
         this.playFlag = false;
+        this.startFlag = false;
+        this.controlTab.inEdit = true;
 
         // let result = this.practiceAnalyze(this.collectPractContent,this.deviceStartTime, new Date().getTime());
         if(this.anlyzeMethod == "whole"){
@@ -256,7 +257,7 @@ export class SLPract {
     // }
     onPluck(channel: number, note: number, time: number){
         let input: MidiInput = {"channel": channel, "note": note, "time": time};
-        if(this.playFlag){
+        if(this.startFlag){
             this.collectPractContent.push(input);
             if(this.anlyzeMethod == "pluck"){
                 let results: AnalyzeResult[] = this.practiceAnalyze([input]);
@@ -373,6 +374,7 @@ export class SLPract {
     private setEvents(){
         this.controlTab.on("keydown", (key) => {
             if((<string>key).toLowerCase() === " "){
+                this.controlTab.inEdit = false;
                 this.playFlag = !this.playFlag;
                 if(this.playFlag){
                     this.editor.undisplayIndicator();

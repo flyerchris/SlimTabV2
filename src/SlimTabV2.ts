@@ -32,6 +32,7 @@ export class SLTab {
     tabCanvas: SLCanvas<SLLayer>;
     notes: section[];
     domElement: HTMLElement;
+    inEdit: boolean = true;
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
     readonly containerHeight: number = 700;
@@ -144,16 +145,18 @@ export class SLTab {
     }
 
     addNote(section: number, note: number, data: Note){
-        if(section === -1 || section >= this.notes.length){
-            section = this.notes.length;
-            this.notes.push([]);
+        if(this.inEdit){
+            if(section === -1 || section >= this.notes.length){
+                section = this.notes.length;
+                this.notes.push([]);
+            }
+            if(note === -1 || note > this.notes[section].length){
+                note = this.notes[section].length;
+            }
+            this.notes[section].splice(note, 0, data);
+            let np = this.getNoteFlattenNumber(section, note);
+            this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
         }
-        if(note === -1 || note > this.notes[section].length){
-            note = this.notes[section].length;
-        }
-        this.notes[section].splice(note, 0, data);
-        let np = this.getNoteFlattenNumber(section, note);
-        this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
     }
 
     
