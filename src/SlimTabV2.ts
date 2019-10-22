@@ -67,11 +67,9 @@ export class SLTab {
         this.domElement.append(this.tabCanvas.domElement);
         this.domElement.addEventListener("keydown",(e) => {
             let ka = [32, 37, 38, 39, 40]; //space: 32, left: 37, up: 38, right: 39, down: 40,
-            for(let i = 0; i < ka.length; i++){// why is there no "includes" methods in typescript = =?
-                if(ka[i] === e.keyCode){
-                    e.preventDefault();
-                    e.returnValue = false;  
-                }
+            if(ka.includes(e.keyCode)){
+                e.preventDefault();
+                e.returnValue = false;
             }
         });
         utils.setStyle(this.domElement, {"width": `${this.width + 20}px`, height: `${this.containerHeight}px`, "overflow-y": "auto", "overflow-x": "hidden"});
@@ -466,9 +464,11 @@ export class SLTab {
                 let updateNote = this.updatecalData(ci, x, y, note[0], note[1], tail, s, i);
                 if(updateNote>=0)changeSet.add(updateNote).add(updateNote - 1);
                 ci++;
-                if(note[2] === "linkStart" || note[2] === "linkEnd"){
-                    linker.push([x,y]);
-                }
+                let userDataArray = [];
+                if(note[2]) userDataArray = note[2].split(" ");
+                if(userDataArray.includes("linkEnd")) linker.push([x,y]);
+                if(userDataArray.includes("linkStart")) linker.push([x,y]);
+
                 if(note[0] !== Math.floor(note[0])){
                     //console.log(note[0]);
                     dot.push([x, y]);

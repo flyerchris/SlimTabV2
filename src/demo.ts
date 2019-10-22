@@ -32,11 +32,9 @@ let tabEditor = new SLEditor(nt);
 nt.attach(document.getElementById("slimtab"));
 document.addEventListener("keydown",(e) => {
     let ka = [32, 37, 38, 39, 40]; //space: 32, left: 37, up: 38, right: 39, down: 40,
-    for(let i = 0; i < ka.length; i++){// why is there no "includes" methods in typescript = =?
-        if(ka[i] === e.keyCode){
-            e.preventDefault();
-            e.returnValue = false;  
-        }
+    if(ka.includes(e.keyCode)){
+        e.preventDefault();
+        e.returnValue = false;
     }
 });
 nt.render();
@@ -84,10 +82,12 @@ beepEle.onclick = function(event){
     if(bs == 0){
         beep.startTick();
         beepEle.style.background = "#e99415";
+        da.activate();
         bs = 1;
     }else{
         beep.stopTick();
         beepEle.style.background = "";
+        da.deactivate();
         bs = 0;
     }
 }
@@ -95,7 +95,7 @@ beepEle.onclick = function(event){
  let s: any;
  (window as any).gg = () => {s = setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,new Note([8, [-1, -1, -1, 4, -1, 6], null]))}, 100);};
  (window as any).gx = () => {clearInterval(s);}
-//s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,[8, [-1, -1, -1, 4, -1, 6], null])}, 100);
+//s= setInterval(function(){nt.instrumentNoteInput(instrumentCorrection,new Note([8, [-1, -1, -1, 4, -1, 6], null]))}, 100);
 //nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
 //nt.instrumentNoteInput(instrumentCorrection,[4, [-1, -1, -1, 4, -1, 6], null]);
 // nt.instrumentNoteInput(instrumentCorrection,[8/3, [-1, -1, -1, 4, -1, 6], null]);
