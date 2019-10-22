@@ -11,6 +11,7 @@ export class DataAdapter{
     private callbacks: Callbacks;
     private chordInterval: number = 50;
     private beatInnerCount = [0, 0];
+    private isWorking = false;
     
     constructor(bpm?: number){
         if(bpm){
@@ -19,6 +20,7 @@ export class DataAdapter{
         this.callbacks = new Callbacks(["packNote", "data"]);
     }
     receiveData(stringIndex: number, note: number, amp: number, time: number){
+        if(!this.isWorking)return;
         this.rawData.push([stringIndex, note, time]);
         if(!this.receiveInterval){
             this.receiveInterval = setTimeout(this.packNote.bind(this), this.chordInterval);
@@ -40,7 +42,18 @@ export class DataAdapter{
     setBpm(val: number){
         this.bpm = val;
     }
-
+    activate(){
+        this.isWorking = true;
+    }
+    deactivate(){
+        this.init();
+        this.isWorking = false;
+    }
+    private init(){
+        this.rawData = [];
+        this.beatInnerCount = [0, 0];
+        this.noteRawData = null;
+    }
     private packNote(){
         let notes = [-1, -1, -1, -1, -1, -1];
         for(let i = 0; i < this.rawData.length; i++){
@@ -84,7 +97,7 @@ export class DataAdapter{
             }
             this.preTime = this.rawData[0][2];
         }
-        this.noteRawData = new Note({noteValue: 8, stringContent: notes, userData: "undefined-value"});
+        this.noteRawData = new Note({noteValue: 4, stringContent: notes, userData: "undefined-value"});
         this.rawData = [];
         this.receiveInterval = null;
         this.callbacks["packNote"].callAll(this.noteRawData);

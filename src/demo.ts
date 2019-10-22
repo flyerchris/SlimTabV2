@@ -79,10 +79,12 @@ beepEle.onclick = function(event){
     if(bs == 0){
         beep.startTick();
         beepEle.style.background = "#e99415";
+        da.activate();
         bs = 1;
     }else{
         beep.stopTick();
         beepEle.style.background = "";
+        da.deactivate();
         bs = 0;
     }
 }
