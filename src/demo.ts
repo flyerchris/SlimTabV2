@@ -44,8 +44,10 @@ let device: LiCAPDevice;
 let beep: Metronome = new Metronome(120);
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
+        device = devs[0];
         devs[0].on("pick", (strIndex, note, amp, time)=>{
             da.timeOffset = -beep.getStartTime();
+            console.log(time - beep.getStartTime());
             da.receiveData(strIndex, note, amp, time);
         });
     }
@@ -66,7 +68,6 @@ da.addPackListener((data: Note)=>{
     nt.adjustPostion(nt.getSectionLeftTopPos(nt.getSectionNumber() - 1)[1]);
 });
 da.addDataListener((string:number, note: number, time:number)=>{
-    console.log(string, note, time);
     pt.onPluck(string, note, performance.now() - 30 - 50 /*play lag*/);
 })
 let bs = 0;
@@ -116,6 +117,7 @@ console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
     if((ev.key).toLowerCase() === " "){
+        da.activate()
         setTimeout(() => device.resetTimer(), 2000);
     }
     if(ev.key == "r" || ev.key == "e"){

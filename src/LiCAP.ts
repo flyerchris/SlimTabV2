@@ -72,14 +72,14 @@ export class LiCAP implements LiCAPDevice {
         let stringIdx = e.data[0] & 0xF;
         // TODO: 
         let string_base_id = [40, 45, 50, 55, 59, 64].reverse();
-        console.log(e.data);
+        //console.log(e.data);
         switch((e.data[0]>>4) & 0xF) {
             case 8:
                 // note off
                 break;
             case 9:
                 // note on
-                this.callbacks["pick"].callAll(stringIdx, e.data[1]-string_base_id[stringIdx], e.data[2] / 255, performance.now()-this.startTime);// string idex, note, amp, time stamp
+                this.callbacks["pick"].callAll(stringIdx, e.data[1]-string_base_id[stringIdx], e.data[2] / 255, e.timeStamp);// string idex, note, amp, time stamp
                 break;
         }
         
