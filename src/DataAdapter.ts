@@ -92,7 +92,7 @@ export class DataAdapter{
             if(rbc !== 0){
                 let bc = rbc;
                 let nv = this.lengthPerBeat / bc;
-                this.noteRawData = new Note({noteValue: nv, stringContent: [1, 0, 0, 0, 0, 0]});
+                this.noteRawData = new Note({noteValue: nv, stringContent: [-1, -1, -1, -1, -1, -1]});
                 this.callbacks["packNote"].callAll(this.noteRawData);
             }
             this.preTime = this.rawData[0][2];
