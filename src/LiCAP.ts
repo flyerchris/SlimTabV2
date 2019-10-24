@@ -13,6 +13,7 @@ export interface LiCAPDevice {
 export class LiCAP implements LiCAPDevice {
     private device: WebMidi.MIDIInput;
     private callbacks: Callbacks;
+    static LiCAPName: string = "LiCAP MIDI Device";
 
     /**
      * ctor
@@ -20,7 +21,7 @@ export class LiCAP implements LiCAPDevice {
      */
     private constructor(device: WebMidi.MIDIInput) {
         this.device = device;
-        this.callbacks = new Callbacks(["pick"]);
+        this.callbacks = new Callbacks(["pick", "message"]);
         
         this.device.onmidimessage = this.onMessage.bind(this);
     }
@@ -48,9 +49,10 @@ export class LiCAP implements LiCAPDevice {
 
         if(LiCAP.isSupported()) {
             let access = await navigator.requestMIDIAccess();
-        
+
             for(let input of access.inputs.values()) {
                 // console.log(input.name);
+                // chage this for normal midi device, chage this and LiCAPName for LiCAP device
                 if(input.name.match(/LiCAP MIDI Device/)) {
                     ret.push(new LiCAP(input));
                     console.log(`use ${input.name}`);
@@ -73,7 +75,11 @@ export class LiCAP implements LiCAPDevice {
                 break;
             case 9:
                 // note on
-                this.callbacks["pick"].callAll(stringIdx, e.data[1]-string_base_id[stringIdx], e.data[2] / 255, e.timeStamp);// string idex, note, amp, time stamp
+                if(this.device.name !== LiCAP.LiCAPName){
+                    this.callbacks["message"].callAll(e);
+                }else{
+                    this.callbacks["pick"].callAll(stringIdx, e.data[1]-string_base_id[stringIdx], e.data[2] / 255, e.timeStamp);// string idex, note, amp, time stamp
+                }
                 break;
         }
         

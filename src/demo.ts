@@ -7,6 +7,8 @@ import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
 import { LiCAPStream } from "./LiCAPStream"
 import {SLPract} from "./SLPract"
+import { KeyBoardAdapter } from "./KeyBoardAdapter"
+let ka = new KeyBoardAdapter();
 let nt = new SLTab();
 let data: [number, number[], any][][] = [
     []
@@ -43,6 +45,12 @@ LiCAP.enumerate().then((devs)=>{
         devs[0].on("pick", (strIndex, note, amp, time)=>{
             da.timeOffset = -beep.getStartTime();
             da.receiveData(strIndex, note, amp, time);
+        });
+        devs[0].on("message", (e) => {
+            da.timeOffset = -beep.getStartTime();
+            let freq = ka.noteKeyToFrequency(e.data[1]);
+            let [string, block] = ka.frequencyToStringData(freq);
+            da.receiveData(string, block, e.data[2], e.timeStamp);
         });
     }
 });
