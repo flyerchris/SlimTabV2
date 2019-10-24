@@ -68,7 +68,6 @@ export class LiCAP implements LiCAPDevice {
         let stringIdx = e.data[0] & 0xF;
         // TODO: 
         let string_base_id = [40, 45, 50, 55, 59, 64].reverse();
-        console.log(e.data);
         switch((e.data[0]>>4) & 0xF) {
             case 8:
                 // note off
