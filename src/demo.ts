@@ -40,14 +40,15 @@ document.addEventListener("keydown",(e) => {
 nt.render();
 
 let da = new DataAdapter();
+da.timeOffset = 40;
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
         devs[0].on("pick", (strIndex, note, amp, time)=>{
-            da.timeOffset = -beep.getStartTime();
+            da.startTimeOffset = -beep.getStartTime();
             da.receiveData(strIndex, note, amp, time);
         });
         devs[0].on("message", (e) => {
-            da.timeOffset = -beep.getStartTime();
+            da.startTimeOffset = -beep.getStartTime();
             let freq = ka.noteKeyToFrequency(e.data[1]);
             let [string, block] = ka.frequencyToStringData(freq);
             da.receiveData(string, block, e.data[2], e.timeStamp);
@@ -124,7 +125,7 @@ let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
     if(ev.key == "r" || ev.key == "e"){
         //console.log(ev.timeStamp - beep.getStartTime());
-        da.timeOffset = -beep.getStartTime();
+        da.startTimeOffset = -beep.getStartTime();
         da.receiveData(1, 5, 2, ev.timeStamp);
     }
 });

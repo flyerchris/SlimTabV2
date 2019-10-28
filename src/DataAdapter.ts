@@ -1,6 +1,7 @@
 import { Callbacks } from "./utils"
 import { Note } from "./SlimTabV2Types"
 export class DataAdapter{
+    startTimeOffset: number = 0;
     timeOffset: number = 0;
     private bpm: number = 120;
     private rawData: [number, number, number][] = [];
@@ -9,7 +10,7 @@ export class DataAdapter{
     private receiveInterval:number;
     private lengthPerBeat: number = 4;
     private callbacks: Callbacks;
-    private chordInterval: number = 50;
+    private chordInterval: number = -0.2 * this.bpm + 84;//120=>60, 420=>0
     private beatInnerCount = [0, 0];
     private isWorking = false;
     
@@ -21,7 +22,7 @@ export class DataAdapter{
     }
     receiveData(stringIndex: number, note: number, amp: number, time: number){
         if(!this.isWorking)return;
-        this.rawData.push([stringIndex, note, time]);
+        this.rawData.push([stringIndex, note, time + 40 + this.timeOffset]);
         if(!this.receiveInterval){
             this.receiveInterval = setTimeout(this.packNote.bind(this), this.chordInterval);
         }
@@ -59,7 +60,7 @@ export class DataAdapter{
         for(let i = 0; i < this.rawData.length; i++){
             notes[this.rawData[i][0]] = this.rawData[i][1];
         }
-        let rbc = this.timeToBeatCount(this.rawData[0][2] + this.timeOffset);
+        let rbc = this.timeToBeatCount(this.rawData[0][2] + this.startTimeOffset);
         if(this.beatInnerCount[0] != Math.floor(rbc / 0.5) * 0.5){
             this.beatInnerCount[0] = Math.floor(rbc / 0.5) * 0.5;
             if(rbc !== Math.floor(rbc / 0.5) * 0.5){
@@ -70,17 +71,17 @@ export class DataAdapter{
         }
         this.beatInnerCount[1]++;
         if(this.beatInnerCount[1] > 2){
-            this.preTime = (this.beatInnerCount[0] + 0.25) * this.milliSecondPerBeat - this.timeOffset;
+            this.preTime = (this.beatInnerCount[0] + 0.25) * this.milliSecondPerBeat - this.startTimeOffset;
             this.receiveInterval = null;
             this.rawData = [];
             return;
         }
         if(this.noteRawData){
-            let bc = rbc - this.timeToBeatCount(this.preTime + this.timeOffset);
+            let bc = rbc - this.timeToBeatCount(this.preTime + this.startTimeOffset);
             let nv;
             if(bc <= 0){
                 nv = 16;
-                this.preTime = (this.timeToBeatCount(this.rawData[0][2] + this.timeOffset) + 0.25) * this.milliSecondPerBeat - this.timeOffset;
+                this.preTime = (this.timeToBeatCount(this.rawData[0][2] + this.startTimeOffset) + 0.25) * this.milliSecondPerBeat - this.startTimeOffset;
             }else{
                 nv = this.lengthPerBeat / bc;
                 this.preTime = this.rawData[0][2];
