@@ -219,7 +219,7 @@ export class SLTab {
         }
         let dn = 0;
         let dp = this.getNoteFlattenNumber(section, 0);
-        for(let i = section; i < section + number && i < this.noteIndex.length; i++) dn += this.notes[i].length;
+        for(let i = section; i < section + number && i < this.notes.length; i++) dn += this.notes[i].length;
         this.removeCalData(dp, dn);
         return this.notes.splice(section, number);
     }
