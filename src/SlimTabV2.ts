@@ -1,5 +1,5 @@
-import {utils, Callbacks} from "./utils"
-import { Note } from "./SlimTabV2Types"
+import { utils, Callbacks } from "./utils"
+import { section, Note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
 import { SLCanvas, SLLayer, SVGNote } from "./SlimTabV2Canvas"
 import { SLInteracitive } from "./SlimTabV2Base"
@@ -20,13 +20,9 @@ interface eventCallBackInterface {
     sectionclick: (section: number, string: number) => any;
 }
 export class SLTab extends SLInteracitive {
-    /**
-     * Callbacks
-     * Available callbacks
-     * noteclick: triggered when a note element is clicked
-     */
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
+    private calData: CaculatedNoteData[] = [];
     private callbacks: Callbacks;
     private sectionAddNoteNumber = 8;
 
@@ -113,8 +109,54 @@ export class SLTab extends SLInteracitive {
         }
         return false;
     }
-    
-    protected removeCalData(removeIndex: number, num: number){
+
+    deleteNote(section: number, note: number, number: number = 1): Note[]{
+        let dn = super.deleteNote(section, note, number);
+        let np = this.getNoteFlattenNumber(section, note);
+        this.removeCalData(np, dn.length);
+        return dn;
+    }
+
+    deleteSections(section: number, number: number = 1): section[]{
+        let ds = super.deleteSections(section, number);
+        if(ds.length != 0){
+            let dn = 0;
+            let dp = this.getNoteFlattenNumber(section, 0);
+            for(let i = section; i < section + number && i < this.notes.length; i++) dn += this.notes[i].length;
+            this.removeCalData(dp, dn);
+        }
+        return ds;
+    }
+
+    insertSection(section: number, data: section = []): boolean{
+        if(super.insertSection(section, data)){
+            let isp = this.getNoteFlattenNumber(section, -1);
+            let isa: CaculatedNoteData[] = [];
+            for(let i = 0; i < data.length; i++){
+                isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
+            }
+            this.calData.splice(isp + 1, 0, ...isa);
+            return true;
+            
+        }
+        return false;
+    }
+
+    clearData(){
+        super.clearData();
+        this.calData = [];
+    }
+
+    addNote(section: number, note: number, data: Note): [number, number]{
+        [section, note] = super.addNote(section, note, data);
+        if(section != -1){
+            let np = this.getNoteFlattenNumber(section, note);
+            this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
+        }
+        return [section, note];
+    }
+
+    private removeCalData(removeIndex: number, num: number){
         this.calData.splice(removeIndex, num);
         this.tabCanvas.layers.notes.removeNote(removeIndex, num);
     }

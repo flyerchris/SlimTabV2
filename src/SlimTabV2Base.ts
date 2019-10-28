@@ -2,11 +2,9 @@ import { SLCanvas, SLLayer } from "./SlimTabV2Canvas"
 import { utils } from "./utils"
 import { section, Note } from "./SlimTabV2Types"
 import { SVGNote } from "./SlimTabV2Canvas"
-import { CaculatedNoteData } from './SlimTabV2Interface'
 
 export class SLBase{
     notes: section[];
-    protected calData: CaculatedNoteData[] = [];
     //todo: do a stricter check for these function
     setData(data: [number, number[], any][][]) {
         this.clearData();
@@ -42,15 +40,13 @@ export class SLBase{
         return this.notes[section];
     }
 
-    deleteNote(section: number, note: number, number: number = 1){
+    deleteNote(section: number, note: number, number: number = 1): Note[]{
         if(section === -1)section = this.notes.length - 1;
         if(note === -1)note = this.notes[section].length - 1;
-        let np = this.getNoteFlattenNumber(section, note);
-        let dn = this.notes[section].splice(note, number).length;
-        this.removeCalData(np, dn);
+        return this.notes[section].splice(note, number);
     }
 
-    addNote(section: number, note: number, data: Note){
+    addNote(section: number, note: number, data: Note): [number, number]{
         if(section === -1 || section >= this.notes.length){
             section = this.notes.length;
             this.notes.push([]);
@@ -59,8 +55,7 @@ export class SLBase{
             note = this.notes[section].length;
         }
         this.notes[section].splice(note, 0, data);
-        let np = this.getNoteFlattenNumber(section, note);
-        this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
+        return [section, note];
     }
 
     isBlankNote(section: number, note: number){
@@ -86,13 +81,7 @@ export class SLBase{
             return false;
         }
         if(section === -1)section = this.notes.length;
-        let isp = this.getNoteFlattenNumber(section, -1);
-        let isa: CaculatedNoteData[] = [];
-        for(let i = 0; i < data.length; i++){
-            isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
-        }
         this.notes.splice(section, 0, data);
-        this.calData.splice(isp + 1, 0, ...isa);
         return true;
     }
 
@@ -100,10 +89,6 @@ export class SLBase{
         if(section < -1 || section >= this.notes.length){
             return [];
         }
-        let dn = 0;
-        let dp = this.getNoteFlattenNumber(section, 0);
-        for(let i = section; i < section + number && i < this.notes.length; i++) dn += this.notes[i].length;
-        this.removeCalData(dp, dn);
         return this.notes.splice(section, number);
     }
 
@@ -121,10 +106,8 @@ export class SLBase{
 
     clearData(){
         this.notes = [[]];
-        this.calData = [];
     }
 
-    protected removeCalData(removeIndex: number, num: number){};
 }
 
 export class SLView extends SLBase{
@@ -258,9 +241,10 @@ export class SLInteracitive extends SLView{
         return this.tabCanvas.layers.notes.noteElements.slice(head, this.tabCanvas.layers.notes.noteElements.length);
     }
     
-    addNote(section: number, note: number, data: Note){
+    addNote(section: number, note: number, data: Note): [number, number]{
         if(this.inEdit){
-            super.addNote(section, note, data);
+            return super.addNote(section, note, data);
         }
+        return [-1, -1];
     }
 }
