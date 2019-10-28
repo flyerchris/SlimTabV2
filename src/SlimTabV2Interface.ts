@@ -3,7 +3,7 @@ import { SLTab } from "./SlimTabV2"
 export interface Correction {
     (sltab: SLTab, addData: Note, startSection: number, startNode: number, userData?: string): void
 }
-export interface CaculatedNoteData{
+export interface CaculatedNoteData {
     x: number;
     y: number;
     length: number;

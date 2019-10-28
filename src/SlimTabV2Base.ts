@@ -5,26 +5,7 @@ import { SVGNote } from "./SlimTabV2Canvas"
 import { CaculatedNoteData } from './SlimTabV2Interface'
 
 export class SLBase{
-    tabCanvas: SLCanvas<SLLayer>;
     notes: section[];
-    domElement: HTMLElement;
-    inEdit: boolean = true;
-    readonly lengthPerBeat: number = 4;
-    readonly beatPerSection: number = 4;
-    readonly containerHeight: number = 700;
-    protected lineWidth: number = 1200;
-    protected sectionPerLine: number = 4;
-    protected stringPadding: number = 16; // distance between each string
-    protected linePerPage: number = 20;
-    protected lineMargin: number = 42; // only for left and right
-    protected linePadding: [number, number] = [32, 14];
-    protected lineDistance: number = 90; // distance between each line
-    protected sectionAddNoteNumber = 8;
-    protected linkerElement: SVGElement[] = [];
-    protected startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
-    protected lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
-    protected height: number;
-    protected width: number;
     protected calData: CaculatedNoteData[] = [];
     //todo: do a stricter check for these function
     setData(data: [number, number[], any][][]) {
@@ -70,18 +51,16 @@ export class SLBase{
     }
 
     addNote(section: number, note: number, data: Note){
-        if(this.inEdit){
-            if(section === -1 || section >= this.notes.length){
-                section = this.notes.length;
-                this.notes.push([]);
-            }
-            if(note === -1 || note > this.notes[section].length){
-                note = this.notes[section].length;
-            }
-            this.notes[section].splice(note, 0, data);
-            let np = this.getNoteFlattenNumber(section, note);
-            this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
+        if(section === -1 || section >= this.notes.length){
+            section = this.notes.length;
+            this.notes.push([]);
         }
+        if(note === -1 || note > this.notes[section].length){
+            note = this.notes[section].length;
+        }
+        this.notes[section].splice(note, 0, data);
+        let np = this.getNoteFlattenNumber(section, note);
+        this.calData.splice(np, 0, {x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
     }
 
     isBlankNote(section: number, note: number){
@@ -101,6 +80,7 @@ export class SLBase{
     getSectionNumber(){
         return this.notes.length;
     }
+
     insertSection(section: number, data: section = []): boolean{
         if(section < -1 || section > this.notes.length){
             return false;
@@ -115,13 +95,14 @@ export class SLBase{
         this.calData.splice(isp + 1, 0, ...isa);
         return true;
     }
+
     deleteSections(section: number, number: number = 1): section[]{
         if(section < -1 || section >= this.notes.length){
             return [];
         }
         let dn = 0;
         let dp = this.getNoteFlattenNumber(section, 0);
-        for(let i = section; i < section + number && i < this.noteIndex.length; i++) dn += this.notes[i].length;
+        for(let i = section; i < section + number && i < this.notes.length; i++) dn += this.notes[i].length;
         this.removeCalData(dp, dn);
         return this.notes.splice(section, number);
     }
@@ -136,6 +117,106 @@ export class SLBase{
             return total;
         }
         return -1;
+    }
+
+    clearData(){
+        this.notes = [[]];
+        this.calData = [];
+    }
+
+    protected removeCalData(removeIndex: number, num: number){};
+}
+
+export class SLView extends SLBase{
+    tabCanvas: SLCanvas<SLLayer>;
+    domElement: HTMLElement;
+    readonly containerHeight: number = 700;
+    protected lineWidth: number = 1200;
+    protected sectionPerLine: number = 4;
+    protected stringPadding: number = 16; // distance between each string
+    protected linePerPage: number = 20;
+    protected lineMargin: number = 42; // only for left and right
+    protected linePadding: [number, number] = [32, 14];
+    protected lineDistance: number = 90; // distance between each line
+    protected startPosition: number[] = [this.lineMargin + this.linePadding[0] + 20, 120 + this.linePadding[1]]; // x, y
+    protected lineStartPosition: [number, number] = [this.lineMargin, 120]; // total line number, last line X, last line Y
+    protected height: number;
+    protected width: number;
+
+    getSectionLeftTopPos(section: number): [number, number]{
+        if(section < this.notes.length){
+            return [this.tabCanvas.layers.ui.sectionIndicator[section].x, this.tabCanvas.layers.ui.sectionIndicator[section].y];
+        }
+        return [-1, -1]
+    }
+
+    getSectionWidth(section: number): number{
+        if(section < this.notes.length){
+            this.tabCanvas.layers.ui.sectionIndicator[section].width;
+        }
+        return 0;
+    }
+
+    getSectionHeight(section: number): number{
+        if(section < this.notes.length){
+            this.tabCanvas.layers.ui.sectionIndicator[section].height;
+        }
+        return 0;
+    }
+
+    attach(anchor: HTMLElement){
+        anchor.append(this.domElement);
+        utils.setStyle(anchor, {width: `${this.width + 20}px`});// add 20 for scroll bar
+    }
+
+    noteIndex(note: SVGNote){
+        return this.tabCanvas.layers.notes.noteElements.indexOf(note);
+    }
+
+    getSVGNote(section: number, note: number): SVGNote{
+        let noteElements = this.tabCanvas.layers.notes.noteElements;
+        return noteElements.find((elem) => {
+            return elem.section == section && elem.note == note
+        })
+    }
+
+    getNotePosition(section: number, note: number, string: number = 0): [number, number]{
+        let sum = 0;
+        if(section == -1) section = this.notes.length -1;
+        if(note == -1) note = this.notes[section].length -1;
+        if(section >= this.notes.length || section < -1 || note >= this.notes[section].length || note < -1 || string > 5 || string < 0){
+            return [-1, -1];
+        }
+        if(this.notes[section].length === 0 ) return [-1, -1];
+        for(let i = 0; i < section; i++){
+            sum += this.notes[i].length;
+        }
+        sum += note;
+        if(!this.tabCanvas.layers.notes.noteElements[sum]) return [-1, -1];
+        let sel = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string];
+        return [sel.x, sel.y];
+    }
+
+    clearData(){
+        super.clearData();
+        this.tabCanvas.layers.notes.removeNote(0, this.tabCanvas.layers.notes.noteElements.length);
+    }
+
+}
+
+export class SLInteracitive extends SLView{
+    inEdit: boolean = true;
+    scrollTo(val: number){
+        this.domElement.scrollTop = val;
+    }
+
+    adjustPostion(y: number){
+        if(y + 220 > this.domElement.scrollTop + this.containerHeight){
+            this.scrollTo(y - this.containerHeight + 220);
+        }
+        if(y - 80 < this.domElement.scrollTop){
+            this.scrollTo(y - 80);
+        }
     }
         /**
      * Drag and drog area select notes
@@ -163,6 +244,7 @@ export class SLBase{
         rightSelectedNote = Math.max(...selectedNoteIds);
         return noteElements.slice(leftSelectedNote, rightSelectedNote+1);
     }
+
     endsSelect(head: number, tail: number): SVGNote[]{
         if(head > tail){
             let temp = tail;
@@ -171,93 +253,14 @@ export class SLBase{
         }
         return this.tabCanvas.layers.notes.noteElements.slice(head, tail+1);
     }
+
     headToEndSelect(head: number): SVGNote[]{
         return this.tabCanvas.layers.notes.noteElements.slice(head, this.tabCanvas.layers.notes.noteElements.length);
     }
-
-    isSectionFull(section: number){
-        let stackLength = 0;// unit in beat
-        for(let i = 0; i < this.notes[section].length; i++){
-            stackLength += this.lengthPerBeat / this.notes[section][i][0];
-        }
-        if(stackLength >= this.beatPerSection){
-            return true;
-        }
-        return false;
-    }
-
-    clearData(){
-        this.notes = [[]];
-        this.calData = [];
-    }
-
-    protected removeCalData(removeIndex: number, num: number){};
-}
-
-export class SLTabDOM extends SLBase{
-    scrollTo(val: number){
-        this.domElement.scrollTop = val;
-    }
-    getSectionLeftTopPos(section: number): [number, number]{
-        if(section < this.notes.length){
-            return [this.tabCanvas.layers.ui.sectionIndicator[section].x, this.tabCanvas.layers.ui.sectionIndicator[section].y];
-        }
-        return [-1, -1]
-    }
-    getSectionWidth(section: number): number{
-        if(section < this.notes.length){
-            this.tabCanvas.layers.ui.sectionIndicator[section].width;
-        }
-        return 0;
-    }
-    getSectionHeight(section: number): number{
-        if(section < this.notes.length){
-            this.tabCanvas.layers.ui.sectionIndicator[section].height;
-        }
-        return 0;
-    }
-    adjustPostion(y: number){
-        if(y + 220 > this.domElement.scrollTop + this.containerHeight){
-            this.scrollTo(y - this.containerHeight + 220);
-        }
-        if(y - 80 < this.domElement.scrollTop){
-            this.scrollTo(y - 80);
+    
+    addNote(section: number, note: number, data: Note){
+        if(this.inEdit){
+            super.addNote(section, note, data);
         }
     }
-    attach(anchor: HTMLElement){
-        anchor.append(this.domElement);
-        utils.setStyle(anchor, {width: `${this.width + 20}px`});
-    }
-
-    noteIndex(note: SVGNote){
-        return this.tabCanvas.layers.notes.noteElements.indexOf(note);
-    }
-    getSVGNote(section: number, note: number): SVGNote{
-        let noteElements = this.tabCanvas.layers.notes.noteElements;
-        return noteElements.find((elem) => {
-            return elem.section == section && elem.note == note
-        })
-    }
-
-    getNotePosition(section: number, note: number, string: number = 0): [number, number]{
-        let sum = 0;
-        if(section == -1) section = this.notes.length -1;
-        if(note == -1) note = this.notes[section].length -1;
-        if(section >= this.notes.length || section < -1 || note >= this.notes[section].length || note < -1 || string > 5 || string < 0){
-            return [-1, -1];
-        }
-        if(this.notes[section].length === 0 ) return [-1, -1];
-        for(let i = 0; i < section; i++){
-            sum += this.notes[i].length;
-        }
-        sum += note;
-        if(!this.tabCanvas.layers.notes.noteElements[sum]) return [-1, -1];
-        let sel = this.tabCanvas.layers.notes.noteElements[sum].blockGroup[string];
-        return [sel.x, sel.y];
-    }
-    clearData(){
-        super.clearData
-        this.tabCanvas.layers.notes.removeNote(0, this.tabCanvas.layers.notes.noteElements.length);
-    }
-
 }
