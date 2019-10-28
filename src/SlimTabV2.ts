@@ -2,7 +2,7 @@ import {utils, Callbacks} from "./utils"
 import { Note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
 import { SLCanvas, SLLayer, SVGNote } from "./SlimTabV2Canvas"
-import { SLBase } from "./SlimTabV2Base"
+import { SLInteracitive } from "./SlimTabV2Base"
 import { CaculatedNoteData } from './SlimTabV2Interface'
 interface eventCallBackInterface {
     noteclick: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
@@ -19,13 +19,16 @@ interface eventCallBackInterface {
     sectionhout: (section: number) => any;
     sectionclick: (section: number, string: number) => any;
 }
-export class SLTab extends SLBase {
+export class SLTab extends SLInteracitive {
     /**
      * Callbacks
      * Available callbacks
      * noteclick: triggered when a note element is clicked
      */
+    readonly lengthPerBeat: number = 4;
+    readonly beatPerSection: number = 4;
     private callbacks: Callbacks;
+    private sectionAddNoteNumber = 8;
 
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}) {
         super();
@@ -99,7 +102,18 @@ export class SLTab extends SLBase {
             this.callbacks[ename].push(cbk);
         }
     }
-
+    
+    isSectionFull(section: number){
+        let stackLength = 0;// unit in beat
+        for(let i = 0; i < this.notes[section].length; i++){
+            stackLength += this.lengthPerBeat / this.notes[section][i][0];
+        }
+        if(stackLength >= this.beatPerSection){
+            return true;
+        }
+        return false;
+    }
+    
     protected removeCalData(removeIndex: number, num: number){
         this.calData.splice(removeIndex, num);
         this.tabCanvas.layers.notes.removeNote(removeIndex, num);
