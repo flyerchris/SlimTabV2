@@ -1,7 +1,7 @@
 import { section, Note } from "./SlimTabV2Types"
 import { SLTab } from "./SlimTabV2";
 import { DataAdapter } from "./DataAdapter"
-import { LiCAP } from "./LiCAP"
+import { LiCAP, LiCAPDevice } from "./LiCAP"
 import { Metronome } from "./Metronome"
 import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
@@ -41,8 +41,11 @@ nt.render();
 
 let da = new DataAdapter();
 da.timeOffset = 40;
+let device: LiCAPDevice;
+let beep: Metronome = new Metronome(120);
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
+        device = devs[0];
         devs[0].on("pick", (strIndex, note, amp, time)=>{
             da.startTimeOffset = -beep.getStartTime();
             da.receiveData(strIndex, note, amp, time);
@@ -71,10 +74,8 @@ da.addPackListener((data: Note)=>{
     nt.adjustPostion(nt.getSectionLeftTopPos(nt.getSectionNumber() - 1)[1]);
 });
 da.addDataListener((string:number, note: number, time:number)=>{
-    //console.log(string, note, time);
+    pt.onPluck(string, note, performance.now() - 30 - 50 /*play lag*/);
 })
-
-let beep: Metronome = new Metronome(120);
 let bs = 0;
 let beepEle = document.getElementById("metronome");
 let bpmDom = <HTMLInputElement>document.getElementById("metronome-bpm");
@@ -114,15 +115,17 @@ nt.on("noteclick", (sectionIdx, noteIdx, stringIdx) => {
     document.getElementById("section-idx").innerText = pad(String(sectionIdx+1), 3) + ".";
 })
 
-
 let stream = new LiCAPStream();
-
 document.getElementById('playstream').addEventListener('click', () => {
     stream.play();
 })
 console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{
+    if((ev.key).toLowerCase() === " "){
+        da.activate()
+        setTimeout(() => device.resetTimer(), 2000);
+    }
     if(ev.key == "r" || ev.key == "e"){
         //console.log(ev.timeStamp - beep.getStartTime());
         da.startTimeOffset = -beep.getStartTime();

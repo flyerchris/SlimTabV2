@@ -8,12 +8,14 @@ export interface LiCAPDevice {
      * @param cbk callback
      */
     on(ename: string, cbk: (...args: any[]) => void): void;
+    resetTimer(): void;
 }
 
 export class LiCAP implements LiCAPDevice {
     private device: WebMidi.MIDIInput;
     private callbacks: Callbacks;
     static LiCAPName: string = "LiCAP MIDI Device";
+    private startTime: number;
 
     /**
      * ctor
@@ -22,6 +24,7 @@ export class LiCAP implements LiCAPDevice {
     private constructor(device: WebMidi.MIDIInput) {
         this.device = device;
         this.callbacks = new Callbacks(["pick", "message"]);
+        this.startTime = performance.now();
         
         this.device.onmidimessage = this.onMessage.bind(this);
     }
@@ -32,6 +35,9 @@ export class LiCAP implements LiCAPDevice {
         }
     }
 
+    resetTimer(){
+        this.startTime = performance.now();
+    }
     /**
      * isSupported
      * Check if LiCAP is supported by computer or not
