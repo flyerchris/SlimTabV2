@@ -2,7 +2,7 @@ import {utils, Callbacks} from "./utils"
 import { Note } from "./SlimTabV2Types"
 import { Correction } from "./SlimTabV2Interface"
 import { SLCanvas, SLLayer, SVGNote } from "./SlimTabV2Canvas"
-import { SLAPI } from "./SlimTabV2API"
+import { SLBase } from "./SlimTabV2Base"
 import { CaculatedNoteData } from './SlimTabV2Interface'
 interface eventCallBackInterface {
     noteclick: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
@@ -19,7 +19,7 @@ interface eventCallBackInterface {
     sectionhout: (section: number) => any;
     sectionclick: (section: number, string: number) => any;
 }
-export class SLTab extends SLAPI {
+export class SLTab extends SLBase {
     /**
      * Callbacks
      * Available callbacks
