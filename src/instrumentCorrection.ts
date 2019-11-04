@@ -9,14 +9,14 @@ const instrumentCorrection: Correction = function(sltab: SLTab, addData: Note, s
     }
     addData.userData += ` ${userData}`;
     if(stackLength >= sltab.beatPerSection){
-        sltab.insertSection(-1, []);
+        sltab.insertSection(sltab.getSectionNumber(), []);
         sltab.addNote(section + 1, -1, addData);
     }else if(stackLength + sltab.lengthPerBeat / addData[0] > sltab.beatPerSection){
         let restLength = sltab.beatPerSection - stackLength;
         let addLength = sltab.lengthPerBeat / (sltab.lengthPerBeat / addData[0] - restLength);
         restLength = sltab.lengthPerBeat / restLength;
         sltab.addNote(section, -1, new Note({noteValue: restLength, stringContent: addData[1], userData: "linkStart " + userData}));
-        sltab.insertSection(-1, []);
+        sltab.insertSection(sltab.getSectionNumber(), []);
         instrumentCorrection(sltab, new Note({noteValue: addLength, stringContent: addData[1], userData: ""}), section + 1, 0, "linkEnd");
         return; 
     }else{
