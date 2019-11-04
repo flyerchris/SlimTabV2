@@ -25,8 +25,8 @@ export class SLBase{
     }
     
     setNoteData(section: number, note: number, data: Note){
-        if(section === -1)section = this.notes.length - 1;
-        if(note === -1)note = this.notes[section].length - 1;
+        // if(section === -1)section = this.notes.length - 1;
+        // if(note === -1)note = this.notes[section].length - 1;
         this.notes[section][note] = data;
     }
 
@@ -41,8 +41,8 @@ export class SLBase{
     }
 
     deleteNote(section: number, note: number, number: number = 1): Note[]{
-        if(section === -1)section = this.notes.length - 1;
-        if(note === -1)note = this.notes[section].length - 1;
+        // if(section === -1)section = this.notes.length - 1;
+        // if(note === -1)note = this.notes[section].length - 1;
         return this.notes[section].splice(note, number);
     }
 
@@ -68,7 +68,7 @@ export class SLBase{
     }
 
     getNoteNumberOfSection(section: number){
-        if(section == -1) section = this.notes.length - 1;
+        if(!this.notes[section])return -1;
         return this.notes[section].length;
     }
 
@@ -77,10 +77,10 @@ export class SLBase{
     }
 
     insertSection(section: number, data: section = []): boolean{
-        if(section < -1 || section > this.notes.length){
+        if(section < 0 || section > this.notes.length){
             return false;
         }
-        if(section === -1)section = this.notes.length;
+        // if(section === -1)section = this.notes.length;
         this.notes.splice(section, 0, data);
         return true;
     }
@@ -94,7 +94,7 @@ export class SLBase{
 
     getNoteFlattenNumber(section: number, note: number): number{
         if(!this.notes[section]) return -1;
-        if(note === -1) note = this.notes[section].length - 1;
+        // if(note === -1) note = this.notes[section].length - 1;
         if(this.notes[section][note]){
             let total = 0;
             for(let i = 0; i < section; i++) total += this.notes[i].length;
@@ -165,9 +165,7 @@ export class SLView extends SLBase{
 
     getNotePosition(section: number, note: number, string: number = 0): [number, number]{
         let sum = 0;
-        if(section == -1) section = this.notes.length -1;
-        if(note == -1) note = this.notes[section].length -1;
-        if(section >= this.notes.length || section < -1 || note >= this.notes[section].length || note < -1 || string > 5 || string < 0){
+        if(section >= this.notes.length || section < 0 || note >= this.notes[section].length || note < 0 || string > 5 || string < 0){
             return [-1, -1];
         }
         if(this.notes[section].length === 0 ) return [-1, -1];

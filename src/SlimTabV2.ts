@@ -111,35 +111,35 @@ export class SLTab extends SLInteracitive {
     }
 
     deleteNote(section: number, note: number, number: number = 1): Note[]{
-        let dn = super.deleteNote(section, note, number);
         let np = this.getNoteFlattenNumber(section, note);
+        let dn = this.notes[section].splice(note, number);
         this.removeCalData(np, dn.length);
         return dn;
     }
 
     deleteSections(section: number, number: number = 1): section[]{
-        let ds = super.deleteSections(section, number);
-        if(ds.length != 0){
-            let dn = 0;
-            let dp = this.getNoteFlattenNumber(section, 0);
-            for(let i = section; i < section + number && i < this.notes.length; i++) dn += this.notes[i].length;
-            this.removeCalData(dp, dn);
+        if(section < 0 || section >= this.notes.length){
+            return [];
         }
-        return ds;
+        let dn = 0;
+        let dp = this.getNoteFlattenNumber(section, 0);
+        for(let i = section; i < section + number && i < this.notes.length; i++) dn += this.notes[i].length;
+        this.removeCalData(dp, dn);
+        return this.notes.splice(section, number);
     }
 
     insertSection(section: number, data: section = []): boolean{
-        if(super.insertSection(section, data)){
-            let isp = this.getNoteFlattenNumber(section, -1);
-            let isa: CaculatedNoteData[] = [];
-            for(let i = 0; i < data.length; i++){
-                isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
-            }
-            this.calData.splice(isp + 1, 0, ...isa);
-            return true;
-            
+        if(section < 0 || section > this.notes.length){
+            return false;
         }
-        return false;
+        let isp = this.getNoteFlattenNumber(section, this.getNoteNumberOfSection(section) - 1);
+        let isa: CaculatedNoteData[] = [];
+        for(let i = 0; i < data.length; i++){
+            isa.push({x: -1, y: -1, length: -1, blocks: [], tail: [], section: -1, note: -1, hasSvg: false});
+        }
+        this.notes.splice(section, 0, data);
+        this.calData.splice(isp + 1, 0, ...isa);
+        return true;
     }
 
     clearData(){

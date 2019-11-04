@@ -67,8 +67,8 @@ da.addPackListener((data: Note)=>{
             nt.addNote(nt.getSectionNumber() -1 , -1, data);
         }
         nt.render();
-    }else{  
-        nt.deleteNote(-1, -1);
+    }else{
+        nt.deleteNote(nt.getSectionNumber() - 1, nt.getNoteNumberOfSection(nt.getSectionNumber() - 1) -1);
         nt.instrumentNoteInput(instrumentCorrection, data);
     }
     nt.adjustPostion(nt.getSectionLeftTopPos(nt.getSectionNumber() - 1)[1]);
@@ -129,7 +129,7 @@ document.addEventListener("keydown",(ev)=>{
     if(ev.key == "r" || ev.key == "e"){
         //console.log(ev.timeStamp - beep.getStartTime());
         da.startTimeOffset = -beep.getStartTime();
-        da.receiveData(1, 5, 2, ev.timeStamp);
+        da.receiveData(1, 5, 2, ev.timeStamp - 50);
     }
 });
 document.getElementById('save-file').addEventListener('click', saveFile);
