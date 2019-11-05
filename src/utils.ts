@@ -4,7 +4,7 @@ export namespace utils {
             el.setAttribute(k, attr[k]);
         }
     }
-    export function setStyle(el: HTMLElement, style:{[key: string]: string}){
+    export function setStyle(el: HTMLElement | SVGElement, style:{[key: string]: string}){
         for(let k in style){
             el.style.setProperty(k, style[k]);
         }

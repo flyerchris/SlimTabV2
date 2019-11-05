@@ -367,11 +367,11 @@ export class SLTab extends SLInteracitive {
                 this.tabCanvas.layers.notes.createNote(i);
                 this.calData[i].hasSvg = true;
                 noteElement[i].blockGroup.forEach((wg, i) => {
-                    wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
-                    wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this), false);
-                    wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
+                    wg.domElement.addEventListener("click", this.onNoteClicked.bind(this));
+                    wg.domElement.addEventListener("mouseover", this.onMouseOverNote.bind(this), false);
+                    wg.domElement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
                     wg.string = i;
-                    utils.setAttributes(wg.domelement, {"data-string": `${i}`});
+                    utils.setAttributes(wg.domElement, {"data-string": `${i}`});
                 });
             }
         }
@@ -406,7 +406,7 @@ export class SLTab extends SLInteracitive {
             e.blockGroup[i].extendRect.y =  y + this.stringPadding * (i - 0.5);
             e.blockGroup[i].extendRect.height = this.stringPadding;
             e.blockGroup[i].extendRect.width = xlength;
-            utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
+            utils.setAttributes(e.blockGroup[i].domElement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
         }
         e.tail8.setPosition(x + 0.4,y + this.stringPadding * 5 + 14);
         e.tail16.setPosition(x + 0.4,y + this.stringPadding * 5 + 10);
@@ -414,12 +414,12 @@ export class SLTab extends SLInteracitive {
         e.section = sectionIndex;
         e.note = noteIndex;
         e.line = ln;
-        utils.setAttributes(e.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        utils.setAttributes(e.domElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
             wg.section = sectionIndex;
             wg.note = noteIndex;
             wg.line = ln;
-            utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
+            utils.setAttributes(wg.domElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
         });
     }
     private setChordVisiable(e:SVGNote, x: number, y: number, noteLength: number, data: number[], tail: number[], nextTail: number[]){

@@ -216,7 +216,7 @@ export class SLInteracitive extends SLView{
                     && noteElements[i].blockGroup[j].x <= x2 
                     && noteElements[i].blockGroup[j].y >=y1 
                     && noteElements[i].blockGroup[j].y <=y2 
-                    && noteElements[i].domelement.style.display != "none"){
+                    && noteElements[i].domElement.style.display != "none"){
                     selectedNoteIds.push(i);
                 }
             }
