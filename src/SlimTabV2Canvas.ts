@@ -1,4 +1,5 @@
 import {utils} from './utils';
+import {EventEmitter} from './EventEmitter'
 
 interface SVGPrimitiveRenderer {
     clear(): void;
@@ -7,8 +8,8 @@ interface SVGPrimitiveRenderer {
     createText(x: number, y: number, str: string, anchor: string): Text;
     createLine(x1: number, y1: number, x2: number, y2: number, width: number, color?: string): Line;
 }
-export class NoteBlock{
-    readonly domelement: HTMLElement;
+export class NoteBlock implements EventEmitter {
+    readonly domElement: SVGElement;
     readonly word: Text;
     readonly wordBack: Text;
     readonly extendRect: Rect;
@@ -19,8 +20,8 @@ export class NoteBlock{
     private _string: number;
     private _line: number;
 
-    constructor(domelement: HTMLElement, word: Text, wordBack: Text, extendRect: Rect){
-        this.domelement = domelement;
+    constructor(domElement: SVGElement, word: Text, wordBack: Text, extendRect: Rect){
+        this.domElement = domElement;
         this.word = word;
         this.wordBack = wordBack;
         this.extendRect = extendRect;
@@ -70,9 +71,13 @@ export class NoteBlock{
     get line(): number{
         return this._line;
     }
+
+    on(ename: string, cbk: ()=>void): void {
+        this.domElement.addEventListener(ename, cbk);
+    }
 }
-export class SVGNote{
-    readonly domelement: HTMLElement;
+export class SVGNote implements EventEmitter {
+    readonly domElement: SVGElement;
     readonly blockGroup: NoteBlock[] = [];
     readonly lineGroup: Line[] = [];
     readonly tail8: Base8Tail;
@@ -81,14 +86,14 @@ export class SVGNote{
     private _section: number;
     private _note: number;
     private _line: number;
-    constructor(domelement: HTMLElement, blockGroup: NoteBlock[], lineGroup: Line[]){
-        this.domelement = domelement;
+    constructor(domElement: SVGElement, blockGroup: NoteBlock[], lineGroup: Line[]){
+        this.domElement = domElement;
         this.blockGroup = blockGroup;
         this.lineGroup = lineGroup;
         this.tail8 = new Base8Tail();
         this.tail16 = new Base16Tail();
         this.tail32 = new Base32Tail();
-        this.domelement.append(this.tail32.domElement, this.tail16.domElement, this.tail8.domElement);
+        this.domElement.append(this.tail32.domElement, this.tail16.domElement, this.tail8.domElement);
     }
     set section(val: number){
         this._section = val;
@@ -108,6 +113,10 @@ export class SVGNote{
     get line(): number{
         return this._line;
     }
+    // dom
+    on(ename: string, cbk: ()=>void) {
+        this.domElement.addEventListener(ename, cbk);
+    }
 }
 class Tail{
     readonly domElement: SVGElement;
@@ -121,7 +130,7 @@ class Tail{
     }
     setPosition(x: number, y: number){
         if(this._x !== x || this._y !== y){
-            utils.setStyle(<HTMLElement><unknown>this.domElement,{"transform": `scale(0.08) translate(${x / 0.08}px,${y / 0.08}px)`});
+            utils.setStyle(this.domElement,{"transform": `scale(0.08) translate(${x / 0.08}px,${y / 0.08}px)`});
             this._x = x;
             this._y = y;
         }
@@ -129,13 +138,13 @@ class Tail{
     show(){
         if(!this._isShow){
             this._isShow = true;
-            utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "unset"});
+            utils.setStyle(this.domElement,{display: "unset"});
         }
     }
     hide(){
         if(this._isShow){
             this._isShow = false;
-            utils.setStyle(<HTMLElement><unknown>this.domElement,{display: "none"});
+            utils.setStyle(this.domElement,{display: "none"});
         }
     }
 }
@@ -243,7 +252,7 @@ export class Layer implements SVGPrimitiveRenderer {
 }
 
 
-export class SVGShape {
+export class SVGShape implements EventEmitter {
     protected _domElement: SVGElement;
     constructor(domElement: SVGElement) {
         this._domElement = domElement;
@@ -255,7 +264,10 @@ export class SVGShape {
         return this._domElement;
     }
     set style(val: {[key: string]: string}){
-        utils.setStyle(<HTMLElement><unknown>this.domElement, val);
+        utils.setStyle(this.domElement, val);
+    }
+    on(ename: string, cbk: ()=>void): void {
+        this._domElement.addEventListener(ename, cbk);
     }
 };
 
@@ -632,7 +644,7 @@ class NoteLayer extends Layer {
         `;
         utils.setAttributes(this.domElement,{"data-layer": "NoteLayer"})
     }
-    createNote(insertIndex: number = -1): SVGElement {
+    createNote(insertIndex: number = -1): SVGNote {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockArray: NoteBlock[] = [];
@@ -653,20 +665,21 @@ class NoteLayer extends Layer {
             wordBack.style = {font: "12px Sans-serf"}
             word.style = {"font": "12px Sans-serif", "fill": "#fff"};
             blockGroup.append(wordGroup);
-            blockArray.push(new NoteBlock(<HTMLElement><unknown>wordGroup, word, wordBack, extendRect));
+            blockArray.push(new NoteBlock(wordGroup, word, wordBack, extendRect));
         }
         note.append(blockGroup);
         if(insertIndex === -1)insertIndex = this.noteElements.length;
-        this.noteElements.splice(insertIndex, 0, new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
-        //this.noteElements.push(new SVGNote(<HTMLElement><unknown>note, blockArray, lg));
+        let newnote = new SVGNote(note, blockArray, lg);
+        this.noteElements.splice(insertIndex, 0, newnote);
+        //this.noteElements.push(new SVGNote(note, blockArray, lg));
         this.domElement.append(note);
-        return note;
+        return newnote;
     }
 
     removeNote(noteIndex: number, num: number = 1){
         for(let i = 0; i < num; i++){
             if(this.noteElements[noteIndex + i])
-                this.domElement.removeChild(this.noteElements[noteIndex + i].domelement);
+                this.domElement.removeChild(this.noteElements[noteIndex + i].domElement);
         }
         
         this.noteElements.splice(noteIndex, num);
@@ -674,7 +687,7 @@ class NoteLayer extends Layer {
 }
 
 class SheetLayer extends Layer {
-    readonly row: HTMLElement[] = [];
+    readonly row: SVGElement[] = [];
     readonly bar: Line[] = [];
     constructor(){
         super();
@@ -698,7 +711,7 @@ class SheetLayer extends Layer {
             this.bar.push(nb);
         }
         this.domElement.append(ng);
-        this.row.push(<HTMLElement><unknown>ng);
+        this.row.push(ng);
         return ng;
     }
 
@@ -711,7 +724,8 @@ class SheetLayer extends Layer {
             <tspan x='${x + 10}' y='${y + 44 + 26}'>B</tspan>
         </text>
         `;
-        if(target)target.append(title);
+        if(target)
+            target.append(title);
         return title;
     }
 }
@@ -772,7 +786,7 @@ export class SLCanvas<T extends Layers> {
         this.layers = new layerType();
 
         this.domElement = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-        utils.setStyle(<HTMLElement><unknown>this.domElement, {"user-select": "none", "outline": "none"});
+        utils.setStyle(this.domElement, {"user-select": "none", "outline": "none"});
 
         this.layers.flattened.forEach(layer => this.domElement.appendChild(layer.domElement));
     }

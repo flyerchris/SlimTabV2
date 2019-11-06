@@ -5,7 +5,6 @@ import { LiCAP, LiCAPDevice } from "./LiCAP"
 import { Metronome } from "./Metronome"
 import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
-import { LiCAPStream } from "./LiCAPStream"
 import {SLPract} from "./SLPract"
 import { KeyBoardAdapter } from "./KeyBoardAdapter"
 let ka = new KeyBoardAdapter();
@@ -115,10 +114,6 @@ nt.on("noteclick", (sectionIdx, noteIdx, stringIdx) => {
     document.getElementById("section-idx").innerText = pad(String(sectionIdx+1), 3) + ".";
 })
 
-let stream = new LiCAPStream();
-document.getElementById('playstream').addEventListener('click', () => {
-    stream.play();
-})
 console.log(nt)
 let pt = new SLPract(nt, tabEditor, beep);
 document.addEventListener("keydown",(ev)=>{

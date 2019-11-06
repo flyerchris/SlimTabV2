@@ -180,9 +180,9 @@ export class SLTab extends SLInteracitive {
             let nsNumber = position.length - this.tabCanvas.layers.ui.sectionIndicator.length;
             for(let i = 0; i < nsNumber; i++){
                 let nc = this.tabCanvas.layers.ui.createSectionIndicator();
-                nc.domElement.addEventListener("mousemove",this.onSectionHover.bind(this));
-                nc.domElement.addEventListener("mouseout",this.onSectionHout.bind(this));
-                nc.domElement.addEventListener("click",this.onSectionClick.bind(this));
+                nc.on("mousemove",this.onSectionHover.bind(this));
+                nc.on("mouseout",this.onSectionHout.bind(this));
+                nc.on("click",this.onSectionClick.bind(this));
             }
         }
         for(let i = 0; i < position.length; i++){
@@ -195,12 +195,12 @@ export class SLTab extends SLInteracitive {
             this.tabCanvas.layers.sheet.bar[i].x1 = position[i][0][0] + width;
             this.tabCanvas.layers.sheet.bar[i].x2 = position[i][0][0] + width;
             utils.setAttributes(this.tabCanvas.layers.ui.sectionIndicator[i].domElement,{"data-section": `${i}`});
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.ui.sectionIndicator[i].domElement, {display: "unset"});
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.sheet.bar[i].domElement, {display: "unset"});
+            utils.setStyle(this.tabCanvas.layers.ui.sectionIndicator[i].domElement, {display: "unset"});
+            utils.setStyle(this.tabCanvas.layers.sheet.bar[i].domElement, {display: "unset"});
         }
         for(let i = position.length; i < this.tabCanvas.layers.ui.sectionIndicator.length; i++){
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.ui.sectionIndicator[i].domElement, {display: "none"});
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.sheet.bar[i].domElement, {display: "none"});
+            utils.setStyle(this.tabCanvas.layers.ui.sectionIndicator[i].domElement, {display: "none"});
+            utils.setStyle(this.tabCanvas.layers.sheet.bar[i].domElement, {display: "none"});
         }
     }
 
@@ -367,11 +367,11 @@ export class SLTab extends SLInteracitive {
                 this.tabCanvas.layers.notes.createNote(i);
                 this.calData[i].hasSvg = true;
                 noteElement[i].blockGroup.forEach((wg, i) => {
-                    wg.domelement.addEventListener("click", this.onNoteClicked.bind(this));
-                    wg.domelement.addEventListener("mouseover", this.onMouseOverNote.bind(this), false);
-                    wg.domelement.addEventListener("mouseout", this.onMouseOutNote.bind(this));
+                    wg.on("click", this.onNoteClicked.bind(this));
+                    wg.on("mouseover", this.onMouseOverNote.bind(this));
+                    wg.on("mouseout", this.onMouseOutNote.bind(this));
                     wg.string = i;
-                    utils.setAttributes(wg.domelement, {"data-string": `${i}`});
+                    utils.setAttributes(wg.domElement, {"data-string": `${i}`});
                 });
             }
         }
@@ -406,7 +406,7 @@ export class SLTab extends SLInteracitive {
             e.blockGroup[i].extendRect.y =  y + this.stringPadding * (i - 0.5);
             e.blockGroup[i].extendRect.height = this.stringPadding;
             e.blockGroup[i].extendRect.width = xlength;
-            utils.setAttributes(e.blockGroup[i].domelement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
+            utils.setAttributes(e.blockGroup[i].domElement,{"data-x": `${x}`, "data-y": `${y + this.stringPadding * i}`, "data-line": `${ln}`});
         }
         e.tail8.setPosition(x + 0.4,y + this.stringPadding * 5 + 14);
         e.tail16.setPosition(x + 0.4,y + this.stringPadding * 5 + 10);
@@ -414,12 +414,12 @@ export class SLTab extends SLInteracitive {
         e.section = sectionIndex;
         e.note = noteIndex;
         e.line = ln;
-        utils.setAttributes(e.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
+        utils.setAttributes(e.domElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`});
         e.blockGroup.forEach((wg, i) => {
             wg.section = sectionIndex;
             wg.note = noteIndex;
             wg.line = ln;
-            utils.setAttributes(wg.domelement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
+            utils.setAttributes(wg.domElement, {"data-section": `${sectionIndex}`, "data-note": `${noteIndex}`, "data-line": `${ln}`});
         });
     }
     private setChordVisiable(e:SVGNote, x: number, y: number, noteLength: number, data: number[], tail: number[], nextTail: number[]){
@@ -488,11 +488,11 @@ export class SLTab extends SLInteracitive {
             this.tabCanvas.layers.background.createLinker();
         }
         for(let i = 0; i < lenumber; i++){
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.background.linker[i], {display: "unset"});
+            utils.setStyle(this.tabCanvas.layers.background.linker[i], {display: "unset"});
             this.setLinkerData(this.tabCanvas.layers.background.linker[i], linkerData[i*2], linkerData[i*2+1]);
         }
         for(let i = lenumber; i < this.tabCanvas.layers.background.linker.length; i++){
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.background.linker[i], {display: "none"});
+            utils.setStyle(this.tabCanvas.layers.background.linker[i], {display: "none"});
         }
     }
     private setLinkerData(linkElement:SVGElement, start: number[], end: number[]){
@@ -519,12 +519,12 @@ export class SLTab extends SLInteracitive {
             this.tabCanvas.layers.notes.dot.push(ndt);
         }
         for(let i = 0; i < lenumber; i++){
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.notes.dot[i].domElement, {display: "unset"});
+            utils.setStyle(this.tabCanvas.layers.notes.dot[i].domElement, {display: "unset"});
             this.tabCanvas.layers.notes.dot[i].cx = dotData[i][0] + 12;
             this.tabCanvas.layers.notes.dot[i].cy = dotData[i][1] + 12 + this.stringPadding * 5;
         }
         for(let i = lenumber; i < this.tabCanvas.layers.notes.dot.length; i++){
-            utils.setStyle(<HTMLElement><unknown>this.tabCanvas.layers.notes.dot[i].domElement, {display: "none"});
+            utils.setStyle(this.tabCanvas.layers.notes.dot[i].domElement, {display: "none"});
         }
     }
     private onNoteClicked(ev: MouseEvent) {
