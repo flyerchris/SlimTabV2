@@ -1,17 +1,22 @@
-import { MidiData } from "./SlimTabV2Interface"
-export class MidiTimeCorrection{
+import { KeyBoardAdapter } from "./KeyBoardAdapter"
+import { Midi2Tab } from "./Midi2Tab"
+export class MidiCorrection{
     startTimeOffset: number = 0;
     timeOffset: number = 0;
     private bpm: number = 120;
     private isWorking = false;
+    private mid2tab: Midi2Tab;
     
     constructor(bpm?: number){
         if(bpm){
             this.bpm = bpm;
         }
     }
-    correct(time: number){
+    correct(time: number, signal: boolean, channel: number, key: number, vel: number){
         let rbc = this.timeToBeatCount(time + this.startTimeOffset);
+        if(this.mid2tab){
+            this.mid2tab.push(rbc, signal, {channel: KeyBoardAdapter.noteKeyToStringData(key)[0], key: key, velocity: vel, signal: signal});
+        }
         return rbc;
     }
     get milliSecondPerBeat(){
@@ -25,6 +30,9 @@ export class MidiTimeCorrection{
     }
     deactivate(){
         this.isWorking = false;
+    }
+    use(m2t: Midi2Tab){
+        this.mid2tab = m2t;
     }
 
     private timeToBeatCount(time: number){
