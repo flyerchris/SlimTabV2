@@ -1,4 +1,5 @@
 import {utils} from './utils';
+import {EventEmitter} from './EventEmitter'
 
 interface SVGPrimitiveRenderer {
     clear(): void;
