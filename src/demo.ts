@@ -7,7 +7,10 @@ import { instrumentCorrection } from "./instrumentCorrection"
 import { SLEditor } from "./SlimTabV2Editor"
 import {SLPract} from "./SLPract"
 import { KeyBoardAdapter } from "./KeyBoardAdapter"
-let ka = new KeyBoardAdapter();
+import { MIDIInputDevice, IMIDIInputDevice } from "./MIDIDevice"
+import { MidiCorrection } from "./MidiCorrection"
+import { Midi2Tab } from "./Midi2Tab"
+let ka = KeyBoardAdapter;
 let nt = new SLTab();
 let data: [number, number[], any][][] = [
     []
@@ -42,6 +45,30 @@ let da = new DataAdapter();
 da.timeOffset = 40;
 let device: LiCAPDevice;
 let beep: Metronome = new Metronome(120);
+let testDev: IMIDIInputDevice;
+let mc = new MidiCorrection();
+let m2t = new Midi2Tab();
+MIDIInputDevice.enumerate().then((devs) => {
+    for(let d of devs){
+        if(d.deviceName == "MIDI function"){
+            testDev = d;
+            initTestDev();
+        }
+    }
+});
+function initTestDev(){
+    testDev.open();
+    mc.use(m2t);
+    testDev.on("noteon", (time, channel, key, vel) => {
+        mc.startTimeOffset = -beep.getStartTime();
+        mc.correct(time, true, channel, key, vel);
+    });
+    testDev.on("noteoff", (time, channel, key, vel) => {
+        mc.startTimeOffset = -beep.getStartTime();
+        mc.correct(time, false, channel, key, vel);
+    });
+}
+m2t.addPackListener((note) => console.log(note));
 LiCAP.enumerate().then((devs)=>{
     if(devs.length > 0) {
         device = devs[0];
