@@ -1,6 +1,11 @@
 import { KeyBoardAdapter } from "./KeyBoardAdapter"
 import { Midi2Tab } from "./Midi2Tab"
-export class MidiCorrection{
+export interface MidiCorrection{
+    correct: (time: number, signal: boolean, channel: number, key: number, vel: number) => any;
+    use: (m2t: Midi2Tab) => any;
+    setBpm: (val: number) => any;
+}
+export class NormalCorrection implements MidiCorrection{
     startTimeOffset: number = 0;
     timeOffset: number = 0;
     private bpm: number = 120;
@@ -12,7 +17,7 @@ export class MidiCorrection{
             this.bpm = bpm;
         }
     }
-    correct(time: number, signal: boolean, channel: number, key: number, vel: number){
+    correct(time: number, signal: boolean, channel: number, key: number, vel: number): number{
         let rbc = this.timeToBeatCount(time + this.startTimeOffset);
         if(this.mid2tab){
             this.mid2tab.push(rbc, signal, {channel: KeyBoardAdapter.noteKeyToStringData(key)[0], key: key, velocity: vel, signal: signal});

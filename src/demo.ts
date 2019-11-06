@@ -8,7 +8,7 @@ import { SLEditor } from "./SlimTabV2Editor"
 import {SLPract} from "./SLPract"
 import { KeyBoardAdapter } from "./KeyBoardAdapter"
 import { MIDIInputDevice, IMIDIInputDevice } from "./MIDIDevice"
-import { MidiCorrection } from "./MidiCorrection"
+import { NormalCorrection } from "./MidiCorrection"
 import { Midi2Tab } from "./Midi2Tab"
 let ka = KeyBoardAdapter;
 let nt = new SLTab();
@@ -46,7 +46,7 @@ da.timeOffset = 40;
 let device: LiCAPDevice;
 let beep: Metronome = new Metronome(120);
 let testDev: IMIDIInputDevice;
-let mc = new MidiCorrection();
+let mc = new NormalCorrection();
 let m2t = new Midi2Tab();
 MIDIInputDevice.enumerate().then((devs) => {
     for(let d of devs){
