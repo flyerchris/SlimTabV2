@@ -13,3 +13,11 @@ export interface CaculatedNoteData {
     note: number;
     hasSvg: boolean;
 }
+
+export interface MidiData {
+    signal: boolean; // true for note on, false for note off
+    channel: number;
+    key: number;
+    velocity: number;
+    userData?: string;
+}
