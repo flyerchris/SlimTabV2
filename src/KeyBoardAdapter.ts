@@ -3,19 +3,22 @@ let stringFrequency = [329.63, 246.94, 196, 146.83, 110, 82.41];
 let A4Key = 69;
 let A4Frequency = 440;
 let octaveSetp = 12;
-
+let unit = Math.pow(Math.E, Math.log(2) / octaveSetp);
 export class KeyBoardAdapter {
-    private unit = Math.pow(Math.E, Math.log(2) / octaveSetp);
-    noteKeyToFrequency(noteKey: number): number{
+    static noteKeyToStringData(noteKey: number){
+        let frq = KeyBoardAdapter.noteKeyToFrequency(noteKey);
+        return KeyBoardAdapter.frequencyToStringData(frq);
+    }
+    static noteKeyToFrequency(noteKey: number): number{
         let dif = noteKey - A4Key;
-        return Math.pow(this.unit, dif) * A4Frequency;
+        return Math.pow(unit, dif) * A4Frequency;
     }
     /**
      * convert freqency to string index and block index
      * @param freq frequency
      * @returns [ string index, block index]
      */
-    frequencyToStringData(freq: number): [number, number]{
+    static frequencyToStringData(freq: number): [number, number]{
         let string = stringFrequency.length - 1;
         for(let i = 0; i < stringFrequency.length; i++){
             if(freq >= stringFrequency[i]){
@@ -23,7 +26,7 @@ export class KeyBoardAdapter {
                 break;
             }
         }
-        let block = Math.floor(Math.log(freq/stringFrequency[string])/Math.log(this.unit));
+        let block = Math.floor(Math.log(freq/stringFrequency[string])/Math.log(unit));
         return [string, block];
     }
 }
