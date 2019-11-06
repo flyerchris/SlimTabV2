@@ -7,7 +7,7 @@ interface SVGPrimitiveRenderer {
     createText(x: number, y: number, str: string, anchor: string): Text;
     createLine(x1: number, y1: number, x2: number, y2: number, width: number, color?: string): Line;
 }
-export class NoteBlock{
+export class NoteBlock implements EventEmitter {
     readonly domElement: SVGElement;
     readonly word: Text;
     readonly wordBack: Text;
@@ -69,6 +69,10 @@ export class NoteBlock{
     }
     get line(): number{
         return this._line;
+    }
+
+    on(ename: string, cbk: ()=>void): void {
+        this.domElement.addEventListener(ename, cbk);
     }
 }
 export class SVGNote implements EventEmitter {
@@ -247,7 +251,7 @@ export class Layer implements SVGPrimitiveRenderer {
 }
 
 
-export class SVGShape {
+export class SVGShape implements EventEmitter {
     protected _domElement: SVGElement;
     constructor(domElement: SVGElement) {
         this._domElement = domElement;
@@ -260,6 +264,9 @@ export class SVGShape {
     }
     set style(val: {[key: string]: string}){
         utils.setStyle(this.domElement, val);
+    }
+    on(ename: string, cbk: ()=>void): void {
+        this._domElement.addEventListener(ename, cbk);
     }
 };
 
@@ -636,7 +643,7 @@ class NoteLayer extends Layer {
         `;
         utils.setAttributes(this.domElement,{"data-layer": "NoteLayer"})
     }
-    createNote(insertIndex: number = -1): SVGElement {
+    createNote(insertIndex: number = -1): SVGNote {
         const note = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockGroup = document.createElementNS('http://www.w3.org/2000/svg',"g");
         const blockArray: NoteBlock[] = [];
@@ -661,10 +668,11 @@ class NoteLayer extends Layer {
         }
         note.append(blockGroup);
         if(insertIndex === -1)insertIndex = this.noteElements.length;
-        this.noteElements.splice(insertIndex, 0, new SVGNote(note, blockArray, lg));
+        let newnote = new SVGNote(note, blockArray, lg);
+        this.noteElements.splice(insertIndex, 0, newnote);
         //this.noteElements.push(new SVGNote(note, blockArray, lg));
         this.domElement.append(note);
-        return note;
+        return newnote;
     }
 
     removeNote(noteIndex: number, num: number = 1){
