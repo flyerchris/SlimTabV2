@@ -68,12 +68,12 @@ export class MIDIInputDevice implements IMIDIInputDevice {
                 // note off
                 // ref: http://midi.teragonaudio.com/tech/midispec/noteoff.htm
                 // channel note vol(float) timestamp
-                this.callbacks["noteoff"].callAll(channel, e.data[1], e.data[2] / 127.0, e.timeStamp);// string idex, note, vol, time stamp
+                this.callbacks["noteoff"].callAll(e.timeStamp, channel, e.data[1], e.data[2] / 127.0);// timestamp, channel, note, vol, 
                 break;
             case 9:
                 // note on
                 // ref: http://midi.teragonaudio.com/tech/midispec/noteon.htm
-                this.callbacks["noteon"].callAll(channel, e.data[1], e.data[2] / 127.0, e.timeStamp);// string idex, note, vol, time stamp
+                this.callbacks["noteon"].callAll(e.timeStamp, channel, e.data[1], e.data[2] / 127.0);// timestamp, channel, note, vol, 
                 break;
         }
         
