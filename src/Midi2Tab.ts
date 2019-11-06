@@ -8,9 +8,9 @@ export class Midi2Tab {
         noteOnData: MidiData[];
         noteOffData: MidiData[];
     }[] = [];
-    private chordInterval: number = -0.2 * this.bpm + 84;//120=>60, 420=>0
+    private timeUnit: number = 60000 / this.bpm / 4;
     private beatInnerCount = [0, 0];
-    private waitPacking = true;
+    private chordHandlerId = -1;
     private callBack: Callbacks;
 
     constructor(){
@@ -41,8 +41,11 @@ export class Midi2Tab {
                     this.inputData[li].beatNumber = beatNumber;
                 }
             }else{
-                if(this.waitPacking){
-                    console.error("waiting for composing chord, only accept same beat number");
+                if(this.chordHandlerId != -1){
+                    clearTimeout(this.chordHandlerId);
+                    this.packNote();
+                    this.push(beatNumber, signal, data);
+                    return;
                 }
                 this.pushEmptyData();
                 li = this.inputData.length - 1;
@@ -53,8 +56,7 @@ export class Midi2Tab {
                     this.inputData[li].noteOffData[data.channel] = data;
                     this.inputData[li].beatNumber = beatNumber;
                 }
-                this.waitPacking = true;
-                setTimeout(() => this.packNote(), this.chordInterval);
+                this.chordHandlerId = setTimeout(() => this.packNote(), this.timeUnit);
             }
         }else{
             if(!signal){
@@ -82,7 +84,7 @@ export class Midi2Tab {
         this.inputData.shift();
         if(this.inputData[0].noteOnData.length == 0)this.inputData.shift();
         this.callBack["pack"].callAll(rn);
-        this.waitPacking = false;
+        this.chordHandlerId = -1;
     }
 
 
