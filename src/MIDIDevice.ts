@@ -1,9 +1,12 @@
 import {EventEmitter} from './EventEmitter'
 import {Callbacks} from './utils'
-
-interface IMIDIInputDevice extends EventEmitter {
+interface eventCallBackInterface {
+    noteon: (timeStamp: number, channel: number, key: number, velocity: number) => any;
+    noteoff: (timeStamp: number, channel: number, key: number, velocity: number) => any;
+}
+export interface IMIDIInputDevice extends EventEmitter {
     readonly deviceName: string;
-
+    on<key extends keyof eventCallBackInterface>(ename: key, cbk: eventCallBackInterface[key]): void;
     open(): void;
 }
 
@@ -22,7 +25,7 @@ export class MIDIInputDevice implements IMIDIInputDevice {
         this.callbacks = new Callbacks(["noteon", "noteoff", "message"]);
     }
 
-    on(ename: string, cbk: (...args: any[]) => void): void {
+    on<key extends keyof eventCallBackInterface>(ename: key, cbk: eventCallBackInterface[key]): void {
         if(ename in this.callbacks) {
             this.callbacks[ename].push(cbk);
         }
